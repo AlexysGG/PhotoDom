@@ -6,9 +6,6 @@ from .models import Evento, FotoInvitado
 from unfold.admin import ModelAdmin
 
 
-
-
-
 def obtener_vista_previa_html(obj):
     if not obj.archivo:
         return "Sin archivo"
@@ -72,6 +69,10 @@ class EventoAdmin(ModelAdmin):
     @admin.display(description='Panel Dueño')
     def ver_panel_dueno(self, obj):
         """Genera un botón para abrir el dashboard del dueño en una pestaña nueva"""
+        # 🟢 VALIDACIÓN AGREGADA: Si el evento aún no se ha guardado, retorna un guion
+        if not obj or not obj.pk:
+            return "-"
+
         url = reverse('galeria_dueno', args=[obj.id])
         return format_html(
             '<a href="{}" target="_blank" class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold text-xs px-3 py-1.5 rounded-md transition-colors">'
