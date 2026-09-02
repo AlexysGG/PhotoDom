@@ -144,32 +144,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
-
-
-# --- CONFIGURACIÓN DE FIREBASE ---
-
-# Ruta al archivo JSON de credenciales
-FIREBASE_KEY_PATH = os.path.join(BASE_DIR, 'firebase_key.json')
-
-# Reemplaza 'tu-proyecto-id.appspot.com' con el nombre exacto de tu bucket en Firebase Storage
-# (Lo encuentras en Firebase Console -> Storage -> El texto que empieza con gs://...)
-FIREBASE_STORAGE_BUCKET = 'gs://eventos-2960c.firebasestorage.app'
-
-if os.path.exists(FIREBASE_KEY_PATH):
-    cred = credentials.Certificate(FIREBASE_KEY_PATH)
-    firebase_admin.initialize_app(
-        cred, {'storageBucket': FIREBASE_STORAGE_BUCKET}
-    )
-    print('🔥 Conexión exitosa a Firebase Storage')
-else:
-    print(
-        '⚠️ AVISO: No se encontró el archivo firebase_key.json en la raíz del proyecto.'
-    )
-
-
-
 UNFOLD = {
     "SITE_TITLE": "Administración de Eventos",
     "SITE_HEADER": "Panel Neumórfico",
