@@ -419,11 +419,18 @@
                 });
 
                 xhr.addEventListener('load', () => {
-                    const data = JSON.parse(xhr.responseText || '{}');
+                    let data = {};
+                    try {
+                        data = JSON.parse(xhr.responseText || '{}');
+                    } catch (e) {
+                        // Ocurre cuando el servidor responde con HTML (ej. Error 500)
+                        return reject('Error interno en el servidor (500). Revisa la consola o logs de Render.');
+                    }
+
                     if (xhr.status >= 200 && xhr.status < 300 && data.success) {
                         resolve(data);
                     } else {
-                        reject(data.error || 'Error al procesar la subida.');
+                        reject(data.error || `Error del servidor (${xhr.status})`);
                     }
                 });
 

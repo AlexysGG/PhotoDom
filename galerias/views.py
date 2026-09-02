@@ -35,6 +35,7 @@ def galeria_invitado(request, evento_id):
     })
 
 
+@require_POST  # 👈 Rechaza peticiones GET enviando un error claro
 @ratelimit(key='ip', rate='30/m', block=False)
 def subir_foto_ajax(request, evento_id):
     """Procesa la subida de fotos y videos vía AJAX con validación de espacio"""
@@ -45,61 +46,66 @@ def subir_foto_ajax(request, evento_id):
             'error': 'Has alcanzado el límite máximo de subidas por minuto.'
         }, status=429)
 
-    if request.method == 'POST':
-        evento = get_object_or_404(Evento, id=evento_id)
-        archivo = request.FILES.get('foto')
+    evento = get_object_or_404(Evento, id=evento_id)
+    archivo = request.FILES.get('foto')
 
-        if not archivo:
-            return JsonResponse({'success': False, 'error': 'No se recibió ningún archivo.'})
+    if not archivo:
+        return JsonResponse({'success': False, 'error': 'No se recibió ningún archivo.'}, status=400)
 
-        # --- VALIDACIONES DE ALMACENAMIENTO Y TAMAÑO ---
-        peso_archivo_mb = archivo.size / (1024 * 1024)
+    # --- VALIDACIONES DE ALMACENAMIENTO Y TAMAÑO ---
+    peso_archivo_mb = archivo.size / (1024 * 1024)
 
-        # 1. Límite máximo absoluto por archivo (1 GB)
-        if peso_archivo_mb > 1024:
-            return JsonResponse({
-                'success': False, 
-                'error': f'El archivo supera el límite máximo permitido por archivo (1 GB).'
-            }, status=400)
-
-        # 2. Calcular almacenamiento ocupado actualmente por el evento
-        archivos_existentes = evento.fotos.all()
-        bytes_ocupados = sum(f.archivo.size for f in archivos_existentes if f.archivo)
-        mb_ocupados = bytes_ocupados / (1024 * 1024)
-
-        limite_plan_mb = evento.plan_almacenamiento
-        espacio_libre_mb = limite_plan_mb - mb_ocupados
-
-        # 3. Validar si el archivo actual cabe en el espacio restante del plan
-        if peso_archivo_mb > espacio_libre_mb:
-            espacio_mostrar = max(0, espacio_libre_mb)
-            return JsonResponse({
-                'success': False, 
-                'error': f'Almacenamiento no disponible. Quedan {espacio_mostrar:.1f} MB libres en el plan.'
-            }, status=400)
-
-        # Crear el registro y guardar
-        foto = FotoInvitado.objects.create(
-            evento=evento,
-            archivo=archivo
-        )
-
-        mis_fotos = request.session.get('mis_fotos_ids', [])
-        mis_fotos.append(foto.id)
-        request.session['mis_fotos_ids'] = mis_fotos
-        request.session.modified = True
-
-        # Evaluamos es_video de forma segura
-        es_vid = foto.es_video() if callable(getattr(foto, 'es_video', None)) else getattr(foto, 'es_video', False)
-
+    # 1. Límite máximo por archivo (1 GB)
+    if peso_archivo_mb > 1024:
         return JsonResponse({
-            'success': True,
-            'id': foto.id,
-            'archivo_url': str(foto.archivo.url),
-            'es_video': bool(es_vid)
-        })
+            'success': False, 
+            'error': 'El archivo supera el límite máximo permitido por archivo (1 GB).'
+        }, status=400)
 
-    return JsonResponse({'success': False, 'error': 'Método no permitido.'}, status=405)
+    # 2. Calcular almacenamiento ocupado de forma segura sin romper la vista
+    bytes_ocupados = 0
+    archivos_existentes = evento.fotos.all()
+    for f in archivos_existentes:
+        if f.archivo:
+            try:
+                bytes_ocupados += f.archivo.size
+            except Exception:
+                continue # Si un archivo remoto no responde, salta sin dar 500
+
+    mb_ocupados = bytes_ocupados / (1024 * 1024)
+    limite_plan_mb = evento.plan_almacenamiento
+    espacio_libre_mb = limite_plan_mb - mb_ocupados
+
+    # 3. Validar si cabe el archivo
+    if peso_archivo_mb > espacio_libre_mb:
+        espacio_mostrar = max(0, espacio_libre_mb)
+        return JsonResponse({
+            'success': False, 
+            'error': f'Almacenamiento no disponible. Quedan {espacio_mostrar:.1f} MB libres en el plan.'
+        }, status=400)
+
+    # Guardar en base de datos y Google Cloud Storage
+    foto = FotoInvitado.objects.create(
+        evento=evento,
+        archivo=archivo
+    )
+
+    mis_fotos = request.session.get('mis_fotos_ids', [])
+    if not isinstance(mis_fotos, list):
+        mis_fotos = []
+    
+    mis_fotos.append(foto.id)
+    request.session['mis_fotos_ids'] = mis_fotos
+    request.session.modified = True
+
+    es_vid = foto.es_video() if callable(getattr(foto, 'es_video', None)) else getattr(foto, 'es_video', False)
+
+    return JsonResponse({
+        'success': True,
+        'id': foto.id,
+        'archivo_url': str(foto.archivo.url),
+        'es_video': bool(es_vid)
+    })
 
 
 @require_POST
