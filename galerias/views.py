@@ -85,10 +85,16 @@ def subir_foto_ajax(request, evento_id):
         }, status=400)
 
     # Guardar en base de datos y Google Cloud Storage
-    foto = FotoInvitado.objects.create(
-        evento=evento,
-        archivo=archivo
-    )
+    try:
+        foto = FotoInvitado.objects.create(
+            evento=evento,
+            archivo=archivo
+        )
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al guardar en el almacenamiento: {str(e)}'
+        }, status=500)
 
     mis_fotos = request.session.get('mis_fotos_ids', [])
     if not isinstance(mis_fotos, list):

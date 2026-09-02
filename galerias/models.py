@@ -107,7 +107,6 @@ class Evento(models.Model):
 
 class FotoInvitado(models.Model):
     """Modelo para guardar fotos y videos de invitados"""
-    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='archivos')
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='fotos')
     
     # CAMBIO IMPORTANTE: FileField en lugar de ImageField

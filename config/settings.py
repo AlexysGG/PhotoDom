@@ -194,26 +194,39 @@ UNFOLD = {
 
 
 # --- CONFIGURACIÓN GOOGLE CLOUD STORAGE ---
-# Reemplaza con el nombre exacto de tu bucket (sin gs:// ni https://)
 GS_BUCKET_NAME = 'photosdomviewer' 
 
-# Ruta al archivo JSON con tus credenciales
-GS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcp-key.json')
+# 1. Buscar credenciales en Render (/etc/secrets/) o en Local (BASE_DIR)
+RENDER_SECRET_PATH = '/etc/secrets/gcp-key.json'
+LOCAL_SECRET_PATH = os.path.join(BASE_DIR, 'gcp-key.json')
 
-if os.path.exists(GS_CREDENTIALS_FILE):
+GS_CREDENTIALS = None
+if os.path.exists(RENDER_SECRET_PATH):
+    GS_CREDENTIALS_FILE = RENDER_SECRET_PATH
+elif os.path.exists(LOCAL_SECRET_PATH):
+    GS_CREDENTIALS_FILE = LOCAL_SECRET_PATH
+else:
+    GS_CREDENTIALS_FILE = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+
+if GS_CREDENTIALS_FILE and os.path.exists(str(GS_CREDENTIALS_FILE)):
     from google.oauth2 import service_account
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
         GS_CREDENTIALS_FILE
     )
 
 # Configuración de Almacenamiento (Django >= 4.2)
+storage_options = {
+    "bucket_name": GS_BUCKET_NAME,
+    "file_overwrite": False,  # Evita que un archivo sobrescriba a otro con el mismo nombre
+}
+
+if GS_CREDENTIALS:
+    storage_options["credentials"] = GS_CREDENTIALS
+
 STORAGES = {
     "default": {
         "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-        "OPTIONS": {
-            "bucket_name": GS_BUCKET_NAME,
-            "file_overwrite": False,  # Evita que un archivo sobrescriba a otro con el mismo nombre
-        },
+        "OPTIONS": storage_options,
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
