@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ evento.nombre_evento }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* El CSS queda estático, sin llaves de Django dentro */
+        body {
+            background-color: var(--neu-bg);
+            color: var(--neu-text);
+        }
+
+        .neu-flat {
+            background: var(--neu-bg);
+            box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
+            border-radius: 20px;
+        }
+
+        .neu-pressed {
+            background: var(--neu-bg);
+            box-shadow: inset 6px 6px 10px var(--neu-shadow-dark), inset -6px -6px 10px var(--neu-shadow-light);
+            border-radius: 20px;
+        }
+
+        .neu-button {
+            background: var(--neu-bg);
+            color: var(--neu-primary);
+            box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .neu-button:active {
+            box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
+            transform: scale(0.98);
+        }
+
+        .neu-btn-close {
+            background: var(--neu-bg);
+            box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+            transition: all 0.2s ease;
+        }
+
+        .neu-btn-close:active {
+            box-shadow: inset 2px 2px 4px var(--neu-shadow-dark), inset -2px -2px 4px var(--neu-shadow-light);
+        }
+
+        .neu-btn-danger {
+            background: var(--neu-bg);
+            color: #e53e3e;
+            box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
+            transition: all 0.2s ease;
+        }
+
+        .neu-btn-success {
+            background: var(--neu-bg);
+            color: var(--neu-primary);
+            box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+            transition: all 0.2s ease;
+        }
+
+        button:focus-visible,
+        label:focus-within {
+            outline: 2px solid var(--neu-primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen pb-36 font-sans" style="{{ evento.vars_css_tema|safe }}">
+
+    <!-- Header -->
+    <header class="max-w-2xl mx-auto mt-6 mx-4 p-6 neu-flat text-center">
+        <h1 class="text-2xl font-black text-gray-700 tracking-wide">{{ evento.nombre_evento }}</h1>
+        <p class="text-xs text-gray-500 font-semibold mt-1">¡Comparte tus fotos y videos con {{ evento.nombre_cliente}}!
+        </p>
+    </header>
+
+    <!-- Banner de error neumórfico -->
+    <div id="banner-error"
+        class="hidden fixed top-4 left-4 right-4 z-50 max-w-md mx-auto neu-flat p-4 border border-red-200">
+        <div class="flex items-start justify-between">
+            <p id="banner-error-texto" class="text-xs text-red-500 font-semibold whitespace-pre-line pr-3"></p>
+            <button onclick="cerrarBannerError()" aria-label="Cerrar aviso"
+                class="text-red-400 font-bold text-sm shrink-0">✕</button>
+        </div>
+    </div>
+
+    <main class="max-w-2xl mx-auto p-4 mt-4">
+
+        <!-- SECCIÓN: Previsualización de Selección Previa -->
+        <div id="seccion-previsualizacion" class="hidden mb-8 p-4 neu-pressed rounded-2xl">
+            <div class="flex justify-between items-center mb-3 px-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                    Archivos seleccionados <span id="contador-preview">(0)</span>
+                </span>
+            </div>
+
+            <!-- Galería temporal local -->
+            <div id="grid-preview" class="grid grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- Input invisible de archivos -->
+        <input type="file" id="input-fotos" name="foto" multiple accept="image/*,video/*" class="hidden"
+            onchange="procesarSeleccion(this)">
+
+
+
+
+        <!-- Separador de Fotos Subidas -->
+        <div class="flex items-center gap-3 my-6">
+            <div class="h-px bg-gray-300/60 flex-1 neu-pressed"></div>
+            <div class="text-center px-2">
+                <h2 class="text-xs font-black uppercase tracking-wider text-gray-500">Fotos subidas</h2>
+                <p class="text-[11px] text-gray-400 font-medium">
+                    Las fotos a continuación ya pueden ser vistas por {{ evento.nombre_cliente }}
+                </p>
+            </div>
+            <div class="h-px bg-gray-300/60 flex-1 neu-pressed"></div>
+        </div>
+
+        <!-- Malla de Fotos Públicas de la Galería -->
+        <div id="grid-fotos" class="grid grid-cols-2 gap-5">
+            {% for archivo in archivos %}
+            <div id="card-foto-{{ archivo.id }}" class="neu-flat p-3 relative group">
+
+                {% if archivo.id in mis_fotos_ids %}
+                <button onclick="abrirModalEliminar({{ archivo.id }})" aria-label="Eliminar recuerdo"
+                    class="neu-btn-close absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center text-red-500 font-bold">
+                    ✕
+                </button>
+                {% endif %}
+
+                <div class="aspect-square neu-pressed overflow-hidden rounded-xl">
+                    {% if archivo.es_video %}
+                    <video class="w-full h-full object-cover" controls muted playsinline>
+                        <source src="{{ archivo.archivo.url }}" type="video/mp4">
+                    </video>
+                    {% else %}
+                    <img src="{{ archivo.archivo.url }}" class="w-full h-full object-cover" alt="Foto del evento"
+                        loading="lazy">
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <!-- Estado Vacío Neumórfico -->
+            <div id="sin-fotos"
+                class="col-span-full w-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
+                <p class="text-gray-500 font-bold text-lg mb-1">Aún no hay recuerdos.</p>
+                <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
+
+                <!-- Botón principal dentro del recuadro -->
+                <button onclick="document.getElementById('input-fotos').click()" type="button"
+                    class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2 hover:text-indigo-700 transition-all active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    SELECCIONAR FOTOS/VIDEOS
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Contenedor Flotante Inferior Sticky -->
+    <div class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4">
+        <!-- Estado 1: Botón de Selección Flotante -->
+        <button id="btn-seleccionar-flotante" onclick="document.getElementById('input-fotos').click()" type="button"
+            class="{% if not archivos %}hidden{% endif %} neu-flat px-8 py-4 rounded-full text-indigo-600 font-black text-sm tracking-wider flex items-center gap-3 border border-white/40 shadow-lg active:scale-95 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+            </svg>
+            SELECCIONAR FOTOS/VIDEOS
+        </button>
+
+        <!-- Estado 2: Botón Flotante Sticky de Confirmar y Subir Archivos -->
+        <button id="btn-subir-flotante" onclick="subirTodosLosArchivos()" type="button"
+            class="hidden neu-flat bg-indigo-600 text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-xl active:scale-95 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            CONFIRMAR Y SUBIR
+        </button>
+    </div>
+
+    <!-- Modal de Progreso Neumórfico -->
+    <div id="modal-progreso"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div
+            class="neu-flat p-8 max-w-xs w-full text-center border border-white/60 shadow-2xl rounded-3xl transition-all">
+            <div class="w-20 h-20 neu-pressed rounded-full flex items-center justify-center mx-auto mb-5 relative">
+                <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            </div>
+            <h3 class="text-base font-black text-gray-700 uppercase tracking-wider mb-2">Subiendo recuerdos</h3>
+            <p id="progreso-texto" class="text-xs font-bold text-indigo-600 mb-2">Iniciando subida...</p>
+            <p class="text-[11px] text-gray-400 font-medium leading-relaxed">
+                Por favor, no cierres esta ventana mientras enviamos tus archivos.
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal Agradecimiento -->
+    <div id="modal-gracias"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+        <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
+            <div
+                class="w-12 h-12 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-500 flex items-center justify-center">
+                📸✨
+            </div>
+            <h3 class="text-lg font-bold text-gray-700">¡Muchas Gracias!</h3>
+            <p class="text-xs text-gray-500 mt-2 mb-6">Gracias por colaborar compartiendo tus recuerdos para este
+                evento.</p>
+            <button onclick="cerrarModalGracias()" class="w-full neu-btn-success py-2.5 rounded-xl font-bold text-sm">
+                Aceptar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar -->
+    <div id="modal-eliminar"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+        <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
+            <div
+                class="w-12 h-12 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-700">¿Eliminar recuerdo?</h3>
+            <p class="text-xs text-gray-500 mt-1 mb-6">Esta acción no se puede deshacer.</p>
+            <div class="flex space-x-4">
+                <button onclick="cerrarModalEliminar()"
+                    class="w-1/2 neu-button py-2.5 rounded-xl font-bold text-gray-600 text-sm">
+                    Cancelar
+                </button>
+                <button onclick="confirmarEliminar()" class="w-1/2 neu-btn-danger py-2.5 rounded-xl font-bold text-sm">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lógica JavaScript -->
+    <script>
+        let colaArchivos = [];
+        let fotoIdAEliminar = null;
+        let bannerErrorTimeout = null;
+
+        // Constantes de límites de almacenamiento
+        const TAMANO_MAX_ARCHIVO_MB = 1000; // Máximo por archivo individual (1 GB)
+        const PLAN_MAX_MB = parseFloat("{{ evento.plan_almacenamiento }}") || 200;
+
+        // Obtener peso inicial de los archivos ya subidos que están en el DOM
+        function obtenerEspacioUsadoEnServidorMB() {
+            // Se puede inyectar desde el backend o calcular leyendo el DOM si tienes data attributes
+            return parseFloat("{{ espacio_usado_mb|default:'0' }}") || 0;
+        }
+
+        function calcularEspacioColaMB() {
+            const bytesTotales = colaArchivos.reduce((acum, file) => acum + file.size, 0);
+            return bytesTotales / (1024 * 1024);
+        }
+
+        function mostrarError(mensaje) {
+            const banner = document.getElementById('banner-error');
+            document.getElementById('banner-error-texto').innerText = mensaje;
+            banner.classList.remove('hidden');
+
+            clearTimeout(bannerErrorTimeout);
+            bannerErrorTimeout = setTimeout(cerrarBannerError, 5000);
+        }
+
+        function cerrarBannerError() {
+            document.getElementById('banner-error').classList.add('hidden');
+        }
+
+        function procesarSeleccion(input) {
+            if (!input.files || input.files.length === 0) return;
+
+            const rechazados = [];
+            const espacioUsadoServer = obtenerEspacioUsadoEnServidorMB();
+            let espacioColaActual = calcularEspacioColaMB();
+
+            Array.from(input.files).forEach(file => {
+                const esValido = file.type.startsWith('image/') || file.type.startsWith('video/');
+                const pesoArchivoMB = file.size / (1024 * 1024);
+                const pesoOk = pesoArchivoMB <= TAMANO_MAX_ARCHIVO_MB;
+
+                // Validar espacio restante disponible en el plan
+                const espacioDisponible = PLAN_MAX_MB - (espacioUsadoServer + espacioColaActual);
+
+                if (!esValido) {
+                    rechazados.push(`${file.name} (formato no soportado)`);
+                } else if (!pesoOk) {
+                    rechazados.push(`${file.name} (supera ${TAMANO_MAX_ARCHIVO_MB}MB)`);
+                } else if (pesoArchivoMB > espacioDisponible) {
+                    const libre = Math.max(0, espacioDisponible).toFixed(1);
+                    rechazados.push(`${file.name} (excede los ${libre}MB disponibles del plan)`);
+                } else {
+                    colaArchivos.push(file);
+                    espacioColaActual += pesoArchivoMB; // Sumar al espacio acumulado temporal
+                }
+            });
+
+            if (rechazados.length > 0) {
+                mostrarError(`Algunos archivos no se agregaron:\n${rechazados.join('\n')}`);
+            }
+
+            renderizarPrevisualizaciones();
+            actualizarBotonesFlotantes();
+            input.value = '';
+        }
+
+        function renderizarPrevisualizaciones() {
+            const contenedor = document.getElementById('grid-preview');
+            const seccion = document.getElementById('seccion-previsualizacion');
+
+            document.getElementById('contador-preview').innerText = `(${colaArchivos.length})`;
+
+            if (colaArchivos.length === 0) {
+                seccion.classList.add('hidden');
+                contenedor.innerHTML = '';
+                return;
+            }
+
+            seccion.classList.remove('hidden');
+            contenedor.innerHTML = '';
+
+            // 1. Dibuja las previsualizaciones existentes
+            colaArchivos.forEach((file, index) => {
+                const urlBlob = URL.createObjectURL(file);
+                const esVideo = file.type.startsWith('video/');
+
+                const cardPreview = `
+        <div class="neu-flat p-2 relative">
+            <button onclick="removerDeCola(${index})" aria-label="Quitar archivo" class="neu-btn-close absolute -top-2 -right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center text-red-500 text-xs font-bold">
+                ✕
+            </button>
+            <div class="aspect-square neu-pressed overflow-hidden rounded-lg">
+                ${esVideo
+                        ? `<video src="${urlBlob}" class="w-full h-full object-cover" muted></video>`
+                        : `<img src="${urlBlob}" class="w-full h-full object-cover" alt="Previsualización">`
+                    }
+            </div>
+        </div>
+    `;
+                contenedor.insertAdjacentHTML('beforeend', cardPreview);
+            });
+
+            // 2. Agrega el botón "+ Añadir más" al final de la cuadrícula de previsualización
+            const botonAgregarMas = `
+    <button onclick="document.getElementById('input-fotos').click()" type="button" 
+        class="aspect-square neu-button rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold p-2 border-2 border-dashed border-indigo-300/50 hover:bg-indigo-50/30 transition-all">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span class="text-[11px] uppercase tracking-wider text-center">Añadir más</span>
+    </button>
+`;
+            contenedor.insertAdjacentHTML('beforeend', botonAgregarMas);
+        }
+
+        function removerDeCola(index) {
+            colaArchivos.splice(index, 1);
+            renderizarPrevisualizaciones();
+            actualizarBotonesFlotantes();
+        }
+
+        function limpiarSeleccion() {
+            colaArchivos = [];
+            renderizarPrevisualizaciones();
+            actualizarBotonesFlotantes();
+        }
+
+        function verificarGaleriaVacia() {
+            const grid = document.getElementById('grid-fotos');
+            if (grid.children.length === 0) {
+                const tarjetaVacia = `
+                <div id="sin-fotos" class="col-span-full w-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
+                    <p class="text-gray-500 font-bold text-lg mb-1">Aún no hay recuerdos.</p>
+                    <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
+                    <button onclick="document.getElementById('input-fotos').click()" type="button"
+                        class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2 hover:text-indigo-700 transition-all active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        SELECCIONAR FOTOS/VIDEOS
+                    </button>
+                </div>
+            `;
+                grid.innerHTML = tarjetaVacia;
+            }
+        }
+
+        function subirArchivoXHR(file, numActual, total) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                const formData = new FormData();
+                formData.append('foto', file);
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const porcentaje = Math.round((e.loaded / e.total) * 100);
+                        const txt = document.getElementById('progreso-texto');
+
+                        if (txt) {
+                            if (porcentaje === 100) {
+                                txt.innerText = `Procesando en la nube... (${numActual} de ${total})`;
+                            } else {
+                                txt.innerText = `Subiendo ${numActual} de ${total}...`;
+                            }
+                        }
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    const data = JSON.parse(xhr.responseText || '{}');
+                    if (xhr.status >= 200 && xhr.status < 300 && data.success) {
+                        resolve(data);
+                    } else {
+                        reject(data.error || 'Error al procesar la subida.');
+                    }
+                });
+
+                xhr.addEventListener('error', () => reject('Error de red al conectar con el servidor.'));
+
+                xhr.open('POST', "{% url 'subir_foto_ajax' evento.id %}", true);
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+                xhr.send(formData);
+            });
+        }
+
+        async function subirTodosLosArchivos() {
+            if (colaArchivos.length === 0) return;
+
+            const modalProgreso = document.getElementById('modal-progreso');
+            const txt = document.getElementById('progreso-texto');
+
+            if (txt) txt.innerText = "Iniciando subida...";
+            if (modalProgreso) modalProgreso.classList.remove('hidden');
+
+            const total = colaArchivos.length;
+            let subidasExitosas = 0;
+
+            for (let i = 0; i < total; i++) {
+                try {
+                    const data = await subirArchivoXHR(colaArchivos[i], i + 1, total);
+
+                    const sinFotos = document.getElementById('sin-fotos');
+                    if (sinFotos) sinFotos.remove();
+
+                    const grid = document.getElementById('grid-fotos');
+                    const mediaTag = data.es_video
+                        ? `<video class="w-full h-full object-cover" controls><source src="${data.archivo_url}" type="video/mp4"></video>`
+                        : `<img src="${data.archivo_url}" class="w-full h-full object-cover">`;
+
+                    const nuevaCard = `
+                    <div id="card-foto-${data.id}" class="neu-flat p-3 relative group">
+                        <button onclick="abrirModalEliminar(${data.id})" class="neu-btn-close absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center text-red-500 font-bold">
+                            ✕
+                        </button>
+                        <div class="aspect-square neu-pressed overflow-hidden rounded-xl">
+                            ${mediaTag}
+                        </div>
+                    </div>
+                `;
+                    if (grid) grid.insertAdjacentHTML('afterbegin', nuevaCard);
+                    subidasExitosas++;
+
+                } catch (err) {
+                    mostrarError(`Ocurrió un problema: ${err}`);
+                    break;
+                }
+            }
+
+            if (modalProgreso) modalProgreso.classList.add('hidden');
+
+            if (subidasExitosas > 0) {
+                limpiarSeleccion();
+                const modalGracias = document.getElementById('modal-gracias');
+                if (modalGracias) modalGracias.classList.remove('hidden');
+            }
+        }
+
+        function cerrarModalGracias() {
+            document.getElementById('modal-gracias').classList.add('hidden');
+        }
+
+        function abrirModalEliminar(id) {
+            fotoIdAEliminar = id;
+            document.getElementById('modal-eliminar').classList.remove('hidden');
+        }
+
+        function cerrarModalEliminar() {
+            fotoIdAEliminar = null;
+            document.getElementById('modal-eliminar').classList.add('hidden');
+        }
+
+        function confirmarEliminar() {
+            if (!fotoIdAEliminar) return;
+
+            fetch(`/foto/${fotoIdAEliminar}/eliminar/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const card = document.getElementById(`card-foto-${fotoIdAEliminar}`);
+                        if (card) card.remove();
+                        cerrarModalEliminar();
+                        verificarGaleriaVacia();
+                    } else {
+                        mostrarError('Error al eliminar: ' + data.error);
+                    }
+                })
+                .catch(() => mostrarError('No se pudo eliminar la imagen.'));
+        }
+
+        function actualizarBotonesFlotantes() {
+            const btnSeleccionar = document.getElementById('btn-seleccionar-flotante');
+            const btnSubir = document.getElementById('btn-subir-flotante');
+            const badgeCant = document.getElementById('cant-archivos-btn');
+            const sinFotosCard = document.getElementById('sin-fotos');
+
+            if (colaArchivos.length > 0) {
+                if (btnSeleccionar) btnSeleccionar.classList.add('hidden');
+                if (btnSubir) btnSubir.classList.remove('hidden');
+                if (badgeCant) badgeCant.innerText = colaArchivos.length;
+
+                if (sinFotosCard) sinFotosCard.classList.add('hidden');
+            } else {
+                if (btnSeleccionar) btnSeleccionar.classList.remove('hidden');
+                if (btnSubir) btnSubir.classList.add('hidden');
+
+                if (sinFotosCard) sinFotosCard.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>
