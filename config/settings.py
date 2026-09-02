@@ -155,7 +155,7 @@ FIREBASE_KEY_PATH = os.path.join(BASE_DIR, 'firebase_key.json')
 
 # Reemplaza 'tu-proyecto-id.appspot.com' con el nombre exacto de tu bucket en Firebase Storage
 # (Lo encuentras en Firebase Console -> Storage -> El texto que empieza con gs://...)
-FIREBASE_STORAGE_BUCKET = 'tu-proyecto-id.firebasestorage.app'
+FIREBASE_STORAGE_BUCKET = 'gs://eventos-2960c.firebasestorage.app'
 
 if os.path.exists(FIREBASE_KEY_PATH):
     cred = credentials.Certificate(FIREBASE_KEY_PATH)
