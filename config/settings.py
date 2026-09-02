@@ -33,7 +33,11 @@ SECRET_KEY = 'django-insecure-z0_q_#f6eegetcxuj&23jfd02laz4ijh4rza+q+laa6h!w--8y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'photodom.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition

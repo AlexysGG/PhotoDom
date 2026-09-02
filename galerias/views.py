@@ -84,6 +84,11 @@ def subir_foto_ajax(request, evento_id):
             archivo=archivo
         )
 
+        mis_fotos = request.session.get('mis_fotos_ids', [])
+        mis_fotos.append(foto.id)
+        request.session['mis_fotos_ids'] = mis_fotos
+        request.session.modified = True
+
         # Evaluamos es_video de forma segura
         es_vid = foto.es_video() if callable(getattr(foto, 'es_video', None)) else getattr(foto, 'es_video', False)
 
@@ -100,10 +105,20 @@ def subir_foto_ajax(request, evento_id):
 @require_POST
 def eliminar_foto_ajax(request, foto_id):
     """Elimina el archivo (foto o video)"""
+
+    mis_fotos_ids = request.session.get('mis_fotos_ids', [])
+
+    if foto_id not in mis_fotos_ids:
+        return JsonResponse({'error': 'No tienes permiso para eliminar esta foto'}, status=403)
+
     try:
         archivo = FotoInvitado.objects.get(id=foto_id)
         archivo.archivo.delete(save=False)
         archivo.delete()
+        mis_fotos_ids.remove(foto_id)
+        request.session['mis_fotos_ids'] = mis_fotos_ids
+        request.session.modified = True
+
         return JsonResponse({'success': True})
     except FotoInvitado.DoesNotExist:
         return JsonResponse({'error': 'El archivo no existe'}, status=404)
