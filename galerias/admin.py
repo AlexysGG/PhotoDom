@@ -60,7 +60,7 @@ class EventoAdmin(ModelAdmin):
         'activo',
         'fecha_creacion',
         'tema_color',
-        'ver_panel_dueno'
+        'ver_panel_dueno',
         'ver_panel_invitado',
     )
     list_filter = ('plan_almacenamiento', 'activo', 'tema_color')
