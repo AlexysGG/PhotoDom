@@ -24,38 +24,38 @@ CONFIGURACION_TEMAS = {
         'shadow_light': '#ffffff',
     },
     'rosa_pastell': {
-        'bg': '#fce7f3',       # Rosa suave
-        'text': '#831843',       # Guinda elegante
-        'primary': '#ec4899',    # Rosa vibrante
-        'shadow_dark': '#f472b6', # Sombra rosada
+        'bg': '#fce7f3',
+        'text': '#831843',
+        'primary': '#db2777',    # rosa más profundo, con más carácter que el original
+        'shadow_dark': '#dba9c4', # variante oscura del MISMO rosa del bg, no un rosa nuevo
         'shadow_light': '#ffffff',
     },
     'azul_elegante': {
-        'bg': '#e0e7ff',       # Azul claro pastel
-        'text': '#1e1b4b',       # Azul noche
-        'primary': '#2563eb',    # Azul primario
-        'shadow_dark': '#a5b4fc',
+        'bg': '#e0e7ff',
+        'text': '#1e1b4b',
+        'primary': '#4338ca',    # índigo más rico que el azul plano anterior
+        'shadow_dark': '#b8c2ed',
         'shadow_light': '#ffffff',
     },
     'verde_bosque': {
-        'bg': '#e6f0ed',       # Muted Teal suave
-        'text': '#223831',       # Verde oscuro
-        'primary': '#7ba098',    # Verde medio
-        'shadow_dark': '#98cbb4',
+        'bg': '#e6f0ed',
+        'text': '#1f352d',
+        'primary': '#4f7d6d',    # verde bosque más profundo, menos "lavado"
+        'shadow_dark': '#b9d4c9',
         'shadow_light': '#ffffff',
     },
     'morado_fiesta': {
-        'bg': '#f3e8ff',       # Lavanda
-        'text': '#3b0764',       # Morado profundo
-        'primary': '#9333ea',    # Púrpura
-        'shadow_dark': '#c084fc',
+        'bg': '#f3e8ff',
+        'text': '#3b0764',
+        'primary': '#7e22ce',    # morado vibrante pero no neón
+        'shadow_dark': '#d3b8f5',
         'shadow_light': '#ffffff',
     },
     'blanco_boda': {
-        'bg': '#f8f6f0',       # Blanco marfil
-        'text': '#44403c',       # Gris cálido
-        'primary': '#d97706',    # Dorado
-        'shadow_dark': '#d6d3d1',
+        'bg': '#f8f6f0',
+        'text': '#44403c',
+        'primary': '#b8860b',    # dorado más terroso/elegante que el naranja-dorado original
+        'shadow_dark': '#ddd7c9',
         'shadow_light': '#ffffff',
     },
 }
