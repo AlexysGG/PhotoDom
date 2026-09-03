@@ -4,6 +4,12 @@ let archivosGaleria = [];
 let indiceActual = 0;
 let idFotoAEliminar = null;
 
+// Variables para gestos táctiles y de arrastre
+let startX = 0;
+let currentTranslate = 0;
+let isDragging = false;
+
+// Inicialización de datos al cargar el DOM
 // Inicialización de datos al cargar el DOM
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Verificación de PIN en la sesión
@@ -18,6 +24,23 @@ document.addEventListener("DOMContentLoaded", () => {
         url: el.dataset.url,
         esVideo: el.dataset.esVideo === "true"
     }));
+
+    // 3. Configuración de eventos de Deslizamiento (Swipe / Drag)
+    const area = document.getElementById("carrusel-touch-area");
+    if (area) {
+        // Gestos táctiles en teléfonos y tablets
+        area.addEventListener("touchstart", touchStart, { passive: true });
+        area.addEventListener("touchmove", touchMove, { passive: true });
+        area.addEventListener("touchend", touchEnd);
+
+        // Gestos de ratón en computadoras de escritorio
+        area.addEventListener("mousedown", touchStart);
+        area.addEventListener("mousemove", touchMove);
+        area.addEventListener("mouseup", touchEnd);
+        area.addEventListener("mouseleave", () => {
+            if (isDragging) touchEnd();
+        });
+    }
 });
 
 // --- TECLADO NUMÉRICO Y VALIDACIÓN DE PIN ---
@@ -115,6 +138,7 @@ function cambiarSlide(direccion) {
 
     indiceActual += direccion;
 
+    // Bucle infinito
     if (indiceActual < 0) indiceActual = archivosGaleria.length - 1;
     if (indiceActual >= archivosGaleria.length) indiceActual = 0;
 
@@ -125,8 +149,14 @@ function actualizarVistaCarrusel() {
     const item = archivosGaleria[indiceActual];
     if (!item) return;
 
+    const container = document.getElementById("carrusel-slide-container");
     const imgEl = document.getElementById("carrusel-img");
     const videoEl = document.getElementById("carrusel-video");
+    const contador = document.getElementById("carrusel-contador");
+
+    // Resetear posición de la animación
+    container.style.transform = `translateX(0px)`;
+    container.style.transition = "transform 0.3s ease-out";
 
     if (item.esVideo) {
         imgEl.classList.add("hidden");
@@ -136,6 +166,58 @@ function actualizarVistaCarrusel() {
         videoEl.classList.add("hidden");
         imgEl.src = item.url;
         imgEl.classList.remove("hidden");
+    }
+
+    if (contador) {
+        contador.innerText = `${indiceActual + 1} / ${archivosGaleria.length}`;
+    }
+}
+
+// --- LÓGICA DEL SWIPE / DESLIZAMIENTO ---
+function getPositionX(e) {
+    return e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+}
+
+function touchStart(e) {
+    // Si se toca dentro de un video reproduciéndose, no bloqueamos sus controles
+    if (e.target.tagName === 'VIDEO') return;
+
+    isDragging = true;
+    startX = getPositionX(e);
+    const container = document.getElementById("carrusel-slide-container");
+    container.style.transition = "none"; // Desactivar transición durante el arrastre
+}
+
+function touchMove(e) {
+    if (!isDragging) return;
+    const currentX = getPositionX(e);
+    const diff = currentX - startX;
+
+    const container = document.getElementById("carrusel-slide-container");
+    container.style.transform = `translateX(${diff}px)`;
+}
+
+function touchEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const container = document.getElementById("carrusel-slide-container");
+    const transformStyle = container.style.transform;
+    const match = transformStyle.match(/translateX\(([-0-9.]+)px\)/);
+
+    if (match) {
+        const movedBy = parseFloat(match[1]);
+
+        // Umbral de 50px para detectar el cambio de slide
+        if (movedBy < -50) {
+            cambiarSlide(1); // Siguiente
+        } else if (movedBy > 50) {
+            cambiarSlide(-1); // Anterior
+        } else {
+            // Si el movimiento fue pequeño, regresa al centro
+            container.style.transition = "transform 0.3s ease-out";
+            container.style.transform = `translateX(0px)`;
+        }
     }
 }
 
