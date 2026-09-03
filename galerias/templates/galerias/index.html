@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoDom — Galerías de fotos para tu evento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header class="nav">
+        <div class="nav__brand">PhotoDom</div>
+        <nav class="nav__links">
+            <a href="#como-funciona">Cómo funciona</a>
+            <a href="#interactividad">Interactividad</a>
+            <a href="#planes">Planes</a>
+            <a href="#almacenamiento">Almacenamiento</a>
+        </nav>
+        <a href="#planes" class="button button--ghost">Crear galería</a>
+    </header>
+
+    <main>
+
+        <section class="hero">
+            <div class="hero__text">
+                <h1>Las fotos del evento, tomadas y elegidas por quienes estuvieron ahí</h1>
+                <p class="hero__sub">
+                    PhotoDom es una galería digital para bodas, cumpleaños, posadas o
+                    cualquier reunión. Cada invitado sube sus propias fotos y videos
+                    desde su celular, sin instalar nada ni crear cuentas, y la persona
+                    organizadora puede verlas todas y descargarlas cuando quiera.
+                </p>
+                <div class="hero__actions">
+                    <a href="#planes" class="button button--primary">Ver planes</a>
+                    <a href="#como-funciona" class="button button--text">Cómo funciona ↓</a>
+                </div>
+            </div>
+
+            <div class="hero__stack" aria-hidden="true">
+                <div class="polaroid polaroid--1">
+                    <div class="polaroid__photo"></div>
+                    <span class="polaroid__caption">Ceremonia</span>
+                </div>
+                <div class="polaroid polaroid--2">
+                    <div class="polaroid__photo"></div>
+                    <span class="like-badge">♥ 34</span>
+                </div>
+                <div class="polaroid polaroid--3">
+                    <div class="polaroid__photo"></div>
+                    <span class="star-badge">★ Destacada</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="como-funciona" class="steps">
+            <h2>Cómo funciona</h2>
+            <ol class="steps__list">
+                <li>
+                    <span class="steps__number">1</span>
+                    <div>
+                        <h3>Crea la galería de tu evento</h3>
+                        <p>Le pones nombre, eliges el plan de almacenamiento y en
+                            minutos tienes un espacio listo para recibir fotos y videos.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="steps__number">2</span>
+                    <div>
+                        <h3>Comparte el enlace con tus invitados</h3>
+                        <p>Un enlace o código QR es suficiente. No necesitan
+                            descargar ninguna aplicación ni registrarse.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="steps__number">3</span>
+                    <div>
+                        <h3>Cada invitado sube lo que capturó</h3>
+                        <p>Desde su propio celular, durante el evento o los días
+                            siguientes, cada quien aporta su ángulo de la fiesta.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="steps__number">4</span>
+                    <div>
+                        <h3>Descarga todo cuando quieras</h3>
+                        <p>La persona organizadora ve la galería completa y puede
+                            descargar cualquier foto o video, o todo el álbum junto.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <section id="interactividad" class="interactivity">
+            <div class="interactivity__text">
+                <h2>La fiesta también sucede dentro de la galería</h2>
+                <p>
+                    Los invitados no solo suben fotos: también reaccionan a las de
+                    los demás. Cada foto puede recibir likes de cualquier persona
+                    invitada, y las que más les gustan a todos suben solas a una
+                    sección aparte.
+                </p>
+                <ul class="interactivity__list">
+                    <li>
+                        <strong>Likes entre invitados.</strong> Cualquiera puede
+                        darle like a las fotos que más le gusten, incluidas las que
+                        no tomó él mismo.
+                    </li>
+                    <li>
+                        <strong>Momentos Destacados.</strong> Las fotos con más
+                        likes se agrupan automáticamente en su propia sección,
+                        como un resumen de lo mejor del evento.
+                    </li>
+                    <li>
+                        <strong>Sin votaciones forzadas.</strong> Los destacados se
+                        arman solos, a partir de lo que la gente realmente disfrutó
+                        ver.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="interactivity__panel">
+                <div class="mini-photo mini-photo--a">
+                    <span class="like-badge like-badge--small">♥ 19</span>
+                </div>
+                <div class="mini-photo mini-photo--b">
+                    <span class="like-badge like-badge--small">♥ 41</span>
+                </div>
+                <div class="mini-photo mini-photo--c is-featured">
+                    <span class="star-badge star-badge--small">★ Destacada</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="planes" class="plans">
+            <h2>Elige el tamaño de tu galería</h2>
+            <p class="plans__intro">
+                Los tres planes incluyen subida ilimitada de invitados, likes y
+                Momentos Destacados. La diferencia es cuánto espacio necesita tu
+                evento.
+            </p>
+
+            <div class="plans__grid">
+                <article class="plan-card">
+                    <h3>Básico</h3>
+                    <p class="plan-card__storage">5 GB</p>
+                    <p class="plan-card__price">$650 <span>MXN</span></p>
+                    <p class="plan-card__for">
+                        Reuniones pequeñas: cumpleaños, posadas o encuentros de
+                        hasta un par de cientos de fotos.
+                    </p>
+                </article>
+
+                <article class="plan-card plan-card--highlight">
+                    <p class="plan-card__tag">El más elegido</p>
+                    <h3>Estándar</h3>
+                    <p class="plan-card__storage">10 GB</p>
+                    <p class="plan-card__price">$900 <span>MXN</span></p>
+                    <p class="plan-card__for">
+                        Bodas y eventos medianos, con varios cientos de fotos y
+                        algunos videos cortos de los invitados.
+                    </p>
+                </article>
+
+                <article class="plan-card">
+                    <h3>Premium</h3>
+                    <p class="plan-card__storage">15 GB</p>
+                    <p class="plan-card__price">$1,500 <span>MXN</span></p>
+                    <p class="plan-card__for">
+                        Eventos grandes o con mucho video: bodas largas,
+                        graduaciones, congresos.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section id="almacenamiento" class="storage">
+            <h2>Cómo funciona el almacenamiento</h2>
+            <div class="storage__grid">
+                <div class="storage__card">
+                    <h3>Cada galería tiene un tiempo límite</h3>
+                    <p>
+                        El espacio de tu plan no es para siempre: cada evento cuenta
+                        con un periodo determinado desde su creación para que
+                        invitados suban material y la persona organizadora lo
+                        descargue. Pasado ese tiempo, la galería deja de recibir
+                        contenido nuevo.
+                    </p>
+                </div>
+                <div class="storage__card">
+                    <h3>¿Necesitas más tiempo?</h3>
+                    <p>
+                        Si el periodo de tu evento no fue suficiente, puedes
+                        extender la vigencia de la galería por un costo adicional,
+                        sin perder las fotos y videos que ya se subieron.
+                    </p>
+                </div>
+                <div class="storage__card">
+                    <h3>El espacio es lo que eliges al crear</h3>
+                    <p>
+                        Los GB de tu plan (5, 10 o 15) son el límite de tamaño de la
+                        galería durante ese periodo. Si tus invitados suben más
+                        fotos de las que caben, conviene elegir un plan mayor desde
+                        el inicio.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>PhotoDom — la galería del evento la arman quienes estuvieron ahí.</p>
+    </footer>
+
+</body>
+
+</html>

@@ -7,6 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - {{ evento.nombre_evento }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{% static 'galerias/css/galeria_invitadocss.css' %}">
 </head>
 
@@ -24,7 +29,7 @@
                 </svg>
             </div>
 
-            <h2 class="text-xl font-bold text-gray-700 mb-1">Acceso Propietario</h2>
+            <h2 class="font-display text-xl text-gray-700 mb-1">Acceso Propietario</h2>
             <p class="text-xs text-gray-500 mb-6">Ingresa el PIN de 4 dígitos</p>
 
             <div class="flex justify-center space-x-4 mb-8" id="pin-dots">
@@ -63,7 +68,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <span class="text-xs font-black uppercase text-indigo-600 tracking-wider">Panel del Cliente</span>
-                <h1 class="text-2xl font-black text-gray-700 tracking-wide">{{ evento.nombre_evento }}</h1>
+                <h1 class="font-display text-3xl text-gray-700">{{ evento.nombre_evento }}</h1>
                 <p class="text-xs text-gray-500 font-semibold mt-1">Cliente: {{ evento.nombre_cliente }}</p>
             </div>
 
@@ -82,15 +87,15 @@
 
         <div class="grid grid-cols-3 gap-4 mb-6">
             <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="block text-xl font-black text-indigo-600">{{ total_archivos }}</span>
+                <span class="font-display block text-2xl text-indigo-600">{{ total_archivos }}</span>
                 <span class="text-xs font-bold text-gray-500 uppercase">Archivos</span>
             </div>
             <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="block text-xl font-black text-emerald-600">{{ total_fotos }}</span>
+                <span class="font-display block text-2xl text-emerald-600">{{ total_fotos }}</span>
                 <span class="text-xs font-bold text-gray-500 uppercase">Fotos</span>
             </div>
             <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="block text-xl font-black text-purple-600">{{ total_videos }}</span>
+                <span class="font-display block text-2xl text-purple-600">{{ total_videos }}</span>
                 <span class="text-xs font-bold text-gray-500 uppercase">Videos</span>
             </div>
         </div>
@@ -106,7 +111,7 @@
 
         <div id="grid-dueno" class="grid grid-cols-2 md:grid-cols-3 gap-5">
             {% for item in archivos %}
-            <div id="item-card-{{ item.id }}" class="item-card neu-flat p-3 relative group"
+            <div id="item-card-{{ item.id }}" class="item-card photo-card neu-flat p-3 pt-4 relative group"
                 data-tipo="{% if item.es_video %}video{% else %}foto{% endif %}">
 
                 <a href="{% url 'descargar_archivo' item.id %}"
@@ -134,9 +139,9 @@
                     {% endif %}
                 </div>
 
-                <div class="mt-2 px-1 flex justify-between items-center text-[10px] text-gray-400 font-semibold">
-                    <span>#{{ item.id }}</span>
-                    <span>{{ item.fecha_subida|date:"d/m/Y H:i" }}</span>
+                <div class="mt-2 px-1 flex justify-between items-center">
+                    <span class="neu-chip">#{{ item.id }}</span>
+                    <span class="neu-chip">{{ item.fecha_subida|date:"d/m/Y H:i" }}</span>
                 </div>
             </div>
             {% empty %}
@@ -148,7 +153,7 @@
     </main>
 
     <div class="neu-flat p-6 rounded-3xl text-center max-w-xs mx-auto my-8">
-        <h3 class="text-sm font-black text-gray-700 uppercase tracking-wider mb-1">Código QR de Invitados</h3>
+        <h3 class="font-display text-base text-gray-700 mb-1">Código QR de Invitados</h3>
         <p class="text-[11px] text-gray-400 font-medium mb-4">Descarga y comparte el código QR con tus invitados.</p>
 
         <div class="neu-pressed p-4 rounded-2xl inline-block mb-4">
@@ -207,7 +212,7 @@
                     </path>
                 </svg>
             </div>
-            <h3 class="text-lg font-bold text-gray-700">¿Eliminar del evento?</h3>
+            <h3 class="font-display text-lg text-gray-700">¿Eliminar del evento?</h3>
             <p class="text-xs text-gray-500 mt-1 mb-6">El archivo se borrará de la galería del evento permanentemente.
             </p>
 

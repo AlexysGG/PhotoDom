@@ -13,6 +13,7 @@ urlpatterns = [
         views.eliminar_foto_ajax,
         name='eliminar_foto_ajax',
     ),
+    path('', views.home, name='home'),
 
     path('descargar/<int:archivo_id>/', views.descargar_archivo_proxy, name='descargar_archivo'),
 

@@ -209,17 +209,25 @@ def descargar_todas_las_fotos_zip(request, evento_id):
 
 
 def descargar_archivo_proxy(request, archivo_id):
+    # Reemplazamos Evento por FotoInvitado
+    item = get_object_or_404(FotoInvitado, pk=archivo_id)
+    
     try:
-        item = Evento.objects.get(pk=archivo_id)
-        # Obtenemos el archivo desde Google Storage
+        # Obtenemos el archivo desde la URL de Google Cloud Storage
         response = requests.get(item.archivo.url, stream=True)
+        response.raise_for_status()
         
-        # Nombre del archivo para guardar
-        nombre_original = item.archivo.name.split('/')[-1]
+        # Extraemos el nombre original del archivo
+        nombre_original = os.path.basename(item.archivo.name)
         
-        # Respuesta forzando la descarga directa
+        # Retornamos la respuesta forzando la descarga
         res = HttpResponse(response.content, content_type=response.headers.get('Content-Type'))
         res['Content-Disposition'] = f'attachment; filename="{nombre_original}"'
         return res
-    except Evento.DoesNotExist:
-        raise Http404("El archivo no existe")
+        
+    except requests.RequestException:
+        raise Http404("No se pudo obtener el archivo del almacenamiento externo.")
+
+def home(request):
+    """Página de inicio / Landing Page principal del sitio"""
+    return render(request, 'galerias/index.html')

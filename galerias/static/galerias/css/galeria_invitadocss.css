@@ -4,6 +4,15 @@ body {
     color: var(--neu-text);
 }
 
+/* ---------- Tipografía de acento ---------- */
+/* Se usa en títulos y números grandes; el resto del texto se queda
+   en la fuente sans-serif de siempre (Tailwind font-sans). */
+.font-display {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
 .neu-flat {
     background: var(--neu-bg);
     box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
@@ -64,4 +73,78 @@ label:focus-within {
     background: var(--neu-bg);
     box-shadow: inset 3px 3px 6px var(--neu-shadow-dark), inset -3px -3px 6px var(--neu-shadow-light);
     border-radius: 12px;
+}
+
+/* ---------- Chip: etiqueta pequeña (id, fecha, contador) ---------- */
+.neu-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    background: var(--neu-bg);
+    color: var(--neu-primary);
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+/* ---------- Tarjeta de foto: aire de recuerdo/polaroid ---------- */
+/* Puro estilo, no toca estructura ni selectores usados por el JS. */
+.photo-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.photo-card:hover {
+    transform: translateY(-4px);
+    z-index: 2;
+}
+
+.photo-card:nth-child(3n+1) {
+    transform: rotate(-1.1deg);
+}
+
+.photo-card:nth-child(3n+2) {
+    transform: rotate(0.6deg);
+}
+
+.photo-card:nth-child(3n+3) {
+    transform: rotate(-0.4deg);
+}
+
+.photo-card:nth-child(3n+1):hover {
+    transform: translateY(-4px) rotate(-1.1deg);
+}
+
+.photo-card:nth-child(3n+2):hover {
+    transform: translateY(-4px) rotate(0.6deg);
+}
+
+.photo-card:nth-child(3n+3):hover {
+    transform: translateY(-4px) rotate(-0.4deg);
+}
+
+/* Esquina tipo "cinta" para reforzar el aire de foto pegada */
+.photo-card::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    width: 34px;
+    height: 12px;
+    transform: translateX(-50%) rotate(-2deg);
+    background: var(--neu-bg);
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+    border-radius: 2px;
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .photo-card,
+    .photo-card:hover {
+        transition: none;
+        transform: none;
+    }
 }
