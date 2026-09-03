@@ -83,7 +83,7 @@ class EventoAdmin(ModelAdmin):
         )
 
     @admin.display(description='Panel Invitado')
-    def ver_panel_dueno(self, obj):
+    def ver_panel_invitado(self, obj):
         """Genera un botón para abrir el dashboard del dueño en una pestaña nueva"""
         # 🟢 VALIDACIÓN AGREGADA: Si el evento aún no se ha guardado, retorna un guion
         if not obj or not obj.pk:
