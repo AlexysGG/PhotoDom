@@ -3,6 +3,7 @@ import os # Necesitamos esto para verificar extensiones
 from datetime import timedelta
 from django.db import models
 from django.utils import timezone
+from django.core.validators import RegexValidator
 
 #COLORES PARA EL HTML
 PALETAS_COLOR = [
@@ -104,6 +105,14 @@ class Evento(models.Model):
             --neu-shadow-dark: {conf['shadow_dark']};
             --neu-shadow-light: {conf['shadow_light']};
         """
+        
+    pin_dueno = models.CharField(
+        max_length=4,
+        default='0000',
+        help_text='PIN de 4 dígitos para acceso del dueño',
+        validators=[RegexValidator(r'^\d{4}$', 'El PIN debe ser exactamente de 4 dígitos numéricos.')]
+    )
+    
 
 class FotoInvitado(models.Model):
     """Modelo para guardar fotos y videos de invitados"""
