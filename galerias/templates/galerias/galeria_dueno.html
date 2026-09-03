@@ -209,7 +209,11 @@
 <input type="file" id="input-fotos" name="foto" multiple accept="image/*,video/*" class="hidden"
     onchange="manejarSeleccionArchivos(this)">
 
-
+<script>
+    // Se define en el HTML donde Django SÍ procesa las etiquetas
+    window.PIN_CORRECTO = "{{ evento.pin_dueno }}";
+    window.EVENTO_ID = "{{ evento.id }}";
+</script>
 <script src="{% static 'galerias/js/galeria_dueno.js' %}"></script>
 </body>
 

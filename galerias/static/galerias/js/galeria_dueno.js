@@ -1,9 +1,10 @@
 const PIN_CORRECTO = "{{ evento.pin_dueno }}"; // Inyectado desde el template
+// Usamos la variable global pasada desde el HTML
 let inputPin = "";
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Si ya ingresó el PIN en la sesión actual, ocultar el modal directamente
-    if (sessionStorage.getItem("pin_valido_{{ evento.id }}") === "true") {
+    // Si ya ingresó el PIN en la sesión actual
+    if (sessionStorage.getItem(`pin_valido_${window.EVENTO_ID}`) === "true") {
         document.getElementById("pin-modal").classList.add("hidden");
     }
 });
@@ -43,8 +44,9 @@ function updateDots() {
 }
 
 function validarPin() {
-    if (inputPin === PIN_CORRECTO) {
-        sessionStorage.setItem("pin_valido_{{ evento.id }}", "true");
+    // Compara contra window.PIN_CORRECTO
+    if (String(inputPin) === String(window.PIN_CORRECTO)) {
+        sessionStorage.setItem(`pin_valido_${window.EVENTO_ID}`, "true");
         const modal = document.getElementById("pin-modal");
         modal.classList.add("opacity-0");
         setTimeout(() => modal.classList.add("hidden"), 300);
@@ -52,7 +54,6 @@ function validarPin() {
         const errorEl = document.getElementById("pin-error");
         errorEl.innerText = "PIN incorrecto";
 
-        // Efecto de vibración/shake en los dots
         const dotsContainer = document.getElementById("pin-dots");
         dotsContainer.classList.add("animate-bounce");
 
