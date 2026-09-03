@@ -6,202 +6,157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - {{ evento.nombre_evento }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background-color: #e0e5ec;
-            color: #4a5568;
-        }
-
-        .neu-flat {
-            background: #e0e5ec;
-            box-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff;
-            border-radius: 20px;
-        }
-
-        .neu-pressed {
-            background: #e0e5ec;
-            box-shadow: inset 6px 6px 10px #a3b1c6, inset -6px -6px 10px #ffffff;
-            border-radius: 20px;
-        }
-
-        .neu-button {
-            background: #e0e5ec;
-            box-shadow: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff;
-            transition: all 0.2s ease;
-        }
-
-        .neu-button:active {
-            box-shadow: inset 4px 4px 8px #a3b1c6, inset -4px -4px 8px #ffffff;
-            transform: scale(0.98);
-        }
-
-        .neu-btn-danger {
-            background: #e0e5ec;
-            color: #e53e3e;
-            box-shadow: 4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff;
-        }
-
-        .neu-btn-danger:active {
-            box-shadow: inset 2px 2px 4px #a3b1c6, inset -2px -2px 4px #ffffff;
-        }
-
-        .neu-badge {
-            background: #e0e5ec;
-            box-shadow: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff;
-            border-radius: 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'galerias/css/galeria_invitadocss.css' %}">
 </head>
 
-<body class="min-h-screen pb-16 font-sans">
+<body class="min-h-screen pb-16 font-sans" style="{{ evento.vars_css_tema|safe }}"></body>>
 
-    <!-- Header Neumórfico -->
-    <header class="max-w-4xl mx-auto mt-6 mx-4 p-6 neu-flat">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <span class="text-xs font-black uppercase text-indigo-600 tracking-wider">Panel del Cliente</span>
-                <h1 class="text-2xl font-black text-gray-700 tracking-wide">{{ evento.nombre_evento }}</h1>
-                <p class="text-xs text-gray-500 font-semibold mt-1">Cliente: {{ evento.nombre_cliente }}</p>
-            </div>
-
-            <!-- Botón para Descargar Galería Completa en ZIP -->
-            <a href="{% url 'descargar_todas_zip' evento.id %}"
-                class="neu-button px-6 py-3 rounded-xl font-bold text-indigo-600 text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                <span>Descargar Todo (.ZIP)</span>
-            </a>
-        </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto p-4 mt-6">
-
-        <!-- RESUMEN DE ESTADÍSTICAS -->
-        <div class="grid grid-cols-3 gap-4 mb-6">
-            <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="block text-xl font-black text-indigo-600">{{ total_archivos }}</span>
-                <span class="text-xs font-bold text-gray-500 uppercase">Archivos</span>
-            </div>
-            <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="block text-xl font-black text-emerald-600">{{ total_fotos }}</span>
-                <span class="text-xs font-bold text-gray-500 uppercase">Fotos</span>
-            </div>
-            <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="block text-xl font-black text-purple-600">{{ total_videos }}</span>
-                <span class="text-xs font-bold text-gray-500 uppercase">Videos</span>
-            </div>
+<!-- Header Neumórfico -->
+<header class="max-w-4xl mx-auto mt-6 mx-4 p-6 neu-flat">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <span class="text-xs font-black uppercase text-indigo-600 tracking-wider">Panel del Cliente</span>
+            <h1 class="text-2xl font-black text-gray-700 tracking-wide">{{ evento.nombre_evento }}</h1>
+            <p class="text-xs text-gray-500 font-semibold mt-1">Cliente: {{ evento.nombre_cliente }}</p>
         </div>
 
-        <!-- FILTROS DE CONTENIDO -->
-        <div class="flex justify-center space-x-3 mb-6">
-            <button onclick="filtrarGaleria('todos')"
-                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-gray-600 uppercase">Todos</button>
-            <button onclick="filtrarGaleria('foto')"
-                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-emerald-600 uppercase">Fotos</button>
-            <button onclick="filtrarGaleria('video')"
-                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-purple-600 uppercase">Videos</button>
+        <!-- Botón para Descargar Galería Completa en ZIP -->
+        <a href="{% url 'descargar_todas_zip' evento.id %}"
+            class="neu-button px-6 py-3 rounded-xl font-bold text-indigo-600 text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Descargar Todo (.ZIP)</span>
+        </a>
+    </div>
+</header>
+
+<main class="max-w-4xl mx-auto p-4 mt-6">
+
+    <!-- RESUMEN DE ESTADÍSTICAS -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="neu-pressed p-4 text-center rounded-2xl">
+            <span class="block text-xl font-black text-indigo-600">{{ total_archivos }}</span>
+            <span class="text-xs font-bold text-gray-500 uppercase">Archivos</span>
         </div>
-
-        <!-- GALLERIA GENERAL DEL DUENO -->
-        <div id="grid-dueno" class="grid grid-cols-2 md:grid-cols-3 gap-5">
-            {% for item in archivos %}
-            <div id="item-card-{{ item.id }}" class="item-card neu-flat p-3 relative group"
-                data-tipo="{% if item.es_video %}video{% else %}foto{% endif %}">
-
-                <!-- Botón de descarga individual -->
-                <a href="{{ item.archivo.url }}" download target="_blank"
-                    class="neu-button absolute top-4 left-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-indigo-600 font-bold"
-                    title="Descargar archivo">
-                    ↓
-                </a>
-
-                <!-- Botón para eliminar/moderar -->
-                <button onclick="abrirModalEliminar({{ item.id }})"
-                    class="neu-btn-danger absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold"
-                    title="Eliminar foto/video">
-                    ✕
-                </button>
-
-                <!-- Previsualizador de foto o video -->
-                <div class="aspect-square neu-pressed overflow-hidden rounded-xl">
-                    {% if item.es_video %}
-                    <video class="w-full h-full object-cover" controls preload="metadata">
-                        <source src="{{ item.archivo.url }}" type="video/mp4">
-                    </video>
-                    {% else %}
-                    <a href="{{ item.archivo.url }}" target="_blank">
-                        <img src="{{ item.archivo.url }}" class="w-full h-full object-cover" alt="Recuerdo">
-                    </a>
-                    {% endif %}
-                </div>
-
-                <!-- Pie de tarjeta -->
-                <div class="mt-2 px-1 flex justify-between items-center text-[10px] text-gray-400 font-semibold">
-                    <span>#{{ item.id }}</span>
-                    <span>{{ item.fecha_subida|date:"d/m/Y H:i" }}</span>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-span-full text-center py-16 neu-pressed text-gray-400 font-medium">
-                No se han subido fotos ni videos a este evento todavía.
-            </div>
-            {% endfor %}
+        <div class="neu-pressed p-4 text-center rounded-2xl">
+            <span class="block text-xl font-black text-emerald-600">{{ total_fotos }}</span>
+            <span class="text-xs font-bold text-gray-500 uppercase">Fotos</span>
         </div>
-    </main>
-
-    <!-- MODAL NEUMÓRFICO DE CONFIRMACIÓN DE ELIMINACIÓN -->
-    <div id="modal-eliminar"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-        <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
-            <div class="w-12 h-12 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                    </path>
-                </svg>
-            </div>
-            <h3 class="text-lg font-bold text-gray-700">¿Eliminar del evento?</h3>
-            <p class="text-xs text-gray-500 mt-1 mb-6">El archivo se borrará de la galería del evento permanentemente.
-            </p>
-
-            <div class="flex space-x-4">
-                <button onclick="cerrarModal()"
-                    class="w-1/2 neu-button py-2.5 rounded-xl font-bold text-gray-600 text-sm">
-                    Cancelar
-                </button>
-                <button onclick="confirmarEliminar()" class="w-1/2 neu-btn-danger py-2.5 rounded-xl font-bold text-sm">
-                    Eliminar
-                </button>
-            </div>
+        <div class="neu-pressed p-4 text-center rounded-2xl">
+            <span class="block text-xl font-black text-purple-600">{{ total_videos }}</span>
+            <span class="text-xs font-bold text-gray-500 uppercase">Videos</span>
         </div>
     </div>
 
-    <div class="neu-flat p-6 rounded-3xl text-center max-w-xs mx-auto">
-        <h3 class="text-sm font-black text-gray-700 uppercase tracking-wider mb-1">Código QR de Invitados</h3>
-        <p class="text-[11px] text-gray-400 font-medium mb-4">Descarga y comparte el codigo QR con tus invitados.
+    <!-- FILTROS DE CONTENIDO -->
+    <div class="flex justify-center space-x-3 mb-6">
+        <button onclick="filtrarGaleria('todos')"
+            class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-gray-600 uppercase">Todos</button>
+        <button onclick="filtrarGaleria('foto')"
+            class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-emerald-600 uppercase">Fotos</button>
+        <button onclick="filtrarGaleria('video')"
+            class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-purple-600 uppercase">Videos</button>
+    </div>
+
+    <!-- GALLERIA GENERAL DEL DUENO -->
+    <div id="grid-dueno" class="grid grid-cols-2 md:grid-cols-3 gap-5">
+        {% for item in archivos %}
+        <div id="item-card-{{ item.id }}" class="item-card neu-flat p-3 relative group"
+            data-tipo="{% if item.es_video %}video{% else %}foto{% endif %}">
+
+            <!-- Botón de descarga individual -->
+            <a href="{{ item.archivo.url }}" download target="_blank"
+                class="neu-button absolute top-4 left-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-indigo-600 font-bold"
+                title="Descargar archivo">
+                ↓
+            </a>
+
+            <!-- Botón para eliminar/moderar -->
+            <button onclick="abrirModalEliminar({{ item.id }})"
+                class="neu-btn-danger absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold"
+                title="Eliminar foto/video">
+                ✕
+            </button>
+
+            <!-- Previsualizador de foto o video -->
+            <div class="aspect-square neu-pressed overflow-hidden rounded-xl">
+                {% if item.es_video %}
+                <video class="w-full h-full object-cover" controls preload="metadata">
+                    <source src="{{ item.archivo.url }}" type="video/mp4">
+                </video>
+                {% else %}
+                <a href="{{ item.archivo.url }}" target="_blank">
+                    <img src="{{ item.archivo.url }}" class="w-full h-full object-cover" alt="Recuerdo">
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Pie de tarjeta -->
+            <div class="mt-2 px-1 flex justify-between items-center text-[10px] text-gray-400 font-semibold">
+                <span>#{{ item.id }}</span>
+                <span>{{ item.fecha_subida|date:"d/m/Y H:i" }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-16 neu-pressed text-gray-400 font-medium">
+            No se han subido fotos ni videos a este evento todavía.
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<!-- MODAL NEUMÓRFICO DE CONFIRMACIÓN DE ELIMINACIÓN -->
+<div id="modal-eliminar"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+    <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
+        <div class="w-12 h-12 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-700">¿Eliminar del evento?</h3>
+        <p class="text-xs text-gray-500 mt-1 mb-6">El archivo se borrará de la galería del evento permanentemente.
         </p>
 
-        <div class="neu-pressed p-4 rounded-2xl inline-block mb-4">
-            {% if qr_base64 %}
-            <img src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR del Evento" class="w-48 h-48 mx-auto">
-            {% else %}
-            <p class="text-xs text-red-500 font-bold p-4">No se pudo generar el QR</p>
-            {% endif %}
+        <div class="flex space-x-4">
+            <button onclick="cerrarModal()" class="w-1/2 neu-button py-2.5 rounded-xl font-bold text-gray-600 text-sm">
+                Cancelar
+            </button>
+            <button onclick="confirmarEliminar()" class="w-1/2 neu-btn-danger py-2.5 rounded-xl font-bold text-sm">
+                Eliminar
+            </button>
         </div>
+    </div>
+</div>
 
+<div class="neu-flat p-6 rounded-3xl text-center max-w-xs mx-auto">
+    <h3 class="text-sm font-black text-gray-700 uppercase tracking-wider mb-1">Código QR de Invitados</h3>
+    <p class="text-[11px] text-gray-400 font-medium mb-4">Descarga y comparte el codigo QR con tus invitados.
+    </p>
+
+    <div class="neu-pressed p-4 rounded-2xl inline-block mb-4">
         {% if qr_base64 %}
-        <a href="data:image/png;base64,{{ qr_base64 }}" download="QR_{{ evento.nombre_evento }}.png"
-            class="neu-button block w-full py-2.5 rounded-xl text-xs font-bold text-indigo-600 uppercase tracking-wider text-center">
-            Descargar QR
-        </a>
+        <img src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR del Evento" class="w-48 h-48 mx-auto">
+        {% else %}
+        <p class="text-xs text-red-500 font-bold p-4">No se pudo generar el QR</p>
         {% endif %}
     </div>
 
-    <!-- Input invisible de archivos (Agrégalo aquí) -->
-    <input type="file" id="input-fotos" name="foto" multiple accept="image/*,video/*" class="hidden"
-        onchange="manejarSeleccionArchivos(this)">
+    {% if qr_base64 %}
+    <a href="data:image/png;base64,{{ qr_base64 }}" download="QR_{{ evento.nombre_evento }}.png"
+        class="neu-button block w-full py-2.5 rounded-xl text-xs font-bold text-indigo-600 uppercase tracking-wider text-center">
+        Descargar QR
+    </a>
+    {% endif %}
+</div>
+
+<!-- Input invisible de archivos (Agrégalo aquí) -->
+<input type="file" id="input-fotos" name="foto" multiple accept="image/*,video/*" class="hidden"
+    onchange="manejarSeleccionArchivos(this)">
 
 </body>
 
