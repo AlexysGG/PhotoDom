@@ -5,7 +5,7 @@ import qrcode
 import zipfile
 import requests
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
@@ -206,3 +206,20 @@ def descargar_todas_las_fotos_zip(request, evento_id):
     nombre_zip = f"galeria_{evento.nombre_evento.replace(' ', '_')}_id{evento.id}.zip"
     response['Content-Disposition'] = f'attachment; filename="{nombre_zip}"'
     return response
+
+
+def descargar_archivo_proxy(request, archivo_id):
+    try:
+        item = Evento.objects.get(pk=archivo_id)
+        # Obtenemos el archivo desde Google Storage
+        response = requests.get(item.archivo.url, stream=True)
+        
+        # Nombre del archivo para guardar
+        nombre_original = item.archivo.name.split('/')[-1]
+        
+        # Respuesta forzando la descarga directa
+        res = HttpResponse(response.content, content_type=response.headers.get('Content-Type'))
+        res['Content-Disposition'] = f'attachment; filename="{nombre_original}"'
+        return res
+    except Evento.DoesNotExist:
+        raise Http404("El archivo no existe")

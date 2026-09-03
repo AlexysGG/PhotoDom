@@ -109,11 +109,11 @@
             <div id="item-card-{{ item.id }}" class="item-card neu-flat p-3 relative group"
                 data-tipo="{% if item.es_video %}video{% else %}foto{% endif %}">
 
-                <button onclick="descargarArchivoDirecto('{{ item.archivo.url }}', 'archivo_{{ item.id }}')"
+                <a href="{% url 'descargar_archivo' item.id %}"
                     class="neu-button absolute top-4 left-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-indigo-600 font-bold"
                     title="Descargar archivo">
                     ↓
-                </button>
+                </a>
 
                 <button onclick="abrirModalEliminar({{ item.id }})"
                     class="neu-btn-danger absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold"
