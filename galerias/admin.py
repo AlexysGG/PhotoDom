@@ -49,7 +49,7 @@ class FotoInvitadoInline(admin.TabularInline):
         return obtener_vista_previa_html(obj)
 
 
-# 2. EventoAdmin con InLine y tu estructura intacta
+# 2. EventoAdmin con InLine y fieldsets para Unfold
 @admin.register(Evento)
 class EventoAdmin(ModelAdmin):
     list_display = (
@@ -58,6 +58,7 @@ class EventoAdmin(ModelAdmin):
         'nombre_cliente',
         'plan_almacenamiento',
         'activo',
+        'pin_dueno',  # <- Mantenemos el PIN en la tabla principal
         'fecha_creacion',
         'tema_color',
         'ver_panel_dueno',
@@ -67,10 +68,26 @@ class EventoAdmin(ModelAdmin):
     search_fields = ('id', 'nombre_evento', 'nombre_cliente')
     readonly_fields = ('id', 'fecha_creacion', 'ver_panel_dueno', 'ver_panel_invitado')
 
+    # Agrupación visual limpia para la vista de edición en Unfold
+    fieldsets = (
+        ('Información del Evento', {
+            'fields': ('nombre_evento', 'nombre_cliente', 'activo')
+        }),
+        ('Seguridad y Acceso', {
+            'fields': ('pin_dueno',),
+            'description': 'PIN numérico de 4 dígitos para que el cliente ingrese a su panel privado.'
+        }),
+        ('Configuración y Apariencia', {
+            'fields': ('plan_almacenamiento', 'tema_color')
+        }),
+        ('Enlaces y Metadatos', {
+            'fields': ('id', 'fecha_creacion', 'ver_panel_dueno', 'ver_panel_invitado'),
+            'classes': ('collapse',), # Colapsable para no estorbar
+        }),
+    )
+
     @admin.display(description='Panel Dueño')
     def ver_panel_dueno(self, obj):
-        """Genera un botón para abrir el dashboard del dueño en una pestaña nueva"""
-        # 🟢 VALIDACIÓN AGREGADA: Si el evento aún no se ha guardado, retorna un guion
         if not obj or not obj.pk:
             return "-"
 
@@ -84,8 +101,6 @@ class EventoAdmin(ModelAdmin):
 
     @admin.display(description='Panel Invitado')
     def ver_panel_invitado(self, obj):
-        """Genera un botón para abrir el dashboard del dueño en una pestaña nueva"""
-        # 🟢 VALIDACIÓN AGREGADA: Si el evento aún no se ha guardado, retorna un guion
         if not obj or not obj.pk:
             return "-"
 
@@ -96,9 +111,7 @@ class EventoAdmin(ModelAdmin):
             '</a>',
             url
         )
-    
-    
-    
+
     inlines = [FotoInvitadoInline]
 
 
