@@ -85,18 +85,32 @@ class Evento(models.Model):
     dias_vigencia = models.IntegerField(default=30)
     activo = models.BooleanField(default=True)
 
+    # 👈 Asegúrate de que pin_dueno esté declarado junto a los campos
+    pin_dueno = models.CharField(
+        max_length=4,
+        default='0000',
+        help_text='PIN de 4 dígitos para acceso del dueño',
+        validators=[RegexValidator(r'^\d{4}$', 'El PIN debe ser exactamente de 4 dígitos numéricos.')]
+    )
+
     def fecha_expiracion(self):
         return self.fecha_creacion + timedelta(days=self.dias_vigencia)
 
     def esta_expirado(self):
         return timezone.now() > self.fecha_expiracion()
 
+    def eliminar_completamente(self):
+        """Elimina todos los archivos en el storage externo y luego borra el evento."""
+        for foto in self.fotos.all():
+            if foto.archivo:
+                foto.archivo.delete(save=False)
+        self.delete()
+
     def __str__(self):
         return f'{self.nombre_evento} ({self.get_plan_almacenamiento_display()})'
 
     @property
     def vars_css_tema(self):
-        """Retorna las variables CSS del tema seleccionado."""
         conf = CONFIGURACION_TEMAS.get(self.tema_color, CONFIGURACION_TEMAS['clasico'])
         return f"""
             --neu-bg: {conf['bg']};
@@ -105,13 +119,6 @@ class Evento(models.Model):
             --neu-shadow-dark: {conf['shadow_dark']};
             --neu-shadow-light: {conf['shadow_light']};
         """
-        
-    pin_dueno = models.CharField(
-        max_length=4,
-        default='0000',
-        help_text='PIN de 4 dígitos para acceso del dueño',
-        validators=[RegexValidator(r'^\d{4}$', 'El PIN debe ser exactamente de 4 dígitos numéricos.')]
-    )
     
 
 class FotoInvitado(models.Model):
