@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from .models import Evento, FotoInvitado
 from unfold.admin import ModelAdmin
@@ -12,36 +11,32 @@ def obtener_vista_previa_html(obj):
 
     url = obj.archivo.url.lower()
 
-    # Detección precisa de si es video por extensión o mime type
     extensiones_video = ('.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v')
     es_video_prop = getattr(obj, 'es_video', False)
     
-    # Si la propiedad es un método ejecutable, lo llamamos
     if callable(es_video_prop):
         es_video_prop = es_video_prop()
 
     es_video = es_video_prop or url.endswith(extensiones_video)
 
     if es_video:
-        # Usamos #t=0.5 para que cargue el primer fotograma como portada sin mostrar controles gigantes
         return format_html(
             '<video src="{}#t=0.5" style="width: 100px; height: 60px; object-fit: cover; border-radius: 6px;" preload="metadata"></video>',
             obj.archivo.url
         )
 
-    # Si es imagen
     return format_html(
         '<a href="{}" target="_blank"><img src="{}" style="width: 100px; height: 60px; object-fit: cover; border-radius: 6px;" /></a>',
         obj.archivo.url,
         obj.archivo.url
     )
 
-# 1. Inline para mostrar archivos dentro del Evento
+
 class FotoInvitadoInline(admin.TabularInline):
     model = FotoInvitado
     extra = 0
-    readonly_fields = ('vista_previa', 'fecha_subida')
-    fields = ('vista_previa', 'archivo', 'fecha_subida')
+    readonly_fields = ('vista_previa', 'likes', 'destacada', 'mensaje', 'fecha_subida')
+    fields = ('vista_previa', 'archivo', 'likes', 'destacada', 'mensaje', 'fecha_subida')
     can_delete = True
 
     @admin.display(description='Vista Previa')
@@ -49,7 +44,6 @@ class FotoInvitadoInline(admin.TabularInline):
         return obtener_vista_previa_html(obj)
 
 
-# 2. EventoAdmin con InLine y fieldsets para Unfold
 @admin.register(Evento)
 class EventoAdmin(ModelAdmin):
     list_display = (
@@ -57,32 +51,35 @@ class EventoAdmin(ModelAdmin):
         'nombre_evento',
         'nombre_cliente',
         'plan_almacenamiento',
+        'plantilla_html',
+        'dias_vigencia',
         'activo',
-        'pin_dueno',  # <- Mantenemos el PIN en la tabla principal
-        'fecha_creacion',
-        'tema_color',
+        'pin_dueno',
         'ver_panel_dueno',
         'ver_panel_invitado',
     )
-    list_filter = ('plan_almacenamiento', 'activo', 'tema_color')
+    list_filter = ('plan_almacenamiento', 'plantilla_html', 'activo', 'tema_color')
     search_fields = ('id', 'nombre_evento', 'nombre_cliente')
     readonly_fields = ('id', 'fecha_creacion', 'ver_panel_dueno', 'ver_panel_invitado')
 
-    # Agrupación visual limpia para la vista de edición en Unfold
     fieldsets = (
         ('Información del Evento', {
-            'fields': ('nombre_evento', 'nombre_cliente', 'activo')
+            'fields': ('nombre_evento', 'nombre_cliente', 'activo', 'dias_vigencia')
         }),
         ('Seguridad y Acceso', {
             'fields': ('pin_dueno',),
             'description': 'PIN numérico de 4 dígitos para que el cliente ingrese a su panel privado.'
         }),
-        ('Configuración y Apariencia', {
-            'fields': ('plan_almacenamiento', 'tema_color')
+        ('Configuración, Plantilla y Apariencia', {
+            'fields': ('plan_almacenamiento', 'plantilla_html', 'tema_color', 'fondo_personalizado')
+        }),
+        ('Personalización Premium (Modal de Bienvenida)', {
+            'fields': ('mensaje_bienvenida',),
+            'description': 'Mensaje emergente que se muestra al abrir la galería (Solo activo en Plan Premium).'
         }),
         ('Enlaces y Metadatos', {
             'fields': ('id', 'fecha_creacion', 'ver_panel_dueno', 'ver_panel_invitado'),
-            'classes': ('collapse',), # Colapsable para no estorbar
+            'classes': ('collapse',),
         }),
     )
 
@@ -115,12 +112,11 @@ class EventoAdmin(ModelAdmin):
     inlines = [FotoInvitadoInline]
 
 
-# 3. Vista general de FotoInvitado (list_filter corregido)
 @admin.register(FotoInvitado)
 class FotoInvitadoAdmin(ModelAdmin):
-    list_display = ('id', 'vista_previa', 'evento', 'fecha_subida')
-    list_filter = ('evento', 'fecha_subida')
-    search_fields = ('evento__id', 'evento__nombre_evento', 'evento__nombre_cliente')
+    list_display = ('id', 'vista_previa', 'evento', 'likes', 'destacada', 'mensaje', 'fecha_subida')
+    list_filter = ('destacada', 'evento', 'fecha_subida')
+    search_fields = ('evento__id', 'evento__nombre_evento', 'evento__nombre_cliente', 'mensaje')
     ordering = ('-fecha_subida',)
 
     @admin.display(description='Vista Previa')

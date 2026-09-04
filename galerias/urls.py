@@ -14,7 +14,7 @@ urlpatterns = [
         name='eliminar_foto_ajax',
     ),
     path('', views.home, name='home'),
-
+    path('evento/<uuid:evento_id>/proyector/', views.modo_proyector, name='modo_proyector'),
     path('descargar/<int:archivo_id>/', views.descargar_archivo_proxy, name='descargar_archivo'),
 
     path('evento/<uuid:evento_id>/panel/', views.galeria_dueno, name='galeria_dueno'),

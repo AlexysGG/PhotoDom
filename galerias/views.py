@@ -4,7 +4,7 @@ import base64
 import qrcode
 import zipfile
 import requests
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -231,3 +231,11 @@ def descargar_archivo_proxy(request, archivo_id):
 def home(request):
     """Página de inicio / Landing Page principal del sitio"""
     return render(request, 'galerias/index.html')
+
+def modo_proyector(request, evento_id):
+    evento = get_object_or_404(Evento, id=evento_id, activo=True)
+    if not evento.es_plan_premium:
+        return redirect('galeria_invitado', evento_id=evento.id)
+
+    fotos = evento.fotos.all().order_by('-fecha_subida')
+    return render(request, 'galerias/proyector.html', {'evento': evento, 'fotos': fotos})
