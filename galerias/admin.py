@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
-from .models import Evento, FotoInvitado
+from .models import Evento, FotoInvitado, Marco
 from unfold.admin import ModelAdmin
 
 
@@ -32,6 +32,25 @@ def obtener_vista_previa_html(obj):
     )
 
 
+@admin.register(Marco)
+class MarcoAdmin(ModelAdmin):
+    list_display = ('id', 'vista_previa', 'nombre', 'solo_premium', 'activo', 'fecha_creacion')
+    list_filter = ('solo_premium', 'activo')
+    search_fields = ('nombre',)
+    ordering = ('nombre',)
+
+    @admin.display(description='Vista Previa')
+    def vista_previa(self, obj):
+        if obj.imagen:
+            return format_html(
+                '<div style="background: #cbd5e1; display: inline-block; padding: 4px; border-radius: 6px;">'
+                '<img src="{}" style="width: 60px; height: 60px; object-fit: contain;" />'
+                '</div>',
+                obj.imagen.url
+            )
+        return "Sin imagen"
+
+
 class FotoInvitadoInline(admin.TabularInline):
     model = FotoInvitado
     extra = 0
@@ -52,13 +71,14 @@ class EventoAdmin(ModelAdmin):
         'nombre_cliente',
         'plan_almacenamiento',
         'plantilla_html',
+        'marco_seleccionado',
         'dias_vigencia',
         'activo',
         'pin_dueno',
         'ver_panel_dueno',
         'ver_panel_invitado',
     )
-    list_filter = ('plan_almacenamiento', 'plantilla_html', 'activo', 'tema_color')
+    list_filter = ('plan_almacenamiento', 'plantilla_html', 'activo', 'tema_color', 'marco_seleccionado')
     search_fields = ('id', 'nombre_evento', 'nombre_cliente')
     readonly_fields = ('id', 'fecha_creacion', 'ver_panel_dueno', 'ver_panel_invitado')
 
@@ -71,7 +91,8 @@ class EventoAdmin(ModelAdmin):
             'description': 'PIN numérico de 4 dígitos para que el cliente ingrese a su panel privado.'
         }),
         ('Configuración, Plantilla y Apariencia', {
-            'fields': ('plan_almacenamiento', 'plantilla_html', 'tema_color', 'fondo_personalizado')
+            'fields': ('plan_almacenamiento', 'plantilla_html', 'tema_color', 'marco_seleccionado', 'fondo_personalizado'),
+            'description': 'Los marcos solo se mostrarán si el evento está en Plan Experiencia o Premium.'
         }),
         ('Personalización Premium (Modal de Bienvenida)', {
             'fields': ('mensaje_bienvenida',),

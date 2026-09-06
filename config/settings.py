@@ -92,13 +92,21 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if DATABASE_URL:
+if os.environ.get('DATABASE_URL'):
+    # Configuración para Producción (Render / PostgreSQL)
     DATABASES = {
         'default': dj_database_url.config(
-            default=DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
+            conn_health_checks=True,
         )
+    }
+else:
+    # Configuración para Desarrollo Local (SQLite local)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 
 # Password validation
@@ -146,7 +154,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 UNFOLD = {
     "SITE_TITLE": "Administración de Eventos",
-    "SITE_HEADER": "Panel Neumórfico",
+    "SITE_HEADER": "Panel Administrador",
     "SITE_URL": "/",
     "SHOW_HISTORY": True,
     "COLORS": {
