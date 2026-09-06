@@ -13,6 +13,8 @@ urlpatterns = [
         views.eliminar_foto_ajax,
         name='eliminar_foto_ajax',
     ),
+    path('foto/<int:foto_id>/like/', views.dar_like_ajax, name='dar_like_ajax'),
+    path('api/fotos/<int:foto_id>/like/', views.dar_like_ajax, name='api_dar_like_ajax'),
     path('', views.home, name='home'),
     path('evento/<uuid:evento_id>/proyector/', views.modo_proyector, name='modo_proyector'),
     path('descargar/<int:archivo_id>/', views.descargar_archivo_proxy, name='descargar_archivo'),

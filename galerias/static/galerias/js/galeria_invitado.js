@@ -2,14 +2,39 @@ let colaArchivos = [];
 let fotoIdAEliminar = null;
 let bannerErrorTimeout = null;
 
-// Constantes de límites de almacenamiento
+// Constantes y utilidades de configuración
 const TAMANO_MAX_ARCHIVO_MB = 1000; // Máximo por archivo individual (1 GB)
-const PLAN_MAX_MB = parseFloat("{{ evento.plan_almacenamiento }}") || 200;
+
+function obtenerCsrfToken() {
+    if (window.APP_CONFIG && window.APP_CONFIG.csrfToken) {
+        return window.APP_CONFIG.csrfToken;
+    }
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
+function obtenerSubirUrl() {
+    if (window.APP_CONFIG && window.APP_CONFIG.subirUrl) {
+        return window.APP_CONFIG.subirUrl;
+    }
+    return window.location.pathname.replace(/\/?$/, '/subir/');
+}
+
+function obtenerPlanMaxMB() {
+    return (window.APP_CONFIG && window.APP_CONFIG.planMaxMb) || 200;
+}
 
 // Obtener peso inicial de los archivos ya subidos que están en el DOM
 function obtenerEspacioUsadoEnServidorMB() {
-    // Se puede inyectar desde el backend o calcular leyendo el DOM si tienes data attributes
-    return parseFloat("{{ espacio_usado_mb|default:'0' }}") || 0;
+    return (window.APP_CONFIG && window.APP_CONFIG.espacioUsadoMb) || 0;
+}
+
+function permiteInteraccionEvento() {
+    return Boolean(window.APP_CONFIG && window.APP_CONFIG.permiteInteraccion);
+}
+
+function obtenerUrlMarco() {
+    return (window.APP_CONFIG && window.APP_CONFIG.urlMarco) || '';
 }
 
 function calcularEspacioColaMB() {
@@ -36,6 +61,7 @@ function procesarSeleccion(input) {
     const rechazados = [];
     const espacioUsadoServer = obtenerEspacioUsadoEnServidorMB();
     let espacioColaActual = calcularEspacioColaMB();
+    const planMaxMb = obtenerPlanMaxMB();
 
     Array.from(input.files).forEach(file => {
         const esValido = file.type.startsWith('image/') || file.type.startsWith('video/');
@@ -43,7 +69,7 @@ function procesarSeleccion(input) {
         const pesoOk = pesoArchivoMB <= TAMANO_MAX_ARCHIVO_MB;
 
         // Validar espacio restante disponible en el plan
-        const espacioDisponible = PLAN_MAX_MB - (espacioUsadoServer + espacioColaActual);
+        const espacioDisponible = planMaxMb - (espacioUsadoServer + espacioColaActual);
 
         if (!esValido) {
             rechazados.push(`${file.name} (formato no soportado)`);
@@ -82,38 +108,66 @@ function renderizarPrevisualizaciones() {
     seccion.classList.remove('hidden');
     contenedor.innerHTML = '';
 
-    // 1. Dibuja las previsualizaciones existentes
+    const urlMarco = obtenerUrlMarco();
+
+    // 1. Dibuja las previsualizaciones con el campo de mensaje y la capa de marco si aplica
     colaArchivos.forEach((file, index) => {
         const urlBlob = URL.createObjectURL(file);
         const esVideo = file.type.startsWith('video/');
+        const mensajeExistente = file.mensaje || '';
+
+        const inputMensajeHtml = permiteInteraccionEvento() ? `
+            <!-- Campo de Mensaje Dinámico -->
+            <input type="text" 
+                placeholder="💬 Escribe un comentario..." 
+                value="${mensajeExistente}"
+                oninput="guardarMensajeEnCola(${index}, this.value)"
+                class="w-full text-[11px] p-2 neu-pressed rounded-xl border-none focus:outline-none text-gray-700 placeholder-gray-400">
+        ` : '';
+
+        // Overlay de Marco PNG (solo para imágenes)
+        const marcoOverlay = (!esVideo && urlMarco)
+            ? `<img src="${urlMarco}" alt="Marco preview" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">`
+            : '';
 
         const cardPreview = `
-        <div class="neu-flat p-2 relative">
-            <button onclick="removerDeCola(${index})" aria-label="Quitar archivo" class="neu-btn-close absolute -top-2 -right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center text-red-500 text-xs font-bold">
+        <div class="neu-flat p-2.5 relative flex flex-col justify-between rounded-2xl">
+            <button onclick="removerDeCola(${index})" aria-label="Quitar archivo" class="neu-btn-close absolute -top-2 -right-2 z-20 w-7 h-7 rounded-full flex items-center justify-center text-red-500 text-xs font-bold">
                 ✕
             </button>
-            <div class="aspect-square neu-pressed overflow-hidden rounded-lg">
+            
+            <div class="aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2">
                 ${esVideo
-                ? `<video src="${urlBlob}" class="w-full h-full object-cover" muted></video>`
-                : `<img src="${urlBlob}" class="w-full h-full object-cover" alt="Previsualización">`
+                ? `<video src="${urlBlob}" class="w-full h-full object-cover relative z-0" muted></video>`
+                : `<img src="${urlBlob}" class="w-full h-full object-cover relative z-0" alt="Previsualización">`
             }
+                ${marcoOverlay}
             </div>
+
+            ${inputMensajeHtml}
         </div>
-    `;
+        `;
         contenedor.insertAdjacentHTML('beforeend', cardPreview);
     });
 
-    // 2. Agrega el botón "+ Añadir más" al final de la cuadrícula de previsualización
+    // 2. Botón "+ Añadir más"
     const botonAgregarMas = `
     <button onclick="document.getElementById('input-fotos').click()" type="button" 
-        class="aspect-square neu-button rounded-xl flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold p-2 border-2 border-dashed border-indigo-300/50 hover:bg-indigo-50/30 transition-all">
+        class="aspect-square neu-button rounded-2xl flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold p-2 border-2 border-dashed border-indigo-300/50 hover:bg-indigo-50/30 transition-all">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
         </svg>
         <span class="text-[11px] uppercase tracking-wider text-center">Añadir más</span>
     </button>
-`;
+    `;
     contenedor.insertAdjacentHTML('beforeend', botonAgregarMas);
+}
+
+// Función auxiliar para actualizar el texto en la cola al escribir
+function guardarMensajeEnCola(index, texto) {
+    if (colaArchivos[index]) {
+        colaArchivos[index].mensaje = texto;
+    }
 }
 
 function removerDeCola(index) {
@@ -154,6 +208,9 @@ function subirArchivoXHR(file, numActual, total) {
         const formData = new FormData();
         formData.append('foto', file);
 
+        // Adjuntar el mensaje guardado en el archivo (o string vacío si no escribió nada)
+        formData.append('mensaje', file.mensaje || '');
+
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
                 const porcentaje = Math.round((e.loaded / e.total) * 100);
@@ -174,7 +231,6 @@ function subirArchivoXHR(file, numActual, total) {
             try {
                 data = JSON.parse(xhr.responseText || '{}');
             } catch (e) {
-                // Ocurre cuando el servidor responde con HTML (ej. Error 500)
                 return reject('Error interno en el servidor (500). Revisa la consola o logs de Render.');
             }
 
@@ -187,8 +243,8 @@ function subirArchivoXHR(file, numActual, total) {
 
         xhr.addEventListener('error', () => reject('Error de red al conectar con el servidor.'));
 
-        xhr.open('POST', "{% url 'subir_foto_ajax' evento.id %}", true);
-        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+        xhr.open('POST', obtenerSubirUrl(), true);
+        xhr.setRequestHeader('X-CSRFToken', obtenerCsrfToken());
         xhr.send(formData);
     });
 }
@@ -204,6 +260,7 @@ async function subirTodosLosArchivos() {
 
     const total = colaArchivos.length;
     let subidasExitosas = 0;
+    const urlMarco = obtenerUrlMarco();
 
     for (let i = 0; i < total; i++) {
         try {
@@ -214,19 +271,53 @@ async function subirTodosLosArchivos() {
 
             const grid = document.getElementById('grid-fotos');
             const mediaTag = data.es_video
-                ? `<video class="w-full h-full object-cover" controls><source src="${data.archivo_url}" type="video/mp4"></video>`
-                : `<img src="${data.archivo_url}" class="w-full h-full object-cover">`;
+                ? `<video class="w-full h-full object-cover relative z-0" controls><source src="${data.archivo_url}" type="video/mp4"></video>`
+                : `<img src="${data.archivo_url}" class="w-full h-full object-cover relative z-0" alt="Foto subida">`;
+
+            // Superposición de marco dinámico
+            const marcoOverlay = (!data.es_video && urlMarco)
+                ? `<img src="${urlMarco}" alt="Marco" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">`
+                : '';
+
+            // Renderizar la tarjeta completa con mensaje y likes solo si el plan lo permite
+            const permiteInteraccion = permiteInteraccionEvento();
+            const mensajeTag = (permiteInteraccion && data.mensaje)
+                ? `<p class="text-xs text-gray-600 italic px-1 mb-2 line-clamp-2 leading-tight">"${data.mensaje}"</p>`
+                : '';
+
+            const interaccionesTag = permiteInteraccion ? `
+                    <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600">
+                        <button onclick="darLike(${data.id})" class="flex items-center gap-1.5 hover:text-red-500 transition-colors">
+                            <svg class="w-4 h-4 text-red-500 fill-current" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                            <span id="likes-count-${data.id}" class="font-bold">0</span>
+                        </button>
+
+                        <button onclick="abrirComentarios(${data.id})" class="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            <span class="font-semibold">0</span>
+                        </button>
+                    </div>
+            ` : '';
 
             const nuevaCard = `
-                    <div id="card-foto-${data.id}" class="neu-flat p-3 relative group">
-                        <button onclick="abrirModalEliminar(${data.id})" class="neu-btn-close absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center text-red-500 font-bold">
-                            ✕
-                        </button>
-                        <div class="aspect-square neu-pressed overflow-hidden rounded-xl">
-                            ${mediaTag}
-                        </div>
+                <div id="card-foto-${data.id}" class="photo-card neu-flat p-3 pt-4 relative group flex flex-col justify-between">
+                    <button onclick="abrirModalEliminar(${data.id})" class="neu-btn-close absolute -top-2 -right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center text-red-500 font-bold">
+                        ✕
+                    </button>
+                    
+                    <div class="aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2">
+                        ${mediaTag}
+                        ${marcoOverlay}
                     </div>
-                `;
+
+                    ${mensajeTag}
+                    ${interaccionesTag}
+                </div>
+            `;
             if (grid) grid.insertAdjacentHTML('afterbegin', nuevaCard);
             subidasExitosas++;
 
@@ -264,7 +355,7 @@ function confirmarEliminar() {
 
     fetch(`/foto/${fotoIdAEliminar}/eliminar/`, {
         method: 'POST',
-        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        headers: { 'X-CSRFToken': obtenerCsrfToken() }
     })
         .then(res => res.json())
         .then(data => {
@@ -298,4 +389,48 @@ function actualizarBotonesFlotantes() {
 
         if (sinFotosCard) sinFotosCard.classList.remove('hidden');
     }
+}
+
+function darLike(fotoId) {
+    fetch(`/foto/${fotoId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': obtenerCsrfToken(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.likes !== undefined) {
+            // 1. Actualiza el número de likes
+            document.getElementById(`likes-count-${fotoId}`).innerText = data.likes;
+            
+            // 2. Elementos del DOM
+            const btnLike = document.getElementById(`btn-like-${fotoId}`);
+            const iconLike = document.getElementById(`icon-like-${fotoId}`);
+
+            if (btnLike && iconLike) {
+                if (data.dio_like) {
+                    // Estado ACTIVO (Rojo y Relleno)
+                    btnLike.classList.add('text-red-500');
+                    btnLike.classList.remove('text-gray-400');
+                    
+                    iconLike.classList.add('fill-current');
+                    iconLike.classList.remove('fill-none', 'stroke-current', 'stroke-2');
+                } else {
+                    // Estado INACTIVO (Gris y Delineado)
+                    btnLike.classList.remove('text-red-500');
+                    btnLike.classList.add('text-gray-400');
+                    
+                    iconLike.classList.remove('fill-current');
+                    iconLike.classList.add('fill-none', 'stroke-current', 'stroke-2');
+                }
+            }
+        }
+    })
+    .catch(error => console.error('Error al dar me gusta:', error));
+}
+
+function abrirComentarios(fotoId) {
+    console.log("Abrir modal de foto:", fotoId);
 }

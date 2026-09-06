@@ -17,15 +17,14 @@
 
 <body class="min-h-screen pb-36 font-sans" style="{{ evento.vars_css_tema|safe }}">
 
-    <!-- SECCIÓN: Portada Hero Fullscreen (Exclusivo Plan Experiencia y Premium si subieron fondo) -->
+    <!-- SECCIÓN: Portada Hero Fullscreen -->
     {% if evento.permite_portada_hero %}
     <section class="min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center mb-6"
         style="background-image: url('{{ evento.fondo_personalizado.url }}');">
         <div
             class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80 flex flex-col items-center justify-center p-6 text-center text-white">
             <h1 class="font-display text-4xl sm:text-5xl mb-2 drop-shadow-md">{{ evento.nombre_evento }}</h1>
-            <p class="text-sm sm:text-base text-gray-200 font-medium max-w-md">¡Bienvenido! Comparte tus fotos y
-                recuerdos con {{ evento.nombre_cliente }}</p>
+            <p class="text-sm sm:text-base text-gray-200 font-medium max-w-md">¡Bienvenido! Comparte tus fotos y recuerdos con {{ evento.nombre_cliente }}</p>
 
             <button onclick="desplazarAGaleria()" type="button"
                 class="mt-8 neu-flat bg-indigo-600 text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-2xl active:scale-95 transition-all">
@@ -35,16 +34,15 @@
     </section>
     {% endif %}
 
-    <!-- Header Convencional (Solo si NO hay Portada Hero) -->
+    <!-- Header Convencional -->
     {% if not evento.permite_portada_hero %}
     <header class="max-w-2xl mx-auto mt-6 mx-4 p-6 neu-flat text-center">
         <h1 class="font-display text-3xl text-gray-700">{{ evento.nombre_evento }}</h1>
-        <p class="text-xs text-gray-500 font-semibold mt-1">¡Comparte tus fotos y videos con {{ evento.nombre_cliente
-            }}!</p>
+        <p class="text-xs text-gray-500 font-semibold mt-1">¡Comparte tus fotos y videos con {{ evento.nombre_cliente }}!</p>
     </header>
     {% endif %}
 
-    <!-- MODAL EMERGENTE DE BIENVENIDA (Exclusivo Plan Premium) -->
+    <!-- MODAL EMERGENTE DE BIENVENIDA -->
     {% if evento.es_plan_premium and evento.mensaje_bienvenida %}
     <div id="modal-bienvenida"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -62,7 +60,7 @@
     </div>
     {% endif %}
 
-    <!-- Banner de error neumórfico -->
+    <!-- Banner de error -->
     <div id="banner-error"
         class="hidden fixed top-4 left-4 right-4 z-50 max-w-md mx-auto neu-flat p-4 border border-red-200">
         <div class="flex items-start justify-between">
@@ -81,12 +79,51 @@
                     Archivos seleccionados <span id="contador-preview" class="neu-chip ml-1">(0)</span>
                 </span>
             </div>
-            <div id="grid-preview" class="grid grid-cols-2 gap-4"></div>
+            <div id="grid-preview" class="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-hidden"></div>
         </div>
 
         <!-- Input invisible de archivos -->
         <input type="file" id="input-fotos" name="foto" multiple accept="image/*,video/*" class="hidden"
             onchange="procesarSeleccion(this)">
+
+        <!-- SECCIÓN: FOTOS DESTACADAS / MÁS POPULARES (Ubicada correctamente fuera del for) -->
+        {% if fotos_destacadas %}
+        <section class="mb-10 w-full">
+            <div class="flex items-center gap-2 mb-4 px-1">
+                <h2 class="font-display text-lg text-gray-700 font-bold">  Fotos destacadas:</h2>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 sm:gap-4">
+                {% for foto in fotos_destacadas %}
+                <div class="neu-flat p-2 sm:p-3 rounded-2xl relative group flex flex-col justify-between">
+                    <!-- Insignia de Posición -->
+                    <span class="absolute top-3 left-3 z-20 w-6 h-6 neu-pressed rounded-full flex items-center justify-center text-[10px] font-black text-amber-500 shadow-sm">
+                        #{{ forloop.counter }}
+                    </span>
+
+                    <div class="aspect-square neu-pressed overflow-hidden rounded-xl relative">
+                        <img src="{{ foto.archivo.url }}" class="w-full h-full object-cover" alt="Foto destacada">
+                        
+                        {% if url_marco %}
+                        <img src="{{ url_marco }}" alt="Marco" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">
+                        {% endif %}
+                    </div>
+
+                    <!-- Indicador Simplificado de Likes -->
+                    <div class="mt-2 flex items-center justify-between px-1">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-gray-400">Popular</span>
+                        <div class="flex items-center gap-1 text-red-500 text-xs font-bold">
+                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                            <span>{{ foto.likes }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
 
         <!-- Separador de Fotos Subidas -->
         <div class="flex items-center gap-3 my-6">
@@ -100,61 +137,86 @@
             <div class="h-px bg-gray-300/60 flex-1 neu-pressed"></div>
         </div>
 
-        <!-- Malla de Fotos Públicas (Dinámica según evento.css_plantilla_clase) -->
-        <div id="grid-fotos" class="{{ evento.css_plantilla_clase }}">
+        <!-- Malla de Fotos Públicas -->
+        <div id="grid-fotos" class="{{ evento.css_plantilla_clase }} w-full">
+
             {% for archivo in archivos %}
-            <div id="card-foto-{{ archivo.id }}" class="photo-card neu-flat p-3 pt-4 relative group">
+            <div id="card-foto-{{ archivo.id }}"
+                class="photo-card neu-flat p-3 pt-4 relative group flex flex-col justify-between">
 
                 {% if archivo.id in mis_fotos_ids %}
                 <button onclick="abrirModalEliminar({{ archivo.id }})" aria-label="Eliminar recuerdo"
-                    class="neu-btn-close absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center text-red-500 font-bold">
+                    class="neu-btn-close absolute -top-2 -right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center text-red-500 font-bold">
                     ✕
                 </button>
                 {% endif %}
 
-                <div class="aspect-square neu-pressed overflow-hidden rounded-xl">
+                {% if archivo.destacada %}
+                <div class="absolute -top-2 -right-2 z-20 neu-chip bg-amber-100 text-amber-700 border border-amber-300 shadow-sm">
+                    ⭐ Destacada
+                </div>
+                {% endif %}
+
+                <!-- Contenedor Foto / Video -->
+                <div class="relative overflow-hidden rounded-xl bg-gray-200 aspect-square mb-2">
                     {% if archivo.es_video %}
-                    <video class="w-full h-full object-cover" controls muted playsinline>
+                    <video class="w-full h-full object-cover relative z-0" controls playsinline>
                         <source src="{{ archivo.archivo.url }}" type="video/mp4">
                     </video>
                     {% else %}
-                    <img src="{{ archivo.archivo.url }}" class="w-full h-full object-cover" alt="Foto del evento"
-                        loading="lazy">
+                    <img src="{{ archivo.archivo.url }}" alt="Foto de evento"
+                        class="w-full h-full object-cover relative z-0" loading="lazy">
+                    {% endif %}
+
+                    {% if url_marco and not archivo.es_video %}
+                    <img src="{{ url_marco }}" alt="Marco"
+                        class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">
                     {% endif %}
                 </div>
 
-                <!-- Interacciones (Likes) para Plan Experiencia y Premium -->
                 {% if evento.permite_interaccion %}
-                <div class="mt-2 flex items-center justify-between px-1">
-                    <button
-                        class="text-xs font-bold text-gray-600 flex items-center gap-1 hover:text-red-500 transition-colors">
-                        ❤️ <span>{{ archivo.likes|default:"0" }}</span>
+                {% if archivo.mensaje %}
+                <p class="text-xs text-gray-600 italic px-1 mb-2 line-clamp-2 leading-tight">
+                    "{{ archivo.mensaje }}"
+                </p>
+                {% endif %}
+
+                <!-- Interacciones: Likes -->
+                <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600">
+                    <button id="btn-like-{{ archivo.id }}" 
+                            onclick="darLike({{ archivo.id }})"
+                            class="flex items-center gap-1.5 transition-colors {% if archivo.id in likes_sesion %}text-red-500{% else %}text-gray-400 hover:text-red-500{% endif %}">
+                        
+                        <svg id="icon-like-{{ archivo.id }}" 
+                            class="w-4 h-4 {% if archivo.id in likes_sesion %}fill-current{% else %}fill-none stroke-current stroke-2{% endif %}" 
+                            viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        
+                        <span id="likes-count-{{ archivo.id }}" class="font-bold">{{ archivo.likes|default:0 }}</span>
                     </button>
                 </div>
                 {% endif %}
+
             </div>
             {% empty %}
-            <!-- Estado Vacío Neumórfico -->
+            <!-- Estado Vacío -->
             <div id="sin-fotos"
-                class="col-span-full w-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
+                class="col-span-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
                 <p class="font-display text-xl text-gray-500 mb-1">Aún no hay recuerdos.</p>
                 <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
-
                 <button onclick="document.getElementById('input-fotos').click()" type="button"
-                    class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2 hover:text-indigo-700 transition-all active:scale-95">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
+                    class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2">
                     SELECCIONAR FOTOS/VIDEOS
                 </button>
             </div>
             {% endfor %}
+
         </div>
     </main>
 
     <!-- Contenedor Flotante Inferior Sticky -->
     <div class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4">
-        <!-- Estado 1: Botón de Selección Flotante -->
         <button id="btn-seleccionar-flotante" onclick="document.getElementById('input-fotos').click()" type="button"
             class="{% if not archivos %}hidden{% endif %} neu-flat px-8 py-4 rounded-full text-indigo-600 font-black text-sm tracking-wider flex items-center gap-3 border border-white/40 shadow-lg active:scale-95 transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +225,6 @@
             SELECCIONAR FOTOS/VIDEOS
         </button>
 
-        <!-- Estado 2: Botón Flotante Sticky de Confirmar y Subir Archivos -->
         <button id="btn-subir-flotante" onclick="subirTodosLosArchivos()" type="button"
             class="hidden neu-flat bg-indigo-600 text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-xl active:scale-95 transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +235,7 @@
         </button>
     </div>
 
-    <!-- Modal de Progreso Neumórfico -->
+    <!-- Modales -->
     <div id="modal-progreso"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
         <div
@@ -190,7 +251,6 @@
         </div>
     </div>
 
-    <!-- Modal Agradecimiento -->
     <div id="modal-gracias"
         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
         <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
@@ -232,8 +292,17 @@
         </div>
     </div>
 
-    <!-- Script de Desplazamiento Suave y Modales -->
+    <!-- Scripts -->
     <script>
+        window.APP_CONFIG = {
+            subirUrl: "{% url 'subir_foto_ajax' evento.id %}",
+            csrfToken: "{{ csrf_token }}",
+            planMaxMb: Number("{{ evento.plan_almacenamiento|default:200 }}") || 200,
+            espacioUsadoMb: Number("{{ espacio_usado_mb|default:0 }}") || 0,
+            permiteInteraccion: {{ evento.permite_interaccion|yesno:"true,false" }},
+        urlMarco: "{% if url_marco %}{{ url_marco }}{% endif %}" // 👈 Para renderizar marcos dinámicos desde JS
+        };
+
         function desplazarAGaleria() {
             document.getElementById('seccion-galeria').scrollIntoView({ behavior: 'smooth' });
         }
@@ -243,8 +312,6 @@
             if (modal) modal.classList.add('hidden');
         }
     </script>
-
-    <!-- Lógica JavaScript Principal -->
     <script src="{% static 'galerias/js/galeria_invitado.js' %}"></script>
 </body>
 

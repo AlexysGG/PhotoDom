@@ -62,6 +62,28 @@ CONFIGURACION_TEMAS = {
 }
 
 
+class Marco(models.Model):
+    """Modelo para administrar el catálogo de marcos PNG transparentes"""
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del Marco")
+    imagen = models.ImageField(upload_to='marcos_eventos/', verbose_name="Imagen PNG del Marco")
+    solo_premium = models.BooleanField(
+        default=False, 
+        verbose_name="Exclusivo Premium",
+        help_text="Si se marca, solo los eventos con plan Premium podrán elegir este marco."
+    )
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Marco"
+        verbose_name_plural = "Marcos"
+        ordering = ['nombre']
+
+    def __str__(self):
+        etiqueta_plan = " [Solo Premium]" if self.solo_premium else ""
+        return f"{self.nombre}{etiqueta_plan}"
+
+
 class Evento(models.Model):
     PLANES = [
         (200, 'DEBUG (200 MB)'),
@@ -93,6 +115,17 @@ class Evento(models.Model):
         choices=PALETAS_COLOR,
         default='clasico',
         verbose_name="Paleta de Colores"
+    )
+
+    # Marco de superposición seleccionado (Exclusivo Experiencia y Premium)
+    marco_seleccionado = models.ForeignKey(
+        Marco,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='eventos',
+        verbose_name="Marco Personalizado",
+        help_text="Marco PNG que se superpondrá sobre las fotos (Disponible en Experiencia y Premium)"
     )
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -175,6 +208,18 @@ class Evento(models.Model):
     def permite_interaccion(self):
         """Habilita likes, mensajes en fotos y destacar fotos (Experiencia y Premium)."""
         return self.plan_almacenamiento >= 10000
+
+    @property
+    def permite_marcos(self):
+        """Permite usar marcos si el plan es Experiencia, Premium o Debug."""
+        return self.plan_almacenamiento >= 10000 or self.plan_almacenamiento == 200
+
+    @property
+    def url_marco_activo(self):
+        """Retorna la URL del marco solo si el plan lo permite y hay uno seleccionado."""
+        if self.permite_marcos and self.marco_seleccionado and self.marco_seleccionado.activo:
+            return self.marco_seleccionado.imagen.url
+        return None
 
     @property
     def permite_portada_hero(self):
