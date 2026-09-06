@@ -9,7 +9,7 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
-from .models import Evento, FotoInvitado
+from .models import Evento, FotoInvitado, Marco
 
 
 def galeria_invitado(request, evento_id):
@@ -22,16 +22,33 @@ def galeria_invitado(request, evento_id):
     archivos = evento.fotos.all().order_by('-fecha_subida')
 
     mis_fotos_ids = request.session.get('mis_fotos_ids', [])
-    
+
+    fotos_destacadas = []
+    if evento.permite_interaccion:
+        extensiones_imagen = r'\.(jpg|jpeg|png|webp|gif|heic)$'
+        
+        fotos_destacadas = (
+            archivos.filter(
+                archivo__iregex=extensiones_imagen,
+                likes__gt=0
+            )
+            .order_by('-likes', '-fecha_subida')[:3]
+        )
+
+    likes_sesion = request.session.get('likes_fotos', [])
     # Calcular el almacenamiento usado actualmente en MB
     bytes_ocupados = sum(foto.archivo.size for foto in archivos if foto.archivo)
     espacio_usado_mb = bytes_ocupados / (1024 * 1024)
+    likes_sesion = request.session.get('likes_fotos', [])
     
     return render(request, 'galerias/galeria_invitado.html', {
         'evento': evento,
         'archivos': archivos,
         'mis_fotos_ids': mis_fotos_ids,
-        'espacio_usado_mb': round(espacio_usado_mb, 2)
+        'espacio_usado_mb': round(espacio_usado_mb, 2),
+        'url_marco': evento.url_marco_activo,
+        'likes_sesion': likes_sesion,
+        'fotos_destacadas': fotos_destacadas 
     })
 
 
@@ -84,15 +101,18 @@ def subir_foto_ajax(request, evento_id):
             'error': f'Almacenamiento no disponible. Quedan {espacio_mostrar:.1f} MB libres en el plan.'
         }, status=400)
 
-    # Guardar en base de datos y Google Cloud Storage
+    # Guardar en base de datos y Google Cloud Storage (mensaje solo si el plan lo permite)
+    mensaje_texto = request.POST.get('mensaje', '').strip() if evento.permite_interaccion else ''
+
     try:
         foto = FotoInvitado.objects.create(
             evento=evento,
-            archivo=archivo
+            archivo=archivo,
+            mensaje=mensaje_texto or None
         )
     except Exception as e:
         return JsonResponse({
-            'success': False,
+            'success': False, 
             'error': f'Error al guardar en el almacenamiento: {str(e)}'
         }, status=500)
 
@@ -110,7 +130,8 @@ def subir_foto_ajax(request, evento_id):
         'success': True,
         'id': foto.id,
         'archivo_url': str(foto.archivo.url),
-        'es_video': bool(es_vid)
+        'es_video': bool(es_vid),
+        'mensaje': foto.mensaje or ''
     })
 
 
@@ -134,6 +155,39 @@ def eliminar_foto_ajax(request, foto_id):
         return JsonResponse({'success': True})
     except FotoInvitado.DoesNotExist:
         return JsonResponse({'error': 'El archivo no existe'}, status=404)
+
+
+def dar_like_ajax(request, foto_id):
+    """Permite 1 like por invitado por foto usando la sesión del navegador."""
+    foto = get_object_or_404(FotoInvitado, id=foto_id)
+    if not foto.evento.permite_interaccion:
+        return JsonResponse({'error': 'Interacción no disponible en este plan.'}, status=403)
+
+    # 1. Recuperar la lista de IDs de fotos con me gusta de la sesión del visitante
+    likes_sesion = request.session.get('likes_fotos', [])
+
+    # 2. Alternar me gusta (Toggle)
+    if foto_id in likes_sesion:
+        # Si ya le dio me gusta, se lo quitamos
+        likes_sesion.remove(foto_id)
+        foto.likes = max(0, foto.likes - 1)
+        dio_like = False
+    else:
+        # Si no le ha dado me gusta, se lo sumamos
+        likes_sesion.append(foto_id)
+        foto.likes += 1
+        dio_like = True
+
+    # 3. Guardar cambios en el modelo y actualizar la sesión
+    foto.save(update_fields=['likes'])
+    request.session['likes_fotos'] = likes_sesion
+    request.session.modified = True
+
+    return JsonResponse({
+        'success': True,
+        'likes': foto.likes,
+        'dio_like': dio_like
+    })
 
 
 def galeria_dueno(request, evento_id):
@@ -177,6 +231,7 @@ def galeria_dueno(request, evento_id):
         'total_fotos': total_fotos,
         'total_videos': total_videos,
         'qr_base64': qr_base64,
+        'url_marco': evento.url_marco_activo,
     }
     return render(request, 'galerias/galeria_dueno.html', context)
 
@@ -209,18 +264,14 @@ def descargar_todas_las_fotos_zip(request, evento_id):
 
 
 def descargar_archivo_proxy(request, archivo_id):
-    # Reemplazamos Evento por FotoInvitado
     item = get_object_or_404(FotoInvitado, pk=archivo_id)
     
     try:
-        # Obtenemos el archivo desde la URL de Google Cloud Storage
         response = requests.get(item.archivo.url, stream=True)
         response.raise_for_status()
         
-        # Extraemos el nombre original del archivo
         nombre_original = os.path.basename(item.archivo.name)
         
-        # Retornamos la respuesta forzando la descarga
         res = HttpResponse(response.content, content_type=response.headers.get('Content-Type'))
         res['Content-Disposition'] = f'attachment; filename="{nombre_original}"'
         return res
@@ -228,9 +279,11 @@ def descargar_archivo_proxy(request, archivo_id):
     except requests.RequestException:
         raise Http404("No se pudo obtener el archivo del almacenamiento externo.")
 
+
 def home(request):
     """Página de inicio / Landing Page principal del sitio"""
     return render(request, 'galerias/index.html')
+
 
 def modo_proyector(request, evento_id):
     evento = get_object_or_404(Evento, id=evento_id, activo=True)
@@ -238,4 +291,8 @@ def modo_proyector(request, evento_id):
         return redirect('galeria_invitado', evento_id=evento.id)
 
     fotos = evento.fotos.all().order_by('-fecha_subida')
-    return render(request, 'galerias/proyector.html', {'evento': evento, 'fotos': fotos})
+    return render(request, 'galerias/proyector.html', {
+        'evento': evento, 
+        'fotos': fotos,
+        'url_marco': evento.url_marco_activo,
+    })
