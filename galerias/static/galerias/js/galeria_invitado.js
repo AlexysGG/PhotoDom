@@ -2,6 +2,14 @@ let colaArchivos = [];
 let fotoIdAEliminar = null;
 let bannerErrorTimeout = null;
 
+// --- CARRUSEL / LIGHTBOX ---
+let archivosGaleria = [];   // [{ url, esVideo, id, liked, likes }]
+let indiceActual = 0;
+
+// Variables para gestos táctiles y de arrastre
+let startX = 0;
+let isDragging = false;
+
 // Constantes y utilidades de configuración
 const TAMANO_MAX_ARCHIVO_MB = 1000; // Máximo por archivo individual (1 GB)
 
@@ -110,14 +118,12 @@ function renderizarPrevisualizaciones() {
 
     const urlMarco = obtenerUrlMarco();
 
-    // 1. Dibuja las previsualizaciones con el campo de mensaje y la capa de marco si aplica
     colaArchivos.forEach((file, index) => {
         const urlBlob = URL.createObjectURL(file);
         const esVideo = file.type.startsWith('video/');
         const mensajeExistente = file.mensaje || '';
 
         const inputMensajeHtml = permiteInteraccionEvento() ? `
-            <!-- Campo de Mensaje Dinámico -->
             <input type="text" 
                 placeholder="💬 Escribe un comentario..." 
                 value="${mensajeExistente}"
@@ -125,21 +131,20 @@ function renderizarPrevisualizaciones() {
                 class="w-full text-[11px] p-2 neu-pressed rounded-xl border-none focus:outline-none text-gray-700 placeholder-gray-400">
         ` : '';
 
-        // Overlay de Marco PNG (solo para imágenes)
         const marcoOverlay = (!esVideo && urlMarco)
             ? `<img src="${urlMarco}" alt="Marco preview" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">`
             : '';
 
         const cardPreview = `
-        <div class="neu-flat p-2.5 relative flex flex-col justify-between rounded-2xl">
+        <div class="neu-flat p-2.5 relative flex flex-col justify-between rounded-2xl h-full">
             <button onclick="removerDeCola(${index})" aria-label="Quitar archivo" class="neu-btn-close absolute -top-2 -right-2 z-20 w-7 h-7 rounded-full flex items-center justify-center text-red-500 text-xs font-bold">
                 ✕
             </button>
             
-            <div class="aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2">
+            <div class="aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2 w-full shrink-0">
                 ${esVideo
-                ? `<video src="${urlBlob}" class="w-full h-full object-cover relative z-0" muted></video>`
-                : `<img src="${urlBlob}" class="w-full h-full object-cover relative z-0" alt="Previsualización">`
+                ? `<video src="${urlBlob}" class="absolute inset-0 block w-full h-full object-cover z-0" muted></video>`
+                : `<img src="${urlBlob}" class="absolute inset-0 block w-full h-full object-cover z-0" alt="Previsualización">`
             }
                 ${marcoOverlay}
             </div>
@@ -150,7 +155,6 @@ function renderizarPrevisualizaciones() {
         contenedor.insertAdjacentHTML('beforeend', cardPreview);
     });
 
-    // 2. Botón "+ Añadir más"
     const botonAgregarMas = `
     <button onclick="document.getElementById('input-fotos').click()" type="button" 
         class="aspect-square neu-button rounded-2xl flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold p-2 border-2 border-dashed border-indigo-300/50 hover:bg-indigo-50/30 transition-all">
@@ -271,12 +275,17 @@ async function subirTodosLosArchivos() {
 
             const grid = document.getElementById('grid-fotos');
             const mediaTag = data.es_video
-                ? `<video class="w-full h-full object-cover relative z-0" controls><source src="${data.archivo_url}" type="video/mp4"></video>`
-                : `<img src="${data.archivo_url}" class="w-full h-full object-cover relative z-0" alt="Foto subida">`;
+                ? `<video class="absolute inset-0 block w-full h-full object-cover z-0 pointer-events-none" preload="metadata"><source src="${data.archivo_url}#t=0.5" type="video/mp4"></video>`
+                : `<img src="${data.archivo_url}" class="absolute inset-0 block w-full h-full object-cover z-0" alt="Foto subida">`;
 
             // Superposición de marco dinámico
             const marcoOverlay = (!data.es_video && urlMarco)
                 ? `<img src="${urlMarco}" alt="Marco" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">`
+                : '';
+
+            // Badge de tipo Video
+            const videoBadge = data.es_video
+                ? `<span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none backdrop-blur-sm"><svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video</span>`
                 : '';
 
             // Renderizar la tarjeta completa con mensaje y likes solo si el plan lo permite
@@ -286,21 +295,21 @@ async function subirTodosLosArchivos() {
                 : '';
 
             const interaccionesTag = permiteInteraccion ? `
-                    <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600">
-                        <button onclick="darLike(${data.id})" class="flex items-center gap-1.5 hover:text-red-500 transition-colors">
-                            <svg class="w-4 h-4 text-red-500 fill-current" viewBox="0 0 24 24">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                            </svg>
-                            <span id="likes-count-${data.id}" class="font-bold">0</span>
-                        </button>
+                <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600">
+                    <button id="btn-like-${data.id}" onclick="darLike(${data.id})" class="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors">
+                        <svg id="icon-like-${data.id}" class="w-4 h-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                        <span id="likes-count-${data.id}" class="font-bold">0</span>
+                    </button>
 
-                        <button onclick="abrirComentarios(${data.id})" class="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                            <span class="font-semibold">0</span>
-                        </button>
-                    </div>
+                    <button onclick="abrirComentarios(${data.id})" class="flex items-center gap-1.5 text-gray-400 hover:text-indigo-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        <span class="font-semibold">0</span>
+                    </button>
+                </div>
             ` : '';
 
             const nuevaCard = `
@@ -309,9 +318,16 @@ async function subirTodosLosArchivos() {
                         ✕
                     </button>
                     
-                    <div class="aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2">
+                    <div class="media-item aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2 cursor-pointer"
+                        data-url="${data.archivo_url}"
+                        data-es-video="${data.es_video ? 'true' : 'false'}"
+                        data-id="${data.id}"
+                        data-liked="false"
+                        data-likes="0"
+                        onclick="abrirCarrusel(0)">
                         ${mediaTag}
                         ${marcoOverlay}
+                        ${videoBadge}
                     </div>
 
                     ${mensajeTag}
@@ -331,6 +347,10 @@ async function subirTodosLosArchivos() {
 
     if (subidasExitosas > 0) {
         limpiarSeleccion();
+        // Re-sincronizar el array del carrusel con las nuevas fotos insertadas
+        sincronizarGaleriaCarrusel();
+        // Corregir el índice onclick de las nuevas tarjetas
+        actualizarOnclickCarrusel();
         const modalGracias = document.getElementById('modal-gracias');
         if (modalGracias) modalGracias.classList.remove('hidden');
     }
@@ -402,28 +422,22 @@ function darLike(fotoId) {
     .then(response => response.json())
     .then(data => {
         if (data.likes !== undefined) {
-            // 1. Actualiza el número de likes
-            document.getElementById(`likes-count-${fotoId}`).innerText = data.likes;
+            // 1. Sincronizar UI de la malla externa
+            actualizarUiLikeMalla(fotoId, data.dio_like, data.likes);
             
-            // 2. Elementos del DOM
-            const btnLike = document.getElementById(`btn-like-${fotoId}`);
-            const iconLike = document.getElementById(`icon-like-${fotoId}`);
+            // 2. Persistir en el dataset DOM
+            const mediaItem = document.querySelector(`.media-item[data-id="${fotoId}"]`);
+            if (mediaItem) {
+                mediaItem.dataset.liked = data.dio_like ? "true" : "false";
+                mediaItem.dataset.likes = data.likes;
+            }
 
-            if (btnLike && iconLike) {
-                if (data.dio_like) {
-                    // Estado ACTIVO (Rojo y Relleno)
-                    btnLike.classList.add('text-red-500');
-                    btnLike.classList.remove('text-gray-400');
-                    
-                    iconLike.classList.add('fill-current');
-                    iconLike.classList.remove('fill-none', 'stroke-current', 'stroke-2');
-                } else {
-                    // Estado INACTIVO (Gris y Delineado)
-                    btnLike.classList.remove('text-red-500');
-                    btnLike.classList.add('text-gray-400');
-                    
-                    iconLike.classList.remove('fill-current');
-                    iconLike.classList.add('fill-none', 'stroke-current', 'stroke-2');
+            // 3. Sincronizar array en memoria del carrusel
+            if (typeof archivosGaleria !== 'undefined') {
+                const item = archivosGaleria.find(f => f.id == fotoId);
+                if (item) {
+                    item.liked = data.dio_like;
+                    item.likes = data.likes;
                 }
             }
         }
@@ -434,3 +448,258 @@ function darLike(fotoId) {
 function abrirComentarios(fotoId) {
     console.log("Abrir modal de foto:", fotoId);
 }
+
+// --- INICIALIZACIÓN DEL CARRUSEL ---
+document.addEventListener("DOMContentLoaded", () => {
+    sincronizarGaleriaCarrusel();
+    actualizarOnclickCarrusel();
+
+    const area = document.getElementById("carrusel-touch-area");
+    if (area) {
+        area.addEventListener("touchstart", touchStart, { passive: true });
+        area.addEventListener("touchmove", touchMove, { passive: true });
+        area.addEventListener("touchend", touchEnd);
+
+        area.addEventListener("mousedown", touchStart);
+        area.addEventListener("mousemove", touchMove);
+        area.addEventListener("mouseup", touchEnd);
+        area.addEventListener("mouseleave", () => { if (typeof isDragging !== 'undefined' && isDragging) touchEnd(); });
+    }
+});
+
+function sincronizarGaleriaCarrusel() {
+    const elementos = document.querySelectorAll(".media-item");
+    archivosGaleria = Array.from(elementos).map(el => ({
+        url: el.dataset.url,
+        esVideo: el.dataset.esVideo === "true",
+        id: parseInt(el.dataset.id, 10) || null,
+        liked: el.dataset.liked === "true",
+        likes: parseInt(el.dataset.likes, 10) || 0
+    }));
+}
+
+function actualizarOnclickCarrusel() {
+    const elementos = document.querySelectorAll(".media-item");
+    elementos.forEach((el, idx) => {
+        el.onclick = () => abrirCarrusel(idx);
+    });
+}
+
+// --- LIGHTBOX: ABRIR / CERRAR ---
+function abrirCarrusel(index) {
+    indiceActual = index;
+    const mediaElements = document.querySelectorAll('.media-item');
+    const el = mediaElements[index];
+
+    if (el) {
+        const liked = el.dataset.liked === "true";
+        const likes = parseInt(el.dataset.likes, 10) || 0;
+
+        if (archivosGaleria[index]) {
+            archivosGaleria[index].liked = liked;
+            archivosGaleria[index].likes = likes;
+        }
+    }
+
+    document.getElementById('lightbox-modal').classList.remove('hidden');
+    
+    // Renderiza el slide e icono del carrusel con la info sincronizada
+    actualizarVistaCarrusel();
+}
+
+function cerrarCarrusel() {
+    const video = document.getElementById("carrusel-video");
+    if (video) video.pause();
+    document.getElementById("lightbox-modal").classList.add("hidden");
+    document.body.style.overflow = "";
+}
+
+function cambiarSlide(direccion) {
+    const video = document.getElementById("carrusel-video");
+    if (video) video.pause();
+
+    indiceActual += direccion;
+    if (indiceActual < 0) indiceActual = archivosGaleria.length - 1;
+    if (indiceActual >= archivosGaleria.length) indiceActual = 0;
+
+    actualizarVistaCarrusel();
+}
+
+function actualizarVistaCarrusel() {
+    const item = archivosGaleria[indiceActual];
+    if (!item) return;
+
+    const container = document.getElementById("carrusel-slide-container");
+    const imgEl = document.getElementById("carrusel-img");
+    const videoEl = document.getElementById("carrusel-video");
+    const contador = document.getElementById("carrusel-contador");
+
+    if (container) {
+        container.style.transform = "translateX(0px)";
+        container.style.transition = "transform 0.3s ease-out";
+    }
+
+    if (videoEl) {
+        videoEl.pause();
+        videoEl.currentTime = 0;
+    }
+
+    if (item.esVideo) {
+        if (imgEl) imgEl.classList.add("hidden");
+        if (videoEl) { 
+            videoEl.src = item.url; 
+            videoEl.classList.remove("hidden"); 
+        }
+    } else {
+        if (videoEl) videoEl.classList.add("hidden");
+        if (imgEl) { 
+            imgEl.src = item.url; 
+            imgEl.classList.remove("hidden"); 
+        }
+    }
+
+    if (contador) {
+        contador.innerText = `${indiceActual + 1} / ${archivosGaleria.length}`;
+    }
+
+    actualizarBtnLikeCarrusel(item.liked, item.likes);
+}
+
+function actualizarBtnLikeCarrusel(liked, likes) {
+    const btnLike = document.getElementById("carrusel-btn-like");
+    const iconLike = document.getElementById("carrusel-icon-like");
+    const countEl = document.getElementById("carrusel-likes-count");
+
+    if (!btnLike) return;
+
+    if (countEl) countEl.innerText = likes;
+
+    if (liked) {
+        btnLike.classList.add("text-red-500");
+        btnLike.classList.remove("text-gray-400");
+        if (iconLike) {
+            iconLike.setAttribute("fill", "currentColor");
+            iconLike.style.fill = "currentColor";
+            iconLike.setAttribute("stroke", "currentColor");
+        }
+    } else {
+        btnLike.classList.remove("text-red-500");
+        btnLike.classList.add("text-gray-400");
+        if (iconLike) {
+            iconLike.setAttribute("fill", "none");
+            iconLike.style.fill = "none";
+            iconLike.setAttribute("stroke", "currentColor");
+        }
+    }
+}
+
+function darLikeCarrusel() {
+    const item = archivosGaleria[indiceActual];
+    if (!item || !item.id) return;
+
+    fetch(`/foto/${item.id}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': obtenerCsrfToken(),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.likes !== undefined) {
+            // 1. Actualizar objeto en memoria
+            item.liked = data.dio_like;
+            item.likes = data.likes;
+
+            // 2. Persistir dataset en el DOM
+            const mediaItem = document.querySelector(`.media-item[data-id="${item.id}"]`);
+            if (mediaItem) {
+                mediaItem.dataset.liked = data.dio_like ? "true" : "false";
+                mediaItem.dataset.likes = data.likes;
+            }
+
+            // 3. Reflejar UI en carrusel y malla
+            actualizarBtnLikeCarrusel(data.dio_like, data.likes);
+            actualizarUiLikeMalla(item.id, data.dio_like, data.likes);
+        }
+    })
+    .catch(err => console.error("Error al dar like desde el carrusel:", err));
+}
+
+function actualizarUiLikeMalla(id, dioLike, totalLikes) {
+    const btn = document.getElementById(`btn-like-${id}`);
+    const icon = document.getElementById(`icon-like-${id}`);
+    const count = document.getElementById(`likes-count-${id}`);
+
+    if (count) count.innerText = totalLikes;
+
+    if (btn && icon) {
+        if (dioLike) {
+            btn.classList.remove('text-gray-400');
+            btn.classList.add('text-red-500');
+            icon.setAttribute('fill', 'currentColor');
+            icon.style.fill = 'currentColor';
+        } else {
+            btn.classList.remove('text-red-500');
+            btn.classList.add('text-gray-400');
+            icon.setAttribute('fill', 'none');
+            icon.style.fill = 'none';
+        }
+    }
+}
+
+// --- GESTOS SWIPE / DRAG ---
+function getPositionX(e) {
+    return e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+}
+
+function touchStart(e) {
+    if (e.target.tagName === 'VIDEO' && e.type === 'mousedown') {
+        const rect   = e.target.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        if (clickY > rect.height - 50) return;
+    }
+    isDragging = true;
+    startX = getPositionX(e);
+    const container = document.getElementById("carrusel-slide-container");
+    if (container) container.style.transition = "none";
+}
+
+function touchMove(e) {
+    if (!isDragging) return;
+    const diff      = getPositionX(e) - startX;
+    const container = document.getElementById("carrusel-slide-container");
+    if (container) container.style.transform = `translateX(${diff}px)`;
+}
+
+function touchEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const container = document.getElementById("carrusel-slide-container");
+    if (!container) return;
+
+    const match = container.style.transform.match(/translateX\(([-0-9.]+)px\)/);
+    if (match) {
+        const movedBy = parseFloat(match[1]);
+        if (movedBy < -50)      cambiarSlide(1);
+        else if (movedBy > 50)  cambiarSlide(-1);
+        else {
+            container.style.transition = "transform 0.3s ease-out";
+            container.style.transform  = "translateX(0px)";
+        }
+    } else {
+        container.style.transition = "transform 0.3s ease-out";
+        container.style.transform  = "translateX(0px)";
+    }
+}
+
+// Navegación con teclado
+document.addEventListener("keydown", (e) => {
+    const modal = document.getElementById("lightbox-modal");
+    if (modal && !modal.classList.contains("hidden")) {
+        if (e.key === "ArrowLeft")  cambiarSlide(-1);
+        if (e.key === "ArrowRight") cambiarSlide(1);
+        if (e.key === "Escape")     cerrarCarrusel();
+    }
+});

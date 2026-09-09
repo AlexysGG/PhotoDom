@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
+from django.templatetags.static import static
+from django.utils.html import format_html
 
 import firebase_admin
 # pyrefly: ignore [missing-import]
@@ -154,7 +156,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 UNFOLD = {
     "SITE_TITLE": "Administración de Eventos",
-    "SITE_HEADER": "Panel Administrador",
+    "SITE_HEADER": "PhotoDom",
     "SITE_URL": "/",
     "SHOW_HISTORY": True,
     "COLORS": {
@@ -171,6 +173,28 @@ UNFOLD = {
             "900": "49 46 129",
         },
     },
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "type": "image/png",
+            "sizes": "96x96",
+            "href": lambda request: static("favicon-96x96.png"),
+        },
+        {
+            "rel": "icon",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "href": lambda request: static("favicon.svg"),
+        },
+        {
+            "rel": "shortcut icon",
+            "href": lambda request: static("favicon.ico"),
+        },
+        {
+            "rel": "apple-touch-icon",
+            "href": lambda request: static("apple-touch-icon.png"),
+        },
+    ],
 }
 
 

@@ -1,3 +1,4 @@
+from requests import request
 import os
 import io
 import base64
@@ -25,11 +26,12 @@ def galeria_invitado(request, evento_id):
 
     fotos_destacadas = []
     if evento.permite_interaccion:
-        extensiones_imagen = r'\.(jpg|jpeg|png|webp|gif|heic)$'
+        # Agregamos extensiones de video a la expresión regular
+        extensiones_media = r'\.(jpg|jpeg|png|webp|gif|heic|mp4|mov|avi|webm)$'
         
         fotos_destacadas = (
             archivos.filter(
-                archivo__iregex=extensiones_imagen,
+                archivo__iregex=extensiones_media,
                 likes__gt=0
             )
             .order_by('-likes', '-fecha_subida')[:3]

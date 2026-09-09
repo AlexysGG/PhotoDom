@@ -13,6 +13,12 @@
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'galerias/css/galeria_invitadocss.css' %}">
+    <!-- Favicons & Manifest -->
+    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'favicon-96x96.png' %}">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="{% static 'favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
 </head>
 
 <body class="min-h-screen pb-16 font-sans" style="{{ evento.vars_css_tema|safe }}">

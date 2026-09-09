@@ -179,13 +179,20 @@ function getPositionX(e) {
 }
 
 function touchStart(e) {
-    // Si se toca dentro de un video reproduciéndose, no bloqueamos sus controles
-    if (e.target.tagName === 'VIDEO') return;
+    // Si hace clic directo en los controles nativos del video, permitimos la interacción del video
+    if (e.target.tagName === 'VIDEO' && e.type === 'mousedown') {
+        // En escritorio, si presiona sobre la barra inferior de controles, no iniciamos drag
+        const rect = e.target.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        if (clickY > rect.height - 50) return; // zona de controles del video
+    }
 
     isDragging = true;
     startX = getPositionX(e);
     const container = document.getElementById("carrusel-slide-container");
-    container.style.transition = "none"; // Desactivar transición durante el arrastre
+    if (container) {
+        container.style.transition = "none"; // Desactivar transición durante el arrastre
+    }
 }
 
 function touchMove(e) {
@@ -197,11 +204,13 @@ function touchMove(e) {
     container.style.transform = `translateX(${diff}px)`;
 }
 
-function touchEnd() {
+function touchEnd(e) {
     if (!isDragging) return;
     isDragging = false;
 
     const container = document.getElementById("carrusel-slide-container");
+    if (!container) return;
+
     const transformStyle = container.style.transform;
     const match = transformStyle.match(/translateX\(([-0-9.]+)px\)/);
 
@@ -218,6 +227,9 @@ function touchEnd() {
             container.style.transition = "transform 0.3s ease-out";
             container.style.transform = `translateX(0px)`;
         }
+    } else {
+        container.style.transition = "transform 0.3s ease-out";
+        container.style.transform = `translateX(0px)`;
     }
 }
 
