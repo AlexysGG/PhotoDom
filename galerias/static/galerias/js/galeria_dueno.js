@@ -1,4 +1,4 @@
-// Variable global leída desde el HTML (sin sintaxis de Django Jinja)
+// Variable global leída desde el HTML
 let inputPin = "";
 let archivosGaleria = [];
 let indiceActual = 0;
@@ -10,7 +10,6 @@ let currentTranslate = 0;
 let isDragging = false;
 
 // Inicialización de datos al cargar el DOM
-// Inicialización de datos al cargar el DOM
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Verificación de PIN en la sesión
     if (sessionStorage.getItem(`pin_valido_${window.EVENTO_ID}`) === "true") {
@@ -18,11 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (modal) modal.classList.add("hidden");
     }
 
-    // 2. Mapeo de la galería para el Carrusel
+    // 2. Mapeo de la galería para el Carrusel (incluye conteo de Likes)
     const elementosMedia = document.querySelectorAll(".media-item");
     archivosGaleria = Array.from(elementosMedia).map(el => ({
         url: el.dataset.url,
-        esVideo: el.dataset.esVideo === "true"
+        esVideo: el.dataset.esVideo === "true",
+        likes: parseInt(el.dataset.likes || "0", 10)
     }));
 
     // 3. Configuración de eventos de Deslizamiento (Swipe / Drag)
@@ -99,26 +99,6 @@ function validarPin() {
     }
 }
 
-// --- DESCARGA DIRECTA (EVITA PESTAÑA DEL STORAGE) ---
-async function descargarArchivoDirecto(url, nombreArchivo) {
-    try {
-        const respuesta = await fetch(url);
-        const blob = await respuesta.blob();
-        const urlBlob = window.URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = urlBlob;
-        a.download = nombreArchivo || 'archivo_galeria';
-        document.body.appendChild(a);
-        a.click();
-
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(urlBlob);
-    } catch (error) {
-        window.open(url, '_blank');
-    }
-}
-
 // --- LIGHTBOX / CARRUSEL ---
 function abrirCarrusel(index) {
     indiceActual = index;
@@ -153,6 +133,7 @@ function actualizarVistaCarrusel() {
     const imgEl = document.getElementById("carrusel-img");
     const videoEl = document.getElementById("carrusel-video");
     const contador = document.getElementById("carrusel-contador");
+    const likesCountEl = document.getElementById("carrusel-likes-count");
 
     // Resetear posición de la animación
     container.style.transform = `translateX(0px)`;
@@ -171,6 +152,10 @@ function actualizarVistaCarrusel() {
     if (contador) {
         contador.innerText = `${indiceActual + 1} / ${archivosGaleria.length}`;
     }
+
+    if (likesCountEl) {
+        likesCountEl.innerText = item.likes || 0;
+    }
 }
 
 // --- LÓGICA DEL SWIPE / DESLIZAMIENTO ---
@@ -179,19 +164,17 @@ function getPositionX(e) {
 }
 
 function touchStart(e) {
-    // Si hace clic directo en los controles nativos del video, permitimos la interacción del video
     if (e.target.tagName === 'VIDEO' && e.type === 'mousedown') {
-        // En escritorio, si presiona sobre la barra inferior de controles, no iniciamos drag
         const rect = e.target.getBoundingClientRect();
         const clickY = e.clientY - rect.top;
-        if (clickY > rect.height - 50) return; // zona de controles del video
+        if (clickY > rect.height - 50) return;
     }
 
     isDragging = true;
     startX = getPositionX(e);
     const container = document.getElementById("carrusel-slide-container");
     if (container) {
-        container.style.transition = "none"; // Desactivar transición durante el arrastre
+        container.style.transition = "none";
     }
 }
 
@@ -201,10 +184,12 @@ function touchMove(e) {
     const diff = currentX - startX;
 
     const container = document.getElementById("carrusel-slide-container");
-    container.style.transform = `translateX(${diff}px)`;
+    if (container) {
+        container.style.transform = `translateX(${diff}px)`;
+    }
 }
 
-function touchEnd(e) {
+function touchEnd() {
     if (!isDragging) return;
     isDragging = false;
 
@@ -217,13 +202,11 @@ function touchEnd(e) {
     if (match) {
         const movedBy = parseFloat(match[1]);
 
-        // Umbral de 50px para detectar el cambio de slide
         if (movedBy < -50) {
-            cambiarSlide(1); // Siguiente
+            cambiarSlide(1);
         } else if (movedBy > 50) {
-            cambiarSlide(-1); // Anterior
+            cambiarSlide(-1);
         } else {
-            // Si el movimiento fue pequeño, regresa al centro
             container.style.transition = "transform 0.3s ease-out";
             container.style.transform = `translateX(0px)`;
         }
@@ -275,17 +258,17 @@ function confirmarEliminar() {
             "X-CSRFToken": getCookie("csrftoken")
         }
     })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const card = document.getElementById(`item-card-${idFotoAEliminar}`);
-                if (card) card.remove();
-                cerrarModal();
-            } else {
-                alert(data.error || "No se pudo eliminar el archivo.");
-            }
-        })
-        .catch(() => alert("Error al procesar la solicitud."));
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById(`item-card-${idFotoAEliminar}`);
+            if (card) card.remove();
+            cerrarModal();
+        } else {
+            alert(data.error || "No se pudo eliminar el archivo.");
+        }
+    })
+    .catch(() => alert("Error al procesar la solicitud."));
 }
 
 function getCookie(name) {

@@ -193,20 +193,23 @@ def dar_like_ajax(request, foto_id):
 
 
 def galeria_dueno(request, evento_id):
-    """Panel para el cliente/dueño del evento"""
+    """Panel para el cliente/dueño del evento (modo lectura con métricas y destacados)"""
     evento = get_object_or_404(Evento, id=evento_id)
     archivos = evento.fotos.all().order_by('-fecha_subida')
 
     total_archivos = archivos.count()
     
-    # Evaluación segura de es_video
-    total_videos = 0
-    for a in archivos:
-        is_vid = a.es_video() if callable(getattr(a, 'es_video', None)) else getattr(a, 'es_video', False)
-        if is_vid:
-            total_videos += 1
-            
+    # Evaluación de videos y fotos
+    total_videos = sum(
+        1 for a in archivos 
+        if (a.es_video() if callable(getattr(a, 'es_video', None)) else getattr(a, 'es_video', False))
+    )
     total_fotos = total_archivos - total_videos
+
+    # --- FOTOS DESTACADAS (Top 3 con más likes) ---
+    fotos_destacadas = []
+    if evento.permite_interaccion:
+        fotos_destacadas = archivos.filter(likes__gt=0).order_by('-likes', '-fecha_subida')[:3]
 
     # --- GENERAR CÓDIGO QR ---
     url_invitados = request.build_absolute_uri(f"/evento/{evento.id}/")
@@ -229,11 +232,12 @@ def galeria_dueno(request, evento_id):
     context = {
         'evento': evento,
         'archivos': archivos,
+        'fotos_destacadas': fotos_destacadas,
         'total_archivos': total_archivos,
         'total_fotos': total_fotos,
         'total_videos': total_videos,
         'qr_base64': qr_base64,
-        'url_marco': evento.url_marco_activo,
+        'url_marco': getattr(evento, 'url_marco_activo', None),
     }
     return render(request, 'galerias/galeria_dueno.html', context)
 
