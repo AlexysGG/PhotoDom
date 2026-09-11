@@ -18,7 +18,11 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('evento/<uuid:evento_id>/proyector/', views.modo_proyector, name='modo_proyector'),
     path('descargar/<int:archivo_id>/', views.descargar_archivo_proxy, name='descargar_archivo'),
+    path('ver/<int:archivo_id>/', views.descargar_archivo_proxy, name='ver_archivo'),
 
     path('evento/<uuid:evento_id>/panel/', views.galeria_dueno, name='galeria_dueno'),
     path('evento/<uuid:evento_id>/descargar-zip/', views.descargar_todas_las_fotos_zip, name='descargar_todas_zip'),
+    
+    # API para modo proyector
+    path('api/evento/<uuid:evento_id>/archivos-recientes/', views.api_archivos_proyector, name='api_archivos_proyector'),
 ]

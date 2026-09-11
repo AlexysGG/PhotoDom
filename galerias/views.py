@@ -1,3 +1,4 @@
+from requests import request
 import os
 import io
 import base64
@@ -25,11 +26,12 @@ def galeria_invitado(request, evento_id):
 
     fotos_destacadas = []
     if evento.permite_interaccion:
-        extensiones_imagen = r'\.(jpg|jpeg|png|webp|gif|heic)$'
+        # Agregamos extensiones de video a la expresión regular
+        extensiones_media = r'\.(jpg|jpeg|png|webp|gif|heic|mp4|mov|avi|webm)$'
         
         fotos_destacadas = (
             archivos.filter(
-                archivo__iregex=extensiones_imagen,
+                archivo__iregex=extensiones_media,
                 likes__gt=0
             )
             .order_by('-likes', '-fecha_subida')[:3]
@@ -191,20 +193,23 @@ def dar_like_ajax(request, foto_id):
 
 
 def galeria_dueno(request, evento_id):
-    """Panel para el cliente/dueño del evento"""
+    """Panel para el cliente/dueño del evento (modo lectura con métricas y destacados)"""
     evento = get_object_or_404(Evento, id=evento_id)
     archivos = evento.fotos.all().order_by('-fecha_subida')
 
     total_archivos = archivos.count()
     
-    # Evaluación segura de es_video
-    total_videos = 0
-    for a in archivos:
-        is_vid = a.es_video() if callable(getattr(a, 'es_video', None)) else getattr(a, 'es_video', False)
-        if is_vid:
-            total_videos += 1
-            
+    # Evaluación de videos y fotos
+    total_videos = sum(
+        1 for a in archivos 
+        if (a.es_video() if callable(getattr(a, 'es_video', None)) else getattr(a, 'es_video', False))
+    )
     total_fotos = total_archivos - total_videos
+
+    # --- FOTOS DESTACADAS (Top 3 con más likes) ---
+    fotos_destacadas = []
+    if evento.permite_interaccion:
+        fotos_destacadas = archivos.filter(likes__gt=0).order_by('-likes', '-fecha_subida')[:3]
 
     # --- GENERAR CÓDIGO QR ---
     url_invitados = request.build_absolute_uri(f"/evento/{evento.id}/")
@@ -227,11 +232,12 @@ def galeria_dueno(request, evento_id):
     context = {
         'evento': evento,
         'archivos': archivos,
+        'fotos_destacadas': fotos_destacadas,
         'total_archivos': total_archivos,
         'total_fotos': total_fotos,
         'total_videos': total_videos,
         'qr_base64': qr_base64,
-        'url_marco': evento.url_marco_activo,
+        'url_marco': getattr(evento, 'url_marco_activo', None),
     }
     return render(request, 'galerias/galeria_dueno.html', context)
 
@@ -264,16 +270,26 @@ def descargar_todas_las_fotos_zip(request, evento_id):
 
 
 def descargar_archivo_proxy(request, archivo_id):
+    """Proxy para servir archivos desde Google Cloud Storage"""
     item = get_object_or_404(FotoInvitado, pk=archivo_id)
+    
+    # Verificar si es para visualización (inline) o descarga (attachment)
+    modo = request.GET.get('modo', 'descarga')
     
     try:
         response = requests.get(item.archivo.url, stream=True)
         response.raise_for_status()
         
         nombre_original = os.path.basename(item.archivo.name)
+        content_type = response.headers.get('Content-Type', 'application/octet-stream')
         
-        res = HttpResponse(response.content, content_type=response.headers.get('Content-Type'))
-        res['Content-Disposition'] = f'attachment; filename="{nombre_original}"'
+        res = HttpResponse(response.content, content_type=content_type)
+        
+        if modo == 'visualizacion':
+            res['Content-Disposition'] = f'inline; filename="{nombre_original}"'
+        else:
+            res['Content-Disposition'] = f'attachment; filename="{nombre_original}"'
+        
         return res
         
     except requests.RequestException:
@@ -286,13 +302,66 @@ def home(request):
 
 
 def modo_proyector(request, evento_id):
+    """Vista del modo proyector solo para planes Premium"""
     evento = get_object_or_404(Evento, id=evento_id, activo=True)
     if not evento.es_plan_premium:
         return redirect('galeria_invitado', evento_id=evento.id)
 
-    fotos = evento.fotos.all().order_by('-fecha_subida')
+    archivos = evento.fotos.all().order_by('-fecha_subida')
+
+    # Generar código QR que apunta a la URL de invitados
+    url_invitados = request.build_absolute_uri(f"/evento/{evento.id}/")
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(url_invitados)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color=(255, 255, 255), back_color=(0, 0, 0))
+    
+    buffer = io.BytesIO()
+    img.save(buffer, "PNG")
+    buffer.seek(0)
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
     return render(request, 'galerias/proyector.html', {
-        'evento': evento, 
-        'fotos': fotos,
+        'evento': evento,
+        'archivos': archivos,
+        'qr_base64': qr_base64,
         'url_marco': evento.url_marco_activo,
+        'usar_proxy': True,  # Indicador para usar URLs del proxy
+    })
+
+
+def api_archivos_proyector(request, evento_id):
+    """API ligera para polling de archivos nuevos en modo proyector"""
+    evento = get_object_or_404(Evento, id=evento_id, activo=True)
+    
+    # Obtener el último ID procesado del parámetro de consulta
+    ultimo_id = request.GET.get('ultimoid', 0)
+    
+    try:
+        ultimo_id = int(ultimo_id)
+    except (ValueError, TypeError):
+        ultimo_id = 0
+    
+    # Filtrar archivos con IDs mayores al último procesado
+    archivos_nuevos = evento.fotos.filter(id__gt=ultimo_id).order_by('-fecha_subida')
+    
+    # Construir respuesta JSON con URLs del proxy
+    archivos_data = []
+    for archivo in archivos_nuevos:
+        archivos_data.append({
+            'id': archivo.id,
+            'url': request.build_absolute_uri(f"/ver/{archivo.id}/?modo=visualizacion"),
+            'es_video': archivo.es_video(),
+            'mensaje': archivo.mensaje or '',
+            'likes': archivo.likes
+        })
+    
+    return JsonResponse({
+        'archivos': archivos_data
     })

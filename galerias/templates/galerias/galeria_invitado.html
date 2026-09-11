@@ -13,6 +13,12 @@
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'galerias/css/galeria_invitadocss.css' %}">
+    <!-- Favicons & Manifest -->
+    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'favicon-96x96.png' %}">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="{% static 'favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
 </head>
 
 <body class="min-h-screen pb-36 font-sans" style="{{ evento.vars_css_tema|safe }}">
@@ -48,7 +54,7 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
         <div class="neu-flat p-8 max-w-sm w-full text-center border border-white/60 shadow-2xl rounded-3xl">
             <div class="w-16 h-16 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                ICON
+                <img src="{% static 'img/ico_heart.png' %}" alt="thanks" class="w-8 h-8 object-contain">
             </div>
             <h3 class="font-display text-xl text-gray-700 mb-2">¡Bienvenidos!</h3>
             <p class="text-xs text-gray-600 font-medium leading-relaxed mb-6">{{ evento.mensaje_bienvenida }}</p>
@@ -86,25 +92,41 @@
         <input type="file" id="input-fotos" name="foto" multiple accept="image/*,video/*" class="hidden"
             onchange="procesarSeleccion(this)">
 
-        <!-- SECCIÓN: FOTOS DESTACADAS / MÁS POPULARES (Ubicada correctamente fuera del for) -->
+        <!-- Sección: Fotos Destacadas (Corregida para Videos) -->
         {% if fotos_destacadas %}
         <section class="mb-10 w-full">
             <div class="flex items-center gap-2 mb-4 px-1">
-                <h2 class="font-display text-lg text-gray-700 font-bold">  Fotos destacadas:</h2>
+                <h2 class="font-display text-lg text-gray-700 font-bold">Fotos destacadas:</h2>
             </div>
 
             <div class="grid grid-cols-3 gap-3 sm:gap-4">
-                {% for foto in fotos_destacadas %}
+                {% for archivo in fotos_destacadas %} <!-- Cambié 'foto' por 'archivo' -->
                 <div class="neu-flat p-2 sm:p-3 rounded-2xl relative group flex flex-col justify-between">
                     <!-- Insignia de Posición -->
                     <span class="absolute top-3 left-3 z-20 w-6 h-6 neu-pressed rounded-full flex items-center justify-center text-[10px] font-black text-amber-500 shadow-sm">
                         #{{ forloop.counter }}
                     </span>
 
-                    <div class="aspect-square neu-pressed overflow-hidden rounded-xl relative">
-                        <img src="{{ foto.archivo.url }}" class="w-full h-full object-cover" alt="Foto destacada">
+                    <!-- Contenedor Multimedia CUADRADO -->
+                    <div class="aspect-square neu-pressed overflow-hidden rounded-xl relative bg-black flex items-center justify-center">
                         
-                        {% if url_marco %}
+                        <!-- 1. DETECTAR SI ES VIDEO (Necesita la propiedad .es_video en tu modelo) -->
+                        {% if archivo.es_video %}
+                            <!-- Etiqueta VIDEO: object-cover arregla la deformación -->
+                            <video class="w-full h-full object-cover rounded-xl pointer-events-none" 
+                                preload="metadata" 
+                                muted 
+                                loop 
+                                autoplay>
+                                <source src="{{ archivo.archivo.url }}#t=0.5" type="video/mp4">
+                            </video>
+                        {% else %}
+                            <!-- Etiqueta IMAGEN -->
+                            <img src="{{ archivo.archivo.url }}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
+                        {% endif %}
+
+                        <!-- 2. MARCO (Solo si no es video) -->
+                        {% if url_marco and not archivo.es_video %}
                         <img src="{{ url_marco }}" alt="Marco" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">
                         {% endif %}
                     </div>
@@ -116,7 +138,7 @@
                             <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                             </svg>
-                            <span>{{ foto.likes }}</span>
+                            <span>{{ archivo.likes }}</span>
                         </div>
                     </div>
                 </div>
@@ -138,11 +160,11 @@
         </div>
 
         <!-- Malla de Fotos Públicas -->
-        <div id="grid-fotos" class="{{ evento.css_plantilla_clase }} w-full">
+        <div id="grid-fotos" class="{{ evento.css_plantilla_clase }} w-full items-start">
 
             {% for archivo in archivos %}
             <div id="card-foto-{{ archivo.id }}"
-                class="photo-card neu-flat p-3 pt-4 relative group flex flex-col justify-between">
+                class="photo-card neu-flat p-3 pt-4 relative group flex flex-col justify-between h-full">
 
                 {% if archivo.id in mis_fotos_ids %}
                 <button onclick="abrirModalEliminar({{ archivo.id }})" aria-label="Eliminar recuerdo"
@@ -157,63 +179,130 @@
                 </div>
                 {% endif %}
 
-                <!-- Contenedor Foto / Video -->
-                <div class="relative overflow-hidden rounded-xl bg-gray-200 aspect-square mb-2">
+                <!-- Contenedor Foto / Video (Aislamiento total con inset-0) -->
+                <div class="media-item relative overflow-hidden rounded-xl bg-gray-200 aspect-square mb-2 cursor-pointer w-full shrink-0"
+                    data-url="{{ archivo.archivo.url }}"
+                    data-es-video="{% if archivo.es_video %}true{% else %}false{% endif %}"
+                    data-id="{{ archivo.id }}"
+                    data-liked="{% if archivo.id in likes_sesion %}true{% else %}false{% endif %}"
+                    data-likes="{{ archivo.likes|default:0 }}"
+                    onclick="abrirCarrusel({{ forloop.counter0 }})">
+
                     {% if archivo.es_video %}
-                    <video class="w-full h-full object-cover relative z-0" controls playsinline>
-                        <source src="{{ archivo.archivo.url }}" type="video/mp4">
+                    <video class="absolute inset-0 block w-full h-full object-cover z-0 pointer-events-none" preload="metadata">
+                        <source src="{{ archivo.archivo.url }}#t=0.5" type="video/mp4">
                     </video>
                     {% else %}
                     <img src="{{ archivo.archivo.url }}" alt="Foto de evento"
-                        class="w-full h-full object-cover relative z-0" loading="lazy">
+                        class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">
                     {% endif %}
 
                     {% if url_marco and not archivo.es_video %}
                     <img src="{{ url_marco }}" alt="Marco"
-                        class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">
+                        class="absolute inset-0 block w-full h-full object-cover z-10 pointer-events-none">
+                    {% endif %}
+
+                    {% if archivo.es_video %}
+                    <span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none backdrop-blur-sm">
+                        <svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Video
+                    </span>
                     {% endif %}
                 </div>
 
-                {% if evento.permite_interaccion %}
-                {% if archivo.mensaje %}
-                <p class="text-xs text-gray-600 italic px-1 mb-2 line-clamp-2 leading-tight">
-                    "{{ archivo.mensaje }}"
-                </p>
-                {% endif %}
+                <!-- Zona Inferior: Comentario opcional + Botón Like -->
+                <div class="flex flex-col justify-end flex-grow pt-1">
+                    {% if evento.permite_interaccion %}
+                        {% if archivo.mensaje %}
+                        <p class="text-xs text-gray-600 italic px-1 mb-2 line-clamp-2 leading-tight">
+                            "{{ archivo.mensaje }}"
+                        </p>
+                        {% endif %}
 
-                <!-- Interacciones: Likes -->
-                <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600">
-                    <button id="btn-like-{{ archivo.id }}" 
-                            onclick="darLike({{ archivo.id }})"
-                            class="flex items-center gap-1.5 transition-colors {% if archivo.id in likes_sesion %}text-red-500{% else %}text-gray-400 hover:text-red-500{% endif %}">
-                        
-                        <svg id="icon-like-{{ archivo.id }}" 
-                            class="w-4 h-4 {% if archivo.id in likes_sesion %}fill-current{% else %}fill-none stroke-current stroke-2{% endif %}" 
-                            viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                        </svg>
-                        
-                        <span id="likes-count-{{ archivo.id }}" class="font-bold">{{ archivo.likes|default:0 }}</span>
+                        <!-- Interacciones: Likes -->
+                        <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600 mt-auto">
+                            <button id="btn-like-{{ archivo.id }}" 
+                                onclick="darLike({{ archivo.id }})"
+                                class="flex items-center gap-1.5 transition-colors {% if archivo.id in likes_sesion %}text-red-500{% else %}text-gray-400 hover:text-red-500{% endif %}">
+                            
+                                <svg id="icon-like-{{ archivo.id }}" 
+                                    class="w-4 h-4" 
+                                    viewBox="0 0 24 24" 
+                                    fill="{% if archivo.id in likes_sesion %}currentColor{% else %}none{% endif %}" 
+                                    stroke="currentColor" 
+                                    stroke-width="2" 
+                                    stroke-linecap="round" 
+                                    stroke-linejoin="round">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                
+                                <span id="likes-count-{{ archivo.id }}" class="font-bold">{{ archivo.likes|default:0 }}</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                </div>
+                {% empty %}
+                <!-- Estado Vacío -->
+                <div id="sin-fotos"
+                    class="col-span-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
+                    <p class="font-display text-xl text-gray-500 mb-1">Aún no hay recuerdos.</p>
+                    <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
+                    <button onclick="document.getElementById('input-fotos').click()" type="button"
+                        class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2">
+                        SELECCIONAR FOTOS/VIDEOS
                     </button>
                 </div>
-                {% endif %}
-
-            </div>
-            {% empty %}
-            <!-- Estado Vacío -->
-            <div id="sin-fotos"
-                class="col-span-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
-                <p class="font-display text-xl text-gray-500 mb-1">Aún no hay recuerdos.</p>
-                <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
-                <button onclick="document.getElementById('input-fotos').click()" type="button"
-                    class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2">
-                    SELECCIONAR FOTOS/VIDEOS
-                </button>
-            </div>
             {% endfor %}
 
         </div>
     </main>
+
+    <!-- MODAL LIGHTBOX / CARRUSEL DESLIZANTE (Invitado) -->
+    <div id="lightbox-modal"
+        class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center p-2 bg-black/90 backdrop-blur-md transition-opacity duration-300">
+
+        <!-- Botón Cerrar -->
+        <button onclick="cerrarCarrusel()"
+            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-gray-700 font-bold shadow-lg">
+            ✕
+        </button>
+
+        <!-- Área Deslizante Touch/Mouse -->
+        <div id="carrusel-touch-area"
+            class="relative w-full max-w-4xl h-[80vh] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none">
+
+            <div id="carrusel-slide-container"
+                class="w-full h-full flex items-center justify-center transition-transform duration-300 ease-out transform">
+                <img id="carrusel-img"
+                    class="max-h-full max-w-full object-contain rounded-xl hidden pointer-events-none" src=""
+                    alt="Vista previa">
+                <video id="carrusel-video" class="max-h-full max-w-full rounded-xl hidden" controls src=""></video>
+            </div>
+
+        </div>
+
+        <!-- Barra inferior: contador + botón like -->
+        <div class="mt-3 flex items-center gap-4">
+            <div id="carrusel-contador" class="px-4 py-1.5 neu-pressed rounded-full text-xs font-bold text-gray-400">
+                1 / 1
+            </div>
+
+            {% if evento.permite_interaccion %}
+            <button id="carrusel-btn-like"
+                onclick="darLikeCarrusel()"
+                class="flex items-center gap-1.5 px-4 py-1.5 neu-pressed rounded-full text-xs font-bold transition-colors text-gray-400 hover:text-red-500">
+                <svg id="carrusel-icon-like" class="w-4 h-4" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                <span id="carrusel-likes-count">0</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
 
     <!-- Contenedor Flotante Inferior Sticky -->
     <div class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4">
@@ -256,7 +345,7 @@
         <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
             <div
                 class="w-12 h-12 neu-pressed rounded-full mb-4 text-emerald-500 flex items-center justify-center mx-auto">
-                ICON
+                <img src="{% static 'img/ico_heart.png' %}" alt="thanks" class="w-8 h-8 object-contain">
             </div>
             <h3 class="font-display text-xl text-gray-700">¡Muchas Gracias!</h3>
             <p class="text-xs text-gray-500 mt-2 mb-6">Gracias por colaborar compartiendo tus recuerdos para este
