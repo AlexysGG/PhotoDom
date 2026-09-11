@@ -252,11 +252,13 @@ function cerrarModal() {
 function confirmarEliminar() {
     if (!idFotoAEliminar) return;
 
-    fetch(`/eliminar-foto/${idFotoAEliminar}/`, {
+    fetch(`/foto/${idFotoAEliminar}/eliminar/`, {
         method: "POST",
         headers: {
-            "X-CSRFToken": getCookie("csrftoken")
-        }
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ pin: window.PIN_CORRECTO })
     })
     .then(res => res.json())
     .then(data => {
