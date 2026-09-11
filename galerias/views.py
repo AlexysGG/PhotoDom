@@ -141,22 +141,36 @@ def subir_foto_ajax(request, evento_id):
 def eliminar_foto_ajax(request, foto_id):
     """Elimina el archivo (foto o video)"""
 
+    try:
+        foto = FotoInvitado.objects.get(id=foto_id)
+    except FotoInvitado.DoesNotExist:
+        return JsonResponse({'error': 'El archivo no existe'}, status=404)
+
+    # Verificar si es dueño a través del PIN enviado en JSON
+    es_dueno = False
+    if request.content_type == 'application/json':
+        import json
+        try:
+            data = json.loads(request.body)
+            if data.get('pin') == foto.evento.pin_dueno:
+                es_dueno = True
+        except:
+            pass
+
     mis_fotos_ids = request.session.get('mis_fotos_ids', [])
 
-    if foto_id not in mis_fotos_ids:
+    if foto_id not in mis_fotos_ids and not es_dueno:
         return JsonResponse({'error': 'No tienes permiso para eliminar esta foto'}, status=403)
 
-    try:
-        archivo = FotoInvitado.objects.get(id=foto_id)
-        archivo.archivo.delete(save=False)
-        archivo.delete()
+    foto.archivo.delete(save=False)
+    foto.delete()
+    
+    if foto_id in mis_fotos_ids:
         mis_fotos_ids.remove(foto_id)
         request.session['mis_fotos_ids'] = mis_fotos_ids
         request.session.modified = True
 
-        return JsonResponse({'success': True})
-    except FotoInvitado.DoesNotExist:
-        return JsonResponse({'error': 'El archivo no existe'}, status=404)
+    return JsonResponse({'success': True})
 
 
 def dar_like_ajax(request, foto_id):
