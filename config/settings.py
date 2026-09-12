@@ -446,13 +446,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Configuración de Django Q2 (Procesamiento Asíncrono)
 Q_CLUSTER = {
     'name': 'photodom',
-    'workers': 2,
-    'recycle': 500,
-    'timeout': 300,  # 5 minutos máximo por tarea (para transcodificación ffmpeg)
-    'retry': 360,    # 6 minutos de reintento (debe ser mayor a timeout)
+    'workers': 1,        # OBLIGATORIO: 2 workers + Gunicorn superará los 512 MB al usar FFmpeg
+    'recycle': 20,       # Reducir drásticamente: libera la memoria retenida por FFmpeg cada 20 tareas
+    'timeout': 180,      # 3 minutos máximo por imagen/video ligero (suficiente para compresión puntual)
+    'retry': 240,        # 4 minutos (mantiene la regla retry > timeout)
     'compress': True,
-    'save_limit': 250,
-    'queue_limit': 500,
+    'save_limit': 50,    # Menor historial en BD para no saturar memoria/consultas
+    'queue_limit': 50,   # Evita acumular demasiadas tareas en cola simultáneas
     'cpu_affinity': 1,
     'label': 'Django Q',
     'orm': 'default'
