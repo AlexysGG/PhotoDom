@@ -499,6 +499,10 @@ function abrirCarrusel(index) {
     indiceActual = index;
     const mediaElements = document.querySelectorAll('.media-item');
     const el = mediaElements[index];
+    if (el && el.dataset.procesando === "true") {
+        alert("Este archivo aún se está optimizando. Estará listo en unos segundos.");
+        return; // Evita abrir el modal y evita pedir bytes al bucket
+    }
 
     if (el) {
         const liked = el.dataset.liked === "true";

@@ -75,7 +75,7 @@ CONFIGURACION_TEMAS = {
 class Marco(models.Model):
     """Modelo para administrar el catálogo de marcos PNG transparentes"""
     nombre = models.CharField(max_length=100, verbose_name="Nombre del Marco")
-    imagen = models.ImageField(upload_to='marcos_eventos/', verbose_name="Imagen PNG del Marco")
+    imagen = models.ImageField(upload_to='marcos_eventos/', verbose_name="Imagen PNG del Marco", max_length=500)
     solo_premium = models.BooleanField(
         default=False, 
         verbose_name="Exclusivo Premium",
@@ -90,14 +90,13 @@ class Marco(models.Model):
         ordering = ['nombre']
 
     def __str__(self):
-        etiqueta_plan = " [Solo Premium]" if self.solo_premium else ""
-        return f"{self.nombre}{etiqueta_plan}"
+        return f"{self.nombre}"
 
 
 class Evento(models.Model):
     PLANES = [
         (200, 'DEBUG (200 MB)'),
-        (5000, 'Esencial (5 GB - $650 MXN)'),
+        (5000, 'Esencial (5 GB - $500 MXN)'),
         (10000, 'Experiencia (10 GB - $900 MXN)'),
         (15000, 'Premium (15 GB - $1,500 MXN)'),
     ]
@@ -144,10 +143,11 @@ class Evento(models.Model):
 
     # Imagen de fondo opcional (Plan Experiencia y Premium)
     fondo_personalizado = models.ImageField(
-        upload_to='fondos_eventos/', 
-        null=True, 
-        blank=True, 
-        verbose_name='Fondo Personalizado'
+        upload_to='fondos_eventos/',
+        null=True,
+        blank=True,
+        verbose_name='Fondo Personalizado',
+        max_length=500
     )
 
     # Mensaje de bienvenida emergente / Modal (Exclusivo Premium)
@@ -166,6 +166,30 @@ class Evento(models.Model):
         validators=[RegexValidator(r'^\d{4}$', 'El PIN debe ser exactamente de 4 dígitos numéricos.')]
     )
 
+    # Campos para cotizador y control de tiempo
+    fecha_hora_inicio = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha y hora de inicio del evento'
+    )
+    horas_extra = models.IntegerField(
+        default=0,
+        verbose_name='Horas extra (bloques de 24h)',
+        help_text='Cada bloque de 24 horas extra cuesta $100 MXN'
+    )
+    duracion_total_horas = models.IntegerField(
+        default=24,
+        verbose_name='Duración total en horas',
+        help_text='24 horas base + horas extra contratadas'
+    )
+
+    # Límite de descargas ZIP
+    descargas_zip_restantes = models.IntegerField(
+        default=3,
+        verbose_name='Descargas ZIP restantes',
+        help_text='Número de descargas completas permitidas al dueño'
+    )
+
     def save(self, *args, **kwargs):
         # Asigna automáticamente los días de vigencia según el plan al crear el evento
         if not self.pk:
@@ -176,6 +200,10 @@ class Evento(models.Model):
                 15000: 45,   # Premium
             }
             self.dias_vigencia = dias_por_plan.get(self.plan_almacenamiento, 20)
+
+        # Calcular duración total automáticamente
+        self.duracion_total_horas = 24 + (self.horas_extra * 24)
+
         super().save(*args, **kwargs)
 
     def fecha_expiracion(self):
@@ -186,6 +214,11 @@ class Evento(models.Model):
 
     def eliminar_completamente(self):
         """Elimina todos los archivos en el storage externo y luego borra el evento."""
+        # Eliminar fondo personalizado si existe
+        if self.fondo_personalizado:
+            self.fondo_personalizado.delete(save=False)
+
+        # Eliminar todas las fotos del evento
         for foto in self.fotos.all():
             if foto.original_archivo:
                 foto.original_archivo.delete(save=False)
@@ -193,7 +226,25 @@ class Evento(models.Model):
                 foto.preview_archivo.delete(save=False)
             if foto.thumb_archivo:
                 foto.thumb_archivo.delete(save=False)
+
         self.delete()
+
+    def delete(self, *args, **kwargs):
+        """Override para eliminar todos los archivos del storage externo"""
+        # Eliminar fondo personalizado si existe
+        if self.fondo_personalizado:
+            self.fondo_personalizado.delete(save=False)
+
+        # Eliminar todas las fotos del evento
+        for foto in self.fotos.all():
+            if foto.original_archivo:
+                foto.original_archivo.delete(save=False)
+            if foto.preview_archivo:
+                foto.preview_archivo.delete(save=False)
+            if foto.thumb_archivo:
+                foto.thumb_archivo.delete(save=False)
+
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return f'{self.nombre_evento} ({self.get_plan_almacenamiento_display()})'
@@ -264,6 +315,53 @@ class Evento(models.Model):
             --neu-shadow-light: {conf['shadow_light']};
         """
 
+    # ==========================================================
+    # PROPIEDADES DE COTIZACIÓN Y TIEMPO
+    # ==========================================================
+
+    @property
+    def precio_base(self):
+        """Precio base según el plan"""
+        precios = {
+            200: 0,      # Debug
+            5000: 650,   # Esencial
+            10000: 900,  # Experiencia
+            15000: 1500, # Premium
+        }
+        return precios.get(self.plan_almacenamiento, 650)
+
+    @property
+    def costo_total(self):
+        """Costo total incluyendo horas extra"""
+        return self.precio_base + (self.horas_extra * 100)
+
+    @property
+    def fecha_fin_evento(self):
+        """Fecha y hora de fin del evento (inicio + duración total)"""
+        if self.fecha_hora_inicio:
+            return self.fecha_hora_inicio + timedelta(hours=self.duracion_total_horas)
+        return None
+
+    @property
+    def evento_no_ha_comenzado(self):
+        """Verifica si el evento aún no ha comenzado (15 min de margen)"""
+        if not self.fecha_hora_inicio:
+            return False
+        margen_inicio = self.fecha_hora_inicio - timedelta(minutes=15)
+        return timezone.now() < margen_inicio
+
+    @property
+    def evento_ha_terminado(self):
+        """Verifica si el evento ya terminó según la duración contratada"""
+        if not self.fecha_fin_evento:
+            return False
+        return timezone.now() > self.fecha_fin_evento
+
+    @property
+    def evento_activo_por_ventana_tiempo(self):
+        """Verifica si el evento está dentro de la ventana de tiempo activa"""
+        return not self.evento_no_ha_comenzado and not self.evento_ha_terminado
+
 
 class FotoInvitado(models.Model):
     """Modelo para guardar fotos y videos de invitados"""
@@ -286,9 +384,9 @@ class FotoInvitado(models.Model):
     ancho = models.IntegerField(null=True, blank=True)
     alto = models.IntegerField(null=True, blank=True)
 
-    original_archivo = models.FileField(upload_to=get_original_path)
-    preview_archivo = models.FileField(upload_to=get_preview_path, null=True, blank=True)
-    thumb_archivo = models.FileField(upload_to=get_thumb_path, null=True, blank=True)
+    original_archivo = models.FileField(upload_to=get_original_path, max_length=500)
+    preview_archivo = models.FileField(upload_to=get_preview_path, null=True, blank=True, max_length=500)
+    thumb_archivo = models.FileField(upload_to=get_thumb_path, null=True, blank=True, max_length=500)
     
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
@@ -302,3 +400,150 @@ class FotoInvitado(models.Model):
 
     def es_video(self):
         return self.tipo == 'VIDEO'
+
+
+class SolicitudEvento(models.Model):
+    """Modelo para solicitudes de eventos desde el formulario público"""
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+    ]
+
+    PLANES = Evento.PLANES
+    PLANTILLAS = Evento.PLANTILLAS
+
+    # Información de contacto del solicitante
+    nombre_solicitante = models.CharField(max_length=150, verbose_name='Nombre del Solicitante')
+    telefono = models.CharField(
+        max_length=20,
+        verbose_name='Teléfono',
+        validators=[RegexValidator(r'^[0-9]{10}$', 'El teléfono debe tener exactamente 10 dígitos.')]
+    )
+    email = models.EmailField(verbose_name='Email')
+
+    # Información del evento (campos que se piden en admin)
+    nombre_evento = models.CharField(max_length=150, verbose_name='Nombre del Evento')
+    nombre_cliente = models.CharField(max_length=150, verbose_name='Nombre de los Clientes')
+    plan_almacenamiento = models.IntegerField(choices=PLANES, default=5000, verbose_name='Plan')
+    plantilla_html = models.CharField(
+        max_length=30,
+        choices=PLANTILLAS,
+        default='clasica',
+        verbose_name='Plantilla de la Galería'
+    )
+    tema_color = models.CharField(
+        max_length=30,
+        choices=PALETAS_COLOR,
+        default='clasico',
+        verbose_name="Paleta de Colores"
+    )
+
+    # Campos para cotizador y control de tiempo
+    fecha_hora_inicio = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha y hora de inicio del evento'
+    )
+    horas_extra = models.IntegerField(
+        default=0,
+        verbose_name='Horas extra (bloques de 24h)',
+        help_text='Cada bloque de 24 horas extra cuesta $100 MXN'
+    )
+
+    # Campos para cotizador y control de tiempo
+    fecha_hora_inicio = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha y hora de inicio del evento'
+    )
+    horas_extra = models.IntegerField(
+        default=0,
+        verbose_name='Horas extra (bloques de 24h)',
+        help_text='Cada bloque de 24 horas extra cuesta $100 MXN'
+    )
+
+    # Campos opcionales (según el plan)
+    marco_seleccionado = models.ForeignKey(
+        Marco,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='solicitudes',
+        verbose_name="Marco Personalizado",
+        help_text="Marco PNG que se superpondrá sobre las fotos (Disponible en Experiencia y Premium)"
+    )
+    fondo_personalizado = models.ImageField(
+        upload_to='fondos_solicitudes/',
+        null=True,
+        blank=True,
+        verbose_name='Fondo Personalizado',
+        max_length=500
+    )
+    mensaje_bienvenida = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Mensaje de Bienvenida',
+        help_text="Mensaje emergente al abrir la galería (ej. '¡Bienvenidos a la boda de Ana y Mario!')"
+    )
+
+    # Estado y metadatos
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente', verbose_name='Estado')
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Solicitud')
+    notas_admin = models.TextField(blank=True, null=True, verbose_name='Notas del Admin')
+
+    # Si se aprobó, referencia al evento creado
+    evento_creado = models.ForeignKey(
+        Evento,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='solicitud_origen',
+        verbose_name='Evento Creado'
+    )
+
+    class Meta:
+        verbose_name = "Solicitud de Evento"
+        verbose_name_plural = "Solicitudes de Eventos"
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f'Solicitud de {self.nombre_evento} - {self.get_estado_display()}'
+
+    def crear_evento_desde_solicitud(self):
+        """Crea un evento a partir de los datos de esta solicitud"""
+        from django.utils import timezone
+        import random
+
+        # Generar PIN aleatorio de 4 dígitos
+        pin_dueno = ''.join([str(random.randint(0, 9)) for _ in range(4)])
+
+        evento = Evento.objects.create(
+            nombre_evento=self.nombre_evento,
+            nombre_cliente=self.nombre_cliente,
+            plan_almacenamiento=self.plan_almacenamiento,
+            plantilla_html='clasica',
+            tema_color=self.tema_color,
+            marco_seleccionado=self.marco_seleccionado,
+            fondo_personalizado=self.fondo_personalizado,
+            mensaje_bienvenida=self.mensaje_bienvenida,
+            fecha_hora_inicio=self.fecha_hora_inicio,
+            horas_extra=self.horas_extra,
+            pin_dueno=pin_dueno,
+            activo=True,
+        )
+
+        # Actualizar la solicitud con el evento creado y cambiar estado
+        self.evento_creado = evento
+        self.estado = 'aprobada'
+        self.save()
+
+        return evento
+
+    def delete(self, *args, **kwargs):
+        """Override para eliminar el fondo personalizado del storage"""
+        # Eliminar fondo personalizado si existe
+        if self.fondo_personalizado:
+            self.fondo_personalizado.delete(save=False)
+        super().delete(*args, **kwargs)

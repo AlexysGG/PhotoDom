@@ -34,7 +34,7 @@
             <a href="#planes">Planes</a>
             <a href="#almacenamiento">Almacenamiento</a>
         </nav>
-        <a href="#planes" class="button button--ghost">Crear galería</a>
+        <a href="#solicitar" class="button button--ghost">Crear galería</a>
     </header>
 
     <main>
@@ -268,6 +268,167 @@
                 </table>
             </div>
             <p class="plans-table__hint">Desliza hacia los lados para ver los tres planes completos ↔</p>
+
+            <div class="plans__cta">
+                <a href="#solicitar" class="button button--primary">Solicitar mi galería</a>
+            </div>
+        </section>
+
+        <section id="solicitar" class="request-form">
+            <h2>Solicita tu galería</h2>
+            <p class="request-form__intro">
+                Completa el formulario con la información de tu evento. Cuantos más detalles proporciones,
+                más rápido podremos crear tu galería personalizada.
+            </p>
+
+            <form method="POST" action="{% url 'crear_solicitud_evento' %}" enctype="multipart/form-data" class="request-form__form">
+                {% csrf_token %}
+
+                <div class="request-form__section">
+                    <h3>Tus datos de contacto</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.nombre_solicitante.id_for_label }}">{{ form.nombre_solicitante.label }}</label>
+                            {{ form.nombre_solicitante }}
+                            {% if form.nombre_solicitante.errors %}
+                                <div class="form-error">{{ form.nombre_solicitante.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}</label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="form-error">{{ form.telefono.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="form-error">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="request-form__section">
+                    <h3>Información del evento</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.nombre_evento.id_for_label }}">{{ form.nombre_evento.label }}</label>
+                            {{ form.nombre_evento }}
+                            {% if form.nombre_evento.errors %}
+                                <div class="form-error">{{ form.nombre_evento.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.nombre_cliente.id_for_label }}">{{ form.nombre_cliente.label }}</label>
+                            {{ form.nombre_cliente }}
+                            {% if form.nombre_cliente.errors %}
+                                <div class="form-error">{{ form.nombre_cliente.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.fecha_hora_inicio.id_for_label }}">{{ form.fecha_hora_inicio.label }}</label>
+                            {{ form.fecha_hora_inicio }}
+                            {% if form.fecha_hora_inicio.errors %}
+                                <div class="form-error">{{ form.fecha_hora_inicio.errors }}</div>
+                            {% endif %}
+                            <small class="form-help">{{ form.fecha_hora_inicio.help_text }}</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.horas_extra.id_for_label }}">{{ form.horas_extra.label }}</label>
+                            {{ form.horas_extra }}
+                            {% if form.horas_extra.errors %}
+                                <div class="form-error">{{ form.horas_extra.errors }}</div>
+                            {% endif %}
+                            <small class="form-help">{{ form.horas_extra.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="request-form__section">
+                    <h3>Elige tu plan</h3>
+                    <div class="form-group">
+                        <label for="{{ form.plan_almacenamiento.id_for_label }}">{{ form.plan_almacenamiento.label }}</label>
+                        {{ form.plan_almacenamiento }}
+                        {% if form.plan_almacenamiento.errors %}
+                            <div class="form-error">{{ form.plan_almacenamiento.errors }}</div>
+                        {% endif %}
+                        <small class="form-help">El plan determina el almacenamiento, vigencia y funciones disponibles.</small>
+                    </div>
+
+                    <div class="cotizacion-box">
+                        <h4>Resumen de cotización</h4>
+                        <div class="cotizacion-item">
+                            <span>Precio base:</span>
+                            <span id="precio-base">$650 MXN</span>
+                        </div>
+                        <div class="cotizacion-item">
+                            <span>Horas extra (× $100 MXN):</span>
+                            <span id="costo-horas-extra">$0 MXN</span>
+                        </div>
+                        <div class="cotizacion-total">
+                            <span>Costo Final:</span>
+                            <span id="costo-total">$650 MXN</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="request-form__section">
+                    <h3>Personalización de tu galería</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.tema_color.id_for_label }}">{{ form.tema_color.label }}</label>
+                            {{ form.tema_color }}
+                            {% if form.tema_color.errors %}
+                                <div class="form-error">{{ form.tema_color.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Campos exclusivos de Experiencia y Premium -->
+                    <div id="campos-experiencia-premium" class="campos-plan">
+                        <div class="form-group">
+                            <label for="{{ form.marco_seleccionado.id_for_label }}">{{ form.marco_seleccionado.label }}</label>
+                            {{ form.marco_seleccionado }}
+                            {% if form.marco_seleccionado.errors %}
+                                <div class="form-error">{{ form.marco_seleccionado.errors }}</div>
+                            {% endif %}
+                            <small class="form-help">{{ form.marco_seleccionado.help_text }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.fondo_personalizado.id_for_label }}">{{ form.fondo_personalizado.label }}</label>
+                            {{ form.fondo_personalizado }}
+                            {% if form.fondo_personalizado.errors %}
+                                <div class="form-error">{{ form.fondo_personalizado.errors }}</div>
+                            {% endif %}
+                            <small class="form-help">Sube una imagen o GIF para personalizar el fondo de tu galería.</small>
+                        </div>
+                    </div>
+
+                    <!-- Campo exclusivo de Premium -->
+                    <div id="campos-premium" class="campos-plan">
+                        <div class="form-group">
+                            <label for="{{ form.mensaje_bienvenida.id_for_label }}">{{ form.mensaje_bienvenida.label }}</label>
+                            {{ form.mensaje_bienvenida }}
+                            {% if form.mensaje_bienvenida.errors %}
+                                <div class="form-error">{{ form.mensaje_bienvenida.errors }}</div>
+                            {% endif %}
+                            <small class="form-help">{{ form.mensaje_bienvenida.help_text }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="request-form__actions">
+                    <button type="submit" class="button button--primary">Enviar solicitud</button>
+                    <button type="reset" class="button button--text" style="color:black">Limpiar formulario</button>
+
+                </div>
+            </form>
         </section>
 
         <section id="almacenamiento" class="storage">
@@ -309,6 +470,66 @@
     <footer class="footer">
         <p>PhotoDom</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const planSelector = document.getElementById('plan-selector');
+            const camposExperienciaPremium = document.getElementById('campos-experiencia-premium');
+            const camposPremium = document.getElementById('campos-premium');
+            const horasExtraInput = document.getElementById('horas-extra');
+
+            // Precios base según el plan
+            const preciosBase = {
+                200: 0,      // DEBUG
+                5000: 650,   // Esencial
+                10000: 900,  // Experiencia
+                15000: 1500  // Premium
+            };
+
+            function actualizarCamposSegunPlan() {
+                const planSeleccionado = parseInt(planSelector.value);
+
+                // Mostrar campos de Experiencia y Premium (marcos, fondo) para planes >= 10000
+                if (planSeleccionado >= 10000) {
+                    camposExperienciaPremium.classList.add('visible');
+                } else {
+                    camposExperienciaPremium.classList.remove('visible');
+                }
+
+                // Mostrar campos de Premium (mensaje bienvenida) solo para plan >= 15000
+                if (planSeleccionado >= 15000) {
+                    camposPremium.classList.add('visible');
+                } else {
+                    camposPremium.classList.remove('visible');
+                }
+
+                // Actualizar cotización
+                actualizarCotizacion();
+            }
+
+            function actualizarCotizacion() {
+                const planSeleccionado = parseInt(planSelector.value);
+                const horasExtra = parseInt(horasExtraInput.value) || 0;
+
+                const precioBase = preciosBase[planSeleccionado] || 650;
+                const costoHorasExtra = horasExtra * 100;
+                const costoTotal = precioBase + costoHorasExtra;
+
+                document.getElementById('precio-base').textContent = `$${precioBase} MXN`;
+                document.getElementById('costo-horas-extra').textContent = `$${costoHorasExtra} MXN`;
+                document.getElementById('costo-total').textContent = `$${costoTotal} MXN`;
+            }
+
+            // Inicializar al cargar
+            actualizarCamposSegunPlan();
+
+            // Actualizar cuando cambia el plan
+            planSelector.addEventListener('change', actualizarCamposSegunPlan);
+
+            // Actualizar cuando cambian las horas extra
+            horasExtraInput.addEventListener('input', actualizarCotizacion);
+        });
+    </script>
 
 </body>
 

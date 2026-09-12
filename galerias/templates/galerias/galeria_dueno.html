@@ -91,12 +91,14 @@
                 {% endif %}
                 <button onclick="descargarZipGenerando('{% url 'descargar_todas_zip' evento.id %}')"
                     id="btn-zip-main"
+                    data-descargas-restantes="{{ evento.descargas_zip_restantes }}"
                     class="neu-button px-6 py-3 rounded-xl font-bold text-indigo-600 text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
                     <span>Descargar Todo (.ZIP)</span>
+                    <span id="descargas-info" class="text-xs text-gray-500">({{ evento.descargas_zip_restantes }} restantes)</span>
                 </button>
             </div>
 
@@ -160,11 +162,12 @@
                             <img src="{{ archivo.thumb_archivo.url }}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
                             {% else %}
                             <video class="w-full h-full object-cover rounded-xl pointer-events-none" preload="metadata" muted loop autoplay>
-                                <source src="{{ archivo.original_archivo.url }}#t=0.5" type="video/mp4">
+                                <!-- Usa el preview optimizado en lugar del original -->
+                                <source src="{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% endif %}#t=0.5" type="video/mp4">
                             </video>
                             {% endif %}
                         {% else %}
-                            <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% else %}{{ archivo.original_archivo.url }}{% endif %}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
+                            <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% endif %}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
                         {% endif %}
                     </div>
 
@@ -216,11 +219,12 @@
                 <!-- CONTENEDOR DE MEDIOS -->
                 <div class="media-item aspect-square neu-pressed overflow-hidden rounded-xl cursor-pointer"
                     data-id="{{ item.id }}"
-                    data-url="{% if item.preview_archivo %}{{ item.preview_archivo.url }}{% else %}{{ item.original_archivo.url }}{% endif %}"
+                    data-url="{% if item.preview_archivo %}{{ item.preview_archivo.url }}{% else %}{{ item.thumb_archivo.url }}{% endif %}"
+                    data-procesando="{% if item.estado_procesamiento == 'PROCESANDO' %}true{% else %}false{% endif %}"
                     data-es-video="{% if item.es_video %}true{% else %}false{% endif %}"
                     data-likes="{{ item.likes|default:0 }}"
                     data-liked="false"
-                    onclick="{% if item.estado_procesamiento != 'PROCESANDO' %}abrirCarrusel({{ forloop.counter0 }}){% endif %}">
+                    onclick="abrirCarrusel({{ forloop.counter0 }})">
                     
                     {% if item.estado_procesamiento == 'PROCESANDO' %}
                         <!-- Skeleton loader / Spinner -->
@@ -234,11 +238,11 @@
                             <img src="{{ item.thumb_archivo.url }}" class="w-full h-full object-cover" alt="Video thumbnail">
                             {% else %}
                             <video class="w-full h-full object-cover pointer-events-none" preload="metadata">
-                                <source src="{{ item.original_archivo.url }}#t=0.5" type="video/mp4">
+                                <source src="{% if item.preview_archivo %}{{ item.preview_archivo.url }}{% endif %}#t=0.5" type="video/mp4">
                             </video>
                             {% endif %}
                         {% else %}
-                            <img src="{% if item.thumb_archivo %}{{ item.thumb_archivo.url }}{% else %}{{ item.original_archivo.url }}{% endif %}" class="w-full h-full object-cover" alt="Recuerdo">
+                            <img src="{% if item.thumb_archivo %}{{ item.thumb_archivo.url }}{% else %}{{ item.preview_archivo.url }}{% endif %}" class="w-full h-full object-cover" alt="Recuerdo">
                         {% endif %}
                     {% endif %}
                 </div>
@@ -370,6 +374,78 @@
     <script>
         window.PIN_CORRECTO = "{{ evento.pin_dueno }}";
         window.EVENTO_ID = "{{ evento.id }}";
+        window.DESCARGAS_RESTANTES = {{ evento.descargas_zip_restantes }};
+
+        // Función para actualizar descargas restantes de forma asíncrona
+        function actualizarDescargasRestantes() {
+            fetch(`/api/evento/${window.EVENTO_ID}/estado-descargas/`)
+                .then(response => response.json())
+                .then(data => {
+                    window.DESCARGAS_RESTANTES = data.descargas_restantes;
+                    const infoElement = document.getElementById('descargas-info');
+                    const btn = document.getElementById('btn-zip-main');
+
+                    if (infoElement) {
+                        infoElement.textContent = `(${data.descargas_restantes} restantes)`;
+                    }
+
+                    if (data.limite_alcanzado) {
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.innerHTML = '<span>Límite alcanzado</span>';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error al actualizar descargas:', error));
+        }
+
+        // Actualizar descargas cada 5 segundos
+        setInterval(actualizarDescargasRestantes, 5000);
+
+        // Sobrescribir la función de descarga con límite
+        function descargarZipGenerando(url) {
+            if (window.DESCARGAS_RESTANTES <= 0) {
+                alert('Has alcanzado el límite máximo de descargas completas permitidas.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-zip-main');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Generando ZIP...</span>';
+
+            window.location.href = url;
+
+            // Actualizar inmediatamente después de iniciar descarga
+            actualizarDescargasRestantes();
+
+            if (window.DESCARGAS_RESTANTES <= 0) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>Límite alcanzado</span>';
+            } else {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        <span>Descargar Todo (.ZIP)</span>
+                        <span id="descargas-info">(${window.DESCARGAS_RESTANTES} restantes)</span>
+                    `;
+                }, 2000);
+            }
+        }
+
+        // Inicializar estado del botón si no hay descargas restantes
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.DESCARGAS_RESTANTES <= 0) {
+                const btn = document.getElementById('btn-zip-main');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span>Límite alcanzado</span>';
+                }
+            }
+        });
     </script>
     <script src="{% static 'galerias/js/galeria_dueno.js' %}"></script>
 </body>

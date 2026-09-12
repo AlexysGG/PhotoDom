@@ -135,12 +135,12 @@
                                 <img src="{{ archivo.thumb_archivo.url }}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
                             {% else %}
                                 <video class="w-full h-full object-cover rounded-xl pointer-events-none" preload="metadata" muted loop autoplay>
-                                    <source src="{% if archivo.original_archivo %}{{ archivo.original_archivo.url }}{% else %}{{ archivo.archivo.url }}{% endif %}#t=0.5" type="video/mp4">
+                                    <source src="{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% else %}{{ archivo.thumb_archivo.url }}{% endif %}#t=0.5" type="video/mp4">
                                 </video>
                             {% endif %}
                         {% else %}
                             <!-- Etiqueta IMAGEN -->
-                            <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% elif archivo.original_archivo %}{{ archivo.original_archivo.url }}{% else %}{{ archivo.archivo.url }}{% endif %}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
+                            <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% else %}{{ archivo.preview_archivo.url }}{% endif %}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
                         {% endif %}
 
                         <!-- MARCO (Solo si no es video) -->
@@ -199,7 +199,7 @@
 
                 <!-- Contenedor Foto / Video -->
                 <div class="media-item relative overflow-hidden rounded-xl bg-gray-200 aspect-square mb-2 cursor-pointer w-full shrink-0"
-                    data-url="{% if archivo.original_archivo %}{{ archivo.original_archivo.url }}{% else %}{{ archivo.archivo.url }}{% endif %}"
+                    data-url="{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% elif archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% endif %}"
                     data-es-video="{% if archivo.es_video %}true{% else %}false{% endif %}"
                     data-id="{{ archivo.id }}"
                     data-liked="{% if archivo.id in likes_sesion %}true{% else %}false{% endif %}"
@@ -216,11 +216,11 @@
                         <img src="{{ archivo.thumb_archivo.url }}" alt="Vista previa video" class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">
                         {% else %}
                         <video class="absolute inset-0 block w-full h-full object-cover z-0 pointer-events-none" preload="metadata">
-                            <source src="{% if archivo.original_archivo %}{{ archivo.original_archivo.url }}{% else %}{{ archivo.archivo.url }}{% endif %}#t=0.5" type="video/mp4">
+                            <source src="{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% elif archivo.preview %}{{ archivo.preview.url }}{% elif archivo.archivo %}{{ archivo.archivo.url }}{% endif %}#t=0.5" type="video/mp4">
                         </video>
                         {% endif %}
                     {% else %}
-                        <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% elif archivo.original_archivo %}{{ archivo.original_archivo.url }}{% else %}{{ archivo.archivo.url }}{% endif %}" alt="Foto de evento"
+                        <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% else %}{{ archivo.preview_archivo.url }}{% endif %}" alt="Foto de evento"
                             class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">
                     {% endif %}
 
@@ -303,7 +303,8 @@
             <div id="carrusel-slide-container"
                 class="w-full h-full flex items-center justify-center transition-transform duration-300 ease-out transform">
                 <img id="carrusel-img"
-                    class="max-h-full max-w-full object-contain rounded-xl hidden pointer-events-none" src=""
+                    class="max-h-full max-w-full object-contain rounded-xl hidden pointer-events-none"
+                    src=""
                     alt="Vista previa">
                 <video id="carrusel-video" class="max-h-full max-w-full rounded-xl hidden" controls src=""></video>
             </div>

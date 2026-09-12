@@ -101,6 +101,15 @@ function validarPin() {
 
 // --- LIGHTBOX / CARRUSEL ---
 function abrirCarrusel(index) {
+    const mediaElements = document.querySelectorAll(".media-item");
+    const el = mediaElements[index];
+
+    // Si aún se está procesando, bloqueamos la apertura para no pedir bytes al bucket
+    if (el && el.dataset.procesando === "true") {
+        alert("El archivo aún se está procesando. Estará listo para visualizarse en unos momentos.");
+        return;
+    }
+
     indiceActual = index;
     actualizarVistaCarrusel();
     document.getElementById("lightbox-modal").classList.remove("hidden");

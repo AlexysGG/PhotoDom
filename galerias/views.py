@@ -5,22 +5,79 @@ import base64
 import qrcode
 import zipfile
 import requests
+import uuid
+import re
+from datetime import datetime, timezone as dt_timezone, timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
-from .models import Evento, FotoInvitado, Marco
+from django.utils import timezone
+from django.conf import settings
+from .models import Evento, FotoInvitado, Marco, SolicitudEvento
 from django_q.tasks import async_task
 from .utils_media import procesar_imagen_pil
+from .forms import SolicitudEventoForm
+
+
+def generar_nombre_seguro(nombre_original, extension=None):
+    """
+    Genera un nombre de archivo corto y seguro basado en el nombre original.
+    - Remueve caracteres especiales
+    - Usa un UUID corto para evitar colisiones
+    - Mantiene la extensión original
+    """
+    # Extraer extensión si no se proporciona
+    if extension is None:
+        _, extension = os.path.splitext(nombre_original)
+        extension = extension.lower()
+    else:
+        if not extension.startswith('.'):
+            extension = '.' + extension
+
+    # Generar UUID corto (primeros 8 caracteres)
+    uuid_corto = str(uuid.uuid4())[:8]
+
+    # Nombre base corto
+    nombre_seguro = f"foto_{uuid_corto}{extension}"
+
+    return nombre_seguro
 
 def galeria_invitado(request, evento_id):
     """Muestra la galería interactiva al invitado"""
     evento = get_object_or_404(Evento, id=evento_id)
-    
+
+    # Establecer acceso en sesión para descargas posteriores
+    session_key = f'acceso_evento_{evento.id}'
+    request.session[session_key] = True
+    request.session.modified = True
+
+    # Verificar si el evento está expirado por vigencia del plan
     if evento.esta_expirado() or not evento.activo:
         return render(request, 'galerias/expirado.html', {'evento': evento})
-    
+
+    # Verificar control de ventana de tiempo
+    if evento.fecha_hora_inicio:
+        from datetime import timedelta
+        from django.utils import timezone
+
+        ahora = timezone.now()
+        margen_inicio = evento.fecha_hora_inicio - timedelta(minutes=15)
+
+        # Si el evento aún no ha comenzado (con margen de 15 min)
+        if ahora < margen_inicio:
+            tiempo_restante = evento.fecha_hora_inicio - ahora
+            return render(request, 'galerias/espera.html', {
+                'evento': evento,
+                'tiempo_restante': tiempo_restante,
+                'fecha_inicio': evento.fecha_hora_inicio
+            })
+
+        # Si el evento ya terminó según la duración contratada
+        if evento.fecha_fin_evento and ahora > evento.fecha_fin_evento:
+            return render(request, 'galerias/expirado.html', {'evento': evento})
+
     archivos = evento.fotos.all().order_by('-fecha_subida')
 
     mis_fotos_ids = request.session.get('mis_fotos_ids', [])
@@ -105,6 +162,11 @@ def subir_foto_ajax(request, evento_id):
         es_video = archivo.content_type.startswith('video/')
         tipo_media = 'VIDEO' if es_video else 'IMAGEN'
 
+        # Generar nombre seguro para el archivo
+        nombre_original = archivo.name
+        extension = os.path.splitext(nombre_original)[1].lower()
+        nombre_seguro = generar_nombre_seguro(nombre_original, extension)
+
         foto = FotoInvitado(
             evento=evento,
             mensaje=mensaje_texto or None,
@@ -112,16 +174,22 @@ def subir_foto_ajax(request, evento_id):
             peso_bytes=archivo.size,
             estado_procesamiento='PROCESANDO' if es_video else 'COMPLETADO'
         )
-        
-        foto.original_archivo.save(archivo.name, archivo, save=False)
+
+        # Guardar con nombre seguro
+        foto.original_archivo.save(nombre_seguro, archivo, save=False)
         
         if not es_video:
             # Procesar imagen sincrónicamente (es rápido)
             resultados = procesar_imagen_pil(archivo)
+
+            # Generar nombres seguros para preview y thumb
+            nombre_preview = generar_nombre_seguro(nombre_original, '.jpg')
+            nombre_thumb = generar_nombre_seguro(nombre_original, '.jpg')
+
             foto.ancho = resultados['ancho']
             foto.alto = resultados['alto']
-            foto.preview_archivo.save(resultados['preview'].name, resultados['preview'], save=False)
-            foto.thumb_archivo.save(resultados['thumb'].name, resultados['thumb'], save=False)
+            foto.preview_archivo.save(nombre_preview, resultados['preview'], save=False)
+            foto.thumb_archivo.save(nombre_thumb, resultados['thumb'], save=False)
             
         foto.save()
         
@@ -281,8 +349,16 @@ def galeria_dueno(request, evento_id):
 
 
 def descargar_todas_las_fotos_zip(request, evento_id):
-    """Descarga masiva de todos los archivos en ZIP"""
+    """Descarga masiva de todos los archivos en ZIP con límite de intentos"""
     evento = get_object_or_404(Evento, id=evento_id)
+
+    # Verificar límite de descargas
+    if evento.descargas_zip_restantes <= 0:
+        return JsonResponse({
+            'success': False,
+            'error': 'Has alcanzado el límite máximo de descargas completas permitidas.'
+        }, status=403)
+
     archivos = evento.fotos.all()
 
     buffer = io.BytesIO()
@@ -290,7 +366,7 @@ def descargar_todas_las_fotos_zip(request, evento_id):
         for idx, item in enumerate(archivos, start=1):
             if not item.original_archivo:
                 continue
-            
+
             try:
                 response = requests.get(item.original_archivo.url, stream=True)
                 if response.status_code == 200:
@@ -300,6 +376,10 @@ def descargar_todas_las_fotos_zip(request, evento_id):
             except Exception as e:
                 print(f"Error al descargar {item.original_archivo.name}: {e}")
 
+    # Restar una descarga y guardar
+    evento.descargas_zip_restantes -= 1
+    evento.save()
+
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/zip')
     nombre_zip = f"galeria_{evento.nombre_evento.replace(' ', '_')}_id{evento.id}.zip"
@@ -307,38 +387,123 @@ def descargar_todas_las_fotos_zip(request, evento_id):
     return response
 
 
+@ratelimit(key='ip', rate='30/m', block=True)
 def descargar_archivo_proxy(request, archivo_id):
-    """Proxy para servir archivos desde Google Cloud Storage"""
+    """
+    Vista segura para descargar archivos individuales con:
+    - Validación por sesión o PIN
+    - Rate limiting por IP
+    - URL firmada de GCP (60 segundos)
+    - Redirección optimizada
+    """
     item = get_object_or_404(FotoInvitado, pk=archivo_id)
-    
-    # Verificar si es para visualización (inline) o descarga (attachment)
-    modo = request.GET.get('modo', 'descarga')
-    
+    evento = item.evento
+
+    # 1. Validación de acceso - solo sesión o PIN
+    tiene_acceso = False
+
+    # Verificar acceso por sesión
+    session_key = f'acceso_evento_{evento.id}'
+    if request.session.get(session_key):
+        tiene_acceso = True
+
+    # Verificar si es dueño a través del PIN (en GET parameters)
+    pin_param = request.GET.get('pin')
+    if pin_param and pin_param == evento.pin_dueno:
+        tiene_acceso = True
+        request.session[session_key] = True
+
+    if not tiene_acceso:
+        return JsonResponse({
+            'success': False,
+            'error': 'No tienes acceso autorizado a este evento.'
+        }, status=403)
+
+    # 2. Verificar que el archivo existe
+    if not item.original_archivo:
+        raise Http404("El archivo no existe en el almacenamiento.")
+
     try:
-        # Usar original por defecto, o preview si es para visualizacion en UI que lo requiera
-        url_archivo = item.original_archivo.url
-        response = requests.get(url_archivo, stream=True)
-        response.raise_for_status()
-        
-        nombre_original = os.path.basename(item.original_archivo.name)
-        content_type = response.headers.get('Content-Type', 'application/octet-stream')
-        
-        res = HttpResponse(response.content, content_type=content_type)
-        
-        if modo == 'visualizacion':
-            res['Content-Disposition'] = f'inline; filename="{nombre_original}"'
-        else:
-            res['Content-Disposition'] = f'attachment; filename="{nombre_original}"'
-        
-        return res
-        
-    except requests.RequestException:
-        raise Http404("No se pudo obtener el archivo del almacenamiento externo.")
+        # 3. Generar URL firmada de Google Cloud Storage usando credenciales existentes
+        from google.cloud import storage
+        from django.conf import settings
+
+        # Usar las credenciales ya configuradas en settings.py
+        credentials = getattr(settings, 'GS_CREDENTIALS', None)
+        client = storage.Client(credentials=credentials)
+        bucket = client.bucket('photosdomviewer')
+
+        # Obtener el nombre del blob desde la URL del archivo
+        blob_name = item.original_archivo.name
+        blob = bucket.blob(blob_name)
+
+        # Generar URL firmada v4 con expiración de 60 segundos
+        expiration = timedelta(seconds=60)
+
+        # Nombre seguro para descarga
+        nombre_seguro = f"photo_dom_{item.id}.jpg"
+        if item.es_video():
+            nombre_seguro = f"photo_dom_{item.id}.mp4"
+
+        url_firmada = blob.generate_signed_url(
+            version='v4',
+            expiration=expiration,
+            method='GET',
+            response_disposition=f'attachment; filename="{nombre_seguro}"'
+        )
+
+        # 4. Redirección optimizada a la URL firmada
+        return redirect(url_firmada)
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al generar URL de descarga: {str(e)}'
+        }, status=500)
 
 
 def home(request):
     """Página de inicio / Landing Page principal del sitio"""
-    return render(request, 'galerias/index.html')
+    form = SolicitudEventoForm()
+    return render(request, 'galerias/index.html', {'form': form})
+
+
+def crear_solicitud_evento(request):
+    """Vista para crear una solicitud de evento desde el formulario público"""
+    if request.method == 'POST':
+        form = SolicitudEventoForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Procesar la fecha del formulario que viene en formato local
+            from django.utils import timezone
+            from datetime import datetime, timedelta
+
+            fecha_hora_inicio = form.cleaned_data.get('fecha_hora_inicio')
+            if fecha_hora_inicio:
+                # El datetime-local del navegador no tiene timezone info,
+                # asumimos que está en la zona horaria de Mexico City (UTC-6)
+                # y convertimos a UTC para almacenamiento consistente
+                from zoneinfo import ZoneInfo
+                mexico_tz = ZoneInfo('America/Mexico_City')
+
+                if fecha_hora_inicio.tzinfo is None:
+                    # Si no tiene timezone, asumimos Mexico City
+                    fecha_hora_inicio = fecha_hora_inicio.replace(tzinfo=mexico_tz)
+
+                # Convertir a UTC para almacenamiento
+                fecha_hora_inicio_utc = fecha_hora_inicio.astimezone(dt_timezone.utc)
+                form.instance.fecha_hora_inicio = fecha_hora_inicio_utc
+
+            solicitud = form.save()
+            return render(request, 'galerias/solicitud_confirmada.html', {
+                'solicitud': solicitud
+            })
+    else:
+        form = SolicitudEventoForm()
+
+    return render(request, 'galerias/index.html', {
+        'form': form,
+        'mostrar_formulario': True
+    })
 
 
 def modo_proyector(request, evento_id):
@@ -397,14 +562,13 @@ def api_archivos_proyector(request, evento_id):
         estado_procesamiento='COMPLETADO'
     ).order_by('-fecha_subida')
     
-    # Construir respuesta JSON con URLs del proxy
+    # Construir respuesta JSON con URLs de previews y thumbs (blindaje de transferencia)
     archivos_data = []
     for archivo in archivos_nuevos:
         archivos_data.append({
             'id': archivo.id,
-            'url': request.build_absolute_uri(archivo.original_archivo.url) if archivo.original_archivo else '',
-            'thumb_url': request.build_absolute_uri(archivo.thumb_archivo.url) if archivo.thumb_archivo else '',
             'preview_url': request.build_absolute_uri(archivo.preview_archivo.url) if archivo.preview_archivo else '',
+            'thumb_url': request.build_absolute_uri(archivo.thumb_archivo.url) if archivo.thumb_archivo else '',
             'es_video': archivo.es_video(),
             'mensaje': archivo.mensaje or '',
             'likes': archivo.likes,
@@ -436,8 +600,16 @@ def api_estado_archivos(request, evento_id):
             'estado': archivo.estado_procesamiento,
             'thumb_url': request.build_absolute_uri(archivo.thumb_archivo.url) if archivo.thumb_archivo else '',
             'preview_url': request.build_absolute_uri(archivo.preview_archivo.url) if archivo.preview_archivo else '',
-            'archivo_url': request.build_absolute_uri(archivo.original_archivo.url) if archivo.original_archivo else '',
             'es_video': archivo.es_video()
         })
-        
+
     return JsonResponse({'archivos': data})
+
+
+def api_estado_descargas(request, evento_id):
+    """API asíncrona para verificar el estado de descargas ZIP restantes"""
+    evento = get_object_or_404(Evento, id=evento_id)
+    return JsonResponse({
+        'descargas_restantes': evento.descargas_zip_restantes,
+        'limite_alcanzado': evento.descargas_zip_restantes <= 0
+    })

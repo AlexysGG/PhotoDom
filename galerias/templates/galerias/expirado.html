@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evento terminado - {{ evento.nombre_evento }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Favicons & Manifest -->
+    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'favicon-96x96.png' %}">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="{% static 'favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'site.webmanifest' %}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #241c2c;
+            --bg-alt: #2f2438;
+            --paper: #faf6ee;
+            --ink: #241c2c;
+            --text: #f3ece0;
+            --muted: #b8aec2;
+            --gold: #f2b544;
+            --coral: #ef6f5b;
+            --line: rgba(243, 236, 224, 0.14);
+            --font-display: "Fraunces", Georgia, serif;
+            --font-body: "Inter", system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .expirado-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .icono-expirado {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--coral);
+            margin-bottom: 1rem;
+        }
+
+        .nombre-evento {
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 2rem;
+        }
+
+        .mensaje-expirado {
+            background: var(--bg-alt);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid var(--line);
+        }
+
+        .mensaje-expirado h2 {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .mensaje-expirado p {
+            color: var(--text);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .mensaje-informativo {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-top: 2rem;
+        }
+
+        .contacto-info {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(242, 181, 68, 0.1);
+            border: 1px solid rgba(242, 181, 68, 0.3);
+            border-radius: 8px;
+        }
+
+        .contacto-info h3 {
+            font-family: var(--font-display);
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .contacto-info p {
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .nombre-evento {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="expirado-container">
+        <div class="icono-expirado">🔒</div>
+        <h1>El evento ha terminado</h1>
+        <p class="nombre-evento">{{ evento.nombre_evento }}</p>
+
+        <div class="mensaje-expirado">
+            <h2>Esta galería ya no está disponible</h2>
+            <p>
+                El tiempo contratado para este evento ha finalizado. La galería
+                ha cerrado y ya no acepta nuevas fotos ni permite visualizar el contenido.
+            </p>
+        </div>
+
+        <p class="mensaje-informativo">
+            Si necesitas descargar las fotos del evento o tienes alguna pregunta,
+                por favor contacta al organizador del evento.
+        </p>
+
+        <div class="contacto-info">
+            <h3>Información del evento</h3>
+            <p>Cliente: {{ evento.nombre_cliente }}</p>
+            <p>Plan: {{ evento.get_plan_almacenamiento_display }}</p>
+        </div>
+    </div>
+</body>
+
+</html>

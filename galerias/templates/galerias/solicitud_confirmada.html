@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud Enviada - PhotoDom</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}">
+</head>
+
+<body>
+    <header class="nav">
+        <div class="nav__brand">PhotoDom</div>
+        <nav class="nav__links">
+            <a href="/">Inicio</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="confirmation">
+            <div class="confirmation__icon">✓</div>
+            <h1>¡Solicitud enviada con éxito!</h1>
+            <p class="confirmation__message">
+                Gracias por tu interés en PhotoDom. Hemos recibido tu solicitud para crear una galería
+                para el evento <strong>{{ solicitud.nombre_evento }}</strong>.
+            </p>
+
+            <div class="confirmation__details">
+                <h3>Detalles de tu solicitud</h3>
+                <ul>
+                    <li><strong>Nombre del evento:</strong> {{ solicitud.nombre_evento }}</li>
+                    <li><strong>Cliente:</strong> {{ solicitud.nombre_cliente }}</li>
+                    <li><strong>Plan solicitado:</strong> {{ solicitud.get_plan_almacenamiento_display }}</li>
+                    <li><strong>Plantilla:</strong> {{ solicitud.get_plantilla_html_display }}</li>
+                    <li><strong>Tema:</strong> {{ solicitud.get_tema_color_display }}</li>
+                    <li><strong>Fecha de solicitud:</strong> {{ solicitud.fecha_creacion|date:"d/m/Y H:i" }}</li>
+                </ul>
+            </div>
+
+            <p class="confirmation__next">
+                Nos pondremos en contacto contigo pronto al número <strong>{{ solicitud.telefono }}</strong>
+                o al email <strong>{{ solicitud.email }}</strong> para confirmar los detalles y proceder
+                con la creación de tu galería.
+            </p>
+
+            <div class="confirmation__actions">
+                <a href="/" class="button button--primary">Volver al inicio</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>PhotoDom</p>
+    </footer>
+
+    <style>
+        .confirmation {
+            text-align: center;
+            padding: 5rem 1.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .confirmation__icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gold);
+            color: #241c2c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 auto 2rem;
+        }
+
+        .confirmation__message {
+            color: var(--muted);
+            max-width: 60ch;
+            margin: 0 auto 2rem;
+        }
+
+        .confirmation__details {
+            background: var(--bg-alt);
+            border-radius: 6px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .confirmation__details h3 {
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .confirmation__details ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .confirmation__details li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+        }
+
+        .confirmation__details li:last-child {
+            border-bottom: none;
+        }
+
+        .confirmation__details strong {
+            color: var(--text);
+        }
+
+        .confirmation__next {
+            color: var(--muted);
+            max-width: 60ch;
+            margin: 0 auto 2rem;
+        }
+
+        .confirmation__actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+    </style>
+</body>
+
+</html>
