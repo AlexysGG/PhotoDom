@@ -198,15 +198,21 @@ async function verificarArchivosNuevos() {
 function procesarArchivosNuevos(nuevosArchivos) {
     if (nuevosArchivos.length === 0) return;
     
+    // Filtrar archivos que ya tenemos
+    const idsConocidos = new Set(archivos.map(a => a.id));
+    const archivosRealesNuevos = nuevosArchivos.filter(a => !idsConocidos.has(a.id));
+    
+    if (archivosRealesNuevos.length === 0) return;
+    
     // Ordenar por ID descendente para mantener el orden cronológico
-    nuevosArchivos.sort((a, b) => b.id - a.id);
+    archivosRealesNuevos.sort((a, b) => b.id - a.id);
     
     // Anteponer nuevos archivos al inicio de la lista
-    archivos = [...nuevosArchivos, ...archivos];
+    archivos = [...archivosRealesNuevos, ...archivos];
     
     // Actualizar el último ID procesado
-    const maxId = Math.max(...nuevosArchivos.map(a => a.id));
-    ultimoIdProcesado = maxId;
+    const maxId = Math.max(...archivosRealesNuevos.map(a => a.id));
+    ultimoIdProcesado = Math.max(ultimoIdProcesado, maxId);
     
     // Mostrar inmediatamente el archivo más nuevo
     indiceActual = 0;

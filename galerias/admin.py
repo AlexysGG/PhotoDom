@@ -6,29 +6,20 @@ from unfold.admin import ModelAdmin
 
 
 def obtener_vista_previa_html(obj):
-    if not obj.archivo:
+    if not obj:
         return "Sin archivo"
 
-    url = obj.archivo.url.lower()
+    archivo = obj.thumb_archivo or obj.preview_archivo or obj.original_archivo
+    if not archivo:
+        return "Sin archivo"
 
-    extensiones_video = ('.mp4', '.mov', '.avi', '.webm', '.mkv', '.m4v')
-    es_video_prop = getattr(obj, 'es_video', False)
-    
-    if callable(es_video_prop):
-        es_video_prop = es_video_prop()
-
-    es_video = es_video_prop or url.endswith(extensiones_video)
-
-    if es_video:
-        return format_html(
-            '<video src="{}#t=0.5" style="width: 100px; height: 60px; object-fit: cover; border-radius: 6px;" preload="metadata"></video>',
-            obj.archivo.url
-        )
+    url_preview = obj.preview_archivo.url if obj.preview_archivo else (obj.original_archivo.url if obj.original_archivo else archivo.url)
+    url_thumb = obj.thumb_archivo.url if obj.thumb_archivo else url_preview
 
     return format_html(
         '<a href="{}" target="_blank"><img src="{}" style="width: 100px; height: 60px; object-fit: cover; border-radius: 6px;" /></a>',
-        obj.archivo.url,
-        obj.archivo.url
+        url_preview,
+        url_thumb
     )
 
 
@@ -54,8 +45,8 @@ class MarcoAdmin(ModelAdmin):
 class FotoInvitadoInline(admin.TabularInline):
     model = FotoInvitado
     extra = 0
-    readonly_fields = ('vista_previa', 'likes', 'destacada', 'mensaje', 'fecha_subida')
-    fields = ('vista_previa', 'archivo', 'likes', 'destacada', 'mensaje', 'fecha_subida')
+    readonly_fields = ('vista_previa', 'likes', 'destacada', 'mensaje', 'fecha_subida', 'estado_procesamiento')
+    fields = ('vista_previa', 'original_archivo', 'preview_archivo', 'thumb_archivo', 'tipo', 'estado_procesamiento', 'likes', 'destacada', 'mensaje', 'fecha_subida')
     can_delete = True
 
     @admin.display(description='Vista Previa')
@@ -135,8 +126,8 @@ class EventoAdmin(ModelAdmin):
 
 @admin.register(FotoInvitado)
 class FotoInvitadoAdmin(ModelAdmin):
-    list_display = ('id', 'vista_previa', 'evento', 'likes', 'destacada', 'mensaje', 'fecha_subida')
-    list_filter = ('destacada', 'evento', 'fecha_subida')
+    list_display = ('id', 'vista_previa', 'evento', 'tipo', 'estado_procesamiento', 'likes', 'destacada', 'mensaje', 'fecha_subida')
+    list_filter = ('tipo', 'estado_procesamiento', 'destacada', 'evento', 'fecha_subida')
     search_fields = ('evento__id', 'evento__nombre_evento', 'evento__nombre_cliente', 'mensaje')
     ordering = ('-fecha_subida',)
 
