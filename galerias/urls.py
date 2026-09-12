@@ -25,4 +25,5 @@ urlpatterns = [
     
     # API para modo proyector
     path('api/evento/<uuid:evento_id>/archivos-recientes/', views.api_archivos_proyector, name='api_archivos_proyector'),
+    path('api/evento/<uuid:evento_id>/estado-archivos/', views.api_estado_archivos, name='api_estado_archivos'),
 ]

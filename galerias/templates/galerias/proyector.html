@@ -162,13 +162,15 @@
         window.EVENTO_ID = "{{ evento.id }}";
         window.ARCHIVOS_INICIALES = [
             {% for archivo in archivos %}
+            {% if archivo.estado_procesamiento == 'COMPLETADO' %}
             {
                 id: {{ archivo.id }},
-                url: "{% if usar_proxy %}/ver/{{ archivo.id }}/?modo=visualizacion{% else %}{{ archivo.archivo.url }}{% endif %}",
+                url: "{% if usar_proxy %}/ver/{{ archivo.id }}/?modo=visualizacion{% else %}{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% else %}{{ archivo.original_archivo.url }}{% endif %}{% endif %}",
                 es_video: {% if archivo.es_video %}true{% else %}false{% endif %},
                 mensaje: "{{ archivo.mensaje|default:''|escapejs }}",
                 likes: {{ archivo.likes|default:0 }}
             }{% if not forloop.last %},{% endif %}
+            {% endif %}
             {% empty %}
             {% endfor %}
         ];

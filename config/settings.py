@@ -55,7 +55,201 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'galerias',
     'storages',
-    
+    'django_q',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'config.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'config.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if os.environ.get('DATABASE_URL'):
+    # Configuración para Producción (Render / PostgreSQL)
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Configuración para Desarrollo Local (SQLite local)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+UNFOLD = {
+    "SITE_TITLE": "Administración de Eventos",
+    "SITE_HEADER": "PhotoDom",
+    "SITE_URL": "/",
+    "SHOW_HISTORY": True,
+    "COLORS": {
+        "primary": {
+            "50": "238 242 255",
+            "100": "224 231 255",
+            "200": "199 210 254",
+            "300": "165 180 252",
+            "400": "129 140 248",
+            "500": "99 102 241",  # Color primario estilo Índigo/Violeta
+            "600": "79 70 229",
+            "700": "67 56 202",
+            "800": "55 48 163",
+            "900": "49 46 129",
+        },
+    },
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "type": "image/png",
+            "sizes": "96x96",
+            "href": lambda request: static("favicon-96x96.png"),
+        },
+        {
+            "rel": "icon",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "href": lambda request: static("favicon.svg"),
+        },
+        {
+            "rel": "shortcut icon",
+            "href": lambda request: static("favicon.ico"),
+        },
+        {
+            "rel": "apple-touch-icon",
+            "href": lambda request: static("apple-touch-icon.png"),
+        },
+    ],
+}
+
+
+
+# --- CONFIGURACIÓN GOOGLE CLOUD STORAGE ---
+GS_BUCKET_NAME = 'photosdomviewer' 
+
+# 1. Buscar credenciales en Render (/etc/secrets/) o en Local (BASE_DIR)
+RENDER_SECRET_PATH = '/etc/secrets/gcp-key.json'
+LOCAL_SECRET_PATH = os.path.join(BASE_DIR, 'gcp-key.json')
+
+GS_CREDENTIALS = None
+if os.path.exists(RENDER_SECRET_PATH):
+    GS_CREDENTIALS_FILE = RENDER_SECRET_PATH
+elif os.path.exists(LOCAL_SECRET_PATH):
+    GS_CREDENTIALS_FILE = LOCAL_SECRET_PATH
+else:
+    GS_CREDENTIALS_FILE = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+
+if GS_CREDENTIALS_FILE and os.path.exists(str(GS_CREDENTIALS_FILE)):
+    from google.oauth2 import service_account
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        GS_CREDENTIALS_FILE
+    )
+
+# Configuración de Almacenamiento (Django >= 4.2)
+storage_options = {
+    "bucket_name": GS_BUCKET_NAME,
+    "file_overwrite": False,  # Evita que un archivo sobrescriba a otro con el mismo nombre
+}
+
+if GS_CREDENTIALS:
+    storage_options["credentials"] = GS_CREDENTIALS
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        "OPTIONS": storage_options,
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+INSTALLED_APPS = [
+    'unfold',
+    'unfold.contrib.filters',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'galerias',
+    'storages',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -245,7 +439,21 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 # Evita que la sesión se borre al cerrar el navegador
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-
 # Configuración de archivos subidos por usuarios
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuración de Django Q2 (Procesamiento Asíncrono)
+Q_CLUSTER = {
+    'name': 'photodom',
+    'workers': 2,
+    'recycle': 500,
+    'timeout': 300,  # 5 minutos máximo por tarea (para transcodificación ffmpeg)
+    'retry': 360,    # 6 minutos de reintento (debe ser mayor a timeout)
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'orm': 'default'
+}

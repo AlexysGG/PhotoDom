@@ -274,9 +274,24 @@ async function subirTodosLosArchivos() {
             if (sinFotos) sinFotos.remove();
 
             const grid = document.getElementById('grid-fotos');
-            const mediaTag = data.es_video
-                ? `<video class="absolute inset-0 block w-full h-full object-cover z-0 pointer-events-none" preload="metadata"><source src="${data.archivo_url}#t=0.5" type="video/mp4"></video>`
-                : `<img src="${data.archivo_url}" class="absolute inset-0 block w-full h-full object-cover z-0" alt="Foto subida">`;
+            
+            let mediaTag = '';
+            if (data.es_video) {
+                if (data.estado === 'PROCESANDO') {
+                    mediaTag = `
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20">
+                            <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2"></div>
+                            <span class="text-[10px] font-bold text-gray-500">Procesando video...</span>
+                        </div>
+                    `;
+                } else if (data.thumb_url) {
+                    mediaTag = `<img src="${data.thumb_url}" class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">`;
+                } else {
+                    mediaTag = `<video class="absolute inset-0 block w-full h-full object-cover z-0 pointer-events-none" preload="metadata"><source src="${data.archivo_url}#t=0.5" type="video/mp4"></video>`;
+                }
+            } else {
+                mediaTag = `<img src="${data.thumb_url || data.archivo_url}" class="absolute inset-0 block w-full h-full object-cover z-0" alt="Foto subida">`;
+            }
 
             // Superposición de marco dinámico
             const marcoOverlay = (!data.es_video && urlMarco)
@@ -314,12 +329,13 @@ async function subirTodosLosArchivos() {
                     </button>
                     
                     <div class="media-item aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2 cursor-pointer"
-                        data-url="${data.archivo_url}"
+                        data-url="${data.preview_url || data.archivo_url}"
                         data-es-video="${data.es_video ? 'true' : 'false'}"
                         data-id="${data.id}"
+                        data-estado="${data.estado}"
                         data-liked="false"
                         data-likes="0"
-                        onclick="abrirCarrusel(0)">
+                        onclick="${data.estado !== 'PROCESANDO' ? `abrirCarrusel(0)` : ''}">
                         ${mediaTag}
                         ${marcoOverlay}
                         ${videoBadge}
@@ -695,4 +711,71 @@ document.addEventListener("keydown", (e) => {
         if (e.key === "ArrowRight") cambiarSlide(1);
         if (e.key === "Escape")     cerrarCarrusel();
     }
+});
+
+// --- POLLING ESTADO DE ARCHIVOS ---
+let intervalPolling = null;
+
+function iniciarPollingEstado() {
+    if (intervalPolling) clearInterval(intervalPolling);
+    
+    intervalPolling = setInterval(async () => {
+        const procesando = document.querySelectorAll('.media-item[data-estado="PROCESANDO"]');
+        if (procesando.length === 0) return;
+        
+        const ids = Array.from(procesando).map(el => el.dataset.id).join(',');
+        
+        const match = window.location.pathname.match(/\/evento\/([^\/]+)/);
+        if (!match) return;
+        const eventoId = match[1];
+        
+        try {
+            const resp = await fetch(`/api/evento/${eventoId}/estado-archivos/?ids=${ids}`);
+            const data = await resp.json();
+            
+            if (data.archivos && data.archivos.length > 0) {
+                data.archivos.forEach(archivo => {
+                    if (archivo.estado === 'COMPLETADO') {
+                        const mediaItem = document.querySelector(`.media-item[data-id="${archivo.id}"]`);
+                        if (!mediaItem) return;
+                        
+                        mediaItem.dataset.estado = 'COMPLETADO';
+                        mediaItem.dataset.url = archivo.preview_url || archivo.archivo_url;
+                        
+                        const allMediaItems = document.querySelectorAll('.media-item');
+                        const index = Array.from(allMediaItems).indexOf(mediaItem);
+                        mediaItem.setAttribute('onclick', `abrirCarrusel(${index})`);
+                        
+                        let mediaTag = '';
+                        if (archivo.es_video) {
+                            if (archivo.thumb_url) {
+                                mediaTag = `<img src="${archivo.thumb_url}" alt="Video thumbnail" class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">`;
+                            } else {
+                                mediaTag = `<video class="absolute inset-0 block w-full h-full object-cover z-0 pointer-events-none" preload="metadata"><source src="${archivo.archivo_url}#t=0.5" type="video/mp4"></video>`;
+                            }
+                            mediaTag += `<span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none backdrop-blur-sm"><svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video</span>`;
+                        } else {
+                            mediaTag = `<img src="${archivo.thumb_url || archivo.archivo_url}" alt="Foto de evento" class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">`;
+                        }
+                        
+                        const urlMarco = obtenerUrlMarco();
+                        const marcoOverlay = (!archivo.es_video && urlMarco)
+                            ? `<img src="${urlMarco}" alt="Marco" class="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none">`
+                            : '';
+                        
+                        mediaItem.innerHTML = mediaTag + marcoOverlay;
+                        
+                        sincronizarGaleriaCarrusel();
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error en polling:", e);
+        }
+    }, 4000);
+}
+
+// Arrancamos el polling también al iniciar
+document.addEventListener("DOMContentLoaded", () => {
+    iniciarPollingEstado();
 });

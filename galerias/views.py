@@ -11,7 +11,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 from .models import Evento, FotoInvitado, Marco
-
+from django_q.tasks import async_task
+from .utils_media import procesar_imagen_pil
 
 def galeria_invitado(request, evento_id):
     """Muestra la galería interactiva al invitado"""
@@ -31,7 +32,7 @@ def galeria_invitado(request, evento_id):
         
         fotos_destacadas = (
             archivos.filter(
-                archivo__iregex=extensiones_media,
+                original_archivo__iregex=extensiones_media,  # 👈 Se cambió 'archivo' por 'original_archivo'
                 likes__gt=0
             )
             .order_by('-likes', '-fecha_subida')[:3]
@@ -39,7 +40,7 @@ def galeria_invitado(request, evento_id):
 
     likes_sesion = request.session.get('likes_fotos', [])
     # Calcular el almacenamiento usado actualmente en MB
-    bytes_ocupados = sum(foto.archivo.size for foto in archivos if foto.archivo)
+    bytes_ocupados = sum(foto.peso_bytes for foto in archivos)
     espacio_usado_mb = bytes_ocupados / (1024 * 1024)
     likes_sesion = request.session.get('likes_fotos', [])
     
@@ -82,14 +83,8 @@ def subir_foto_ajax(request, evento_id):
         }, status=400)
 
     # 2. Calcular almacenamiento ocupado de forma segura sin romper la vista
-    bytes_ocupados = 0
     archivos_existentes = evento.fotos.all()
-    for f in archivos_existentes:
-        if f.archivo:
-            try:
-                bytes_ocupados += f.archivo.size
-            except Exception:
-                continue # Si un archivo remoto no responde, salta sin dar 500
+    bytes_ocupados = sum(f.peso_bytes for f in archivos_existentes)
 
     mb_ocupados = bytes_ocupados / (1024 * 1024)
     limite_plan_mb = evento.plan_almacenamiento
@@ -107,15 +102,37 @@ def subir_foto_ajax(request, evento_id):
     mensaje_texto = request.POST.get('mensaje', '').strip() if evento.permite_interaccion else ''
 
     try:
-        foto = FotoInvitado.objects.create(
+        es_video = archivo.content_type.startswith('video/')
+        tipo_media = 'VIDEO' if es_video else 'IMAGEN'
+
+        foto = FotoInvitado(
             evento=evento,
-            archivo=archivo,
-            mensaje=mensaje_texto or None
+            mensaje=mensaje_texto or None,
+            tipo=tipo_media,
+            peso_bytes=archivo.size,
+            estado_procesamiento='PROCESANDO' if es_video else 'COMPLETADO'
         )
+        
+        foto.original_archivo.save(archivo.name, archivo, save=False)
+        
+        if not es_video:
+            # Procesar imagen sincrónicamente (es rápido)
+            resultados = procesar_imagen_pil(archivo)
+            foto.ancho = resultados['ancho']
+            foto.alto = resultados['alto']
+            foto.preview_archivo.save(resultados['preview'].name, resultados['preview'], save=False)
+            foto.thumb_archivo.save(resultados['thumb'].name, resultados['thumb'], save=False)
+            
+        foto.save()
+        
+        if es_video:
+            # Enviar a background worker
+            async_task('galerias.tasks.procesar_video_async', foto.id)
+            
     except Exception as e:
         return JsonResponse({
             'success': False, 
-            'error': f'Error al guardar en el almacenamiento: {str(e)}'
+            'error': f'Error al procesar y guardar: {str(e)}'
         }, status=500)
 
     mis_fotos = request.session.get('mis_fotos_ids', [])
@@ -126,14 +143,15 @@ def subir_foto_ajax(request, evento_id):
     request.session['mis_fotos_ids'] = mis_fotos
     request.session.modified = True
 
-    es_vid = foto.es_video() if callable(getattr(foto, 'es_video', None)) else getattr(foto, 'es_video', False)
-
     return JsonResponse({
         'success': True,
         'id': foto.id,
-        'archivo_url': str(foto.archivo.url),
-        'es_video': bool(es_vid),
-        'mensaje': foto.mensaje or ''
+        'archivo_url': str(foto.original_archivo.url) if foto.original_archivo else '',
+        'thumb_url': str(foto.thumb_archivo.url) if foto.thumb_archivo else '',
+        'preview_url': str(foto.preview_archivo.url) if foto.preview_archivo else '',
+        'es_video': foto.es_video(),
+        'mensaje': foto.mensaje or '',
+        'estado': foto.estado_procesamiento
     })
 
 
@@ -162,7 +180,13 @@ def eliminar_foto_ajax(request, foto_id):
     if foto_id not in mis_fotos_ids and not es_dueno:
         return JsonResponse({'error': 'No tienes permiso para eliminar esta foto'}, status=403)
 
-    foto.archivo.delete(save=False)
+    if foto.original_archivo:
+        foto.original_archivo.delete(save=False)
+    if foto.preview_archivo:
+        foto.preview_archivo.delete(save=False)
+    if foto.thumb_archivo:
+        foto.thumb_archivo.delete(save=False)
+        
     foto.delete()
     
     if foto_id in mis_fotos_ids:
@@ -264,17 +288,17 @@ def descargar_todas_las_fotos_zip(request, evento_id):
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for idx, item in enumerate(archivos, start=1):
-            if not item.archivo:
+            if not item.original_archivo:
                 continue
             
             try:
-                response = requests.get(item.archivo.url, stream=True)
+                response = requests.get(item.original_archivo.url, stream=True)
                 if response.status_code == 200:
-                    nombre_original = os.path.basename(item.archivo.name)
+                    nombre_original = os.path.basename(item.original_archivo.name)
                     nombre_en_zip = f"{idx}_{nombre_original}"
                     zip_file.writestr(nombre_en_zip, response.content)
             except Exception as e:
-                print(f"Error al descargar {item.archivo.name}: {e}")
+                print(f"Error al descargar {item.original_archivo.name}: {e}")
 
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/zip')
@@ -291,10 +315,12 @@ def descargar_archivo_proxy(request, archivo_id):
     modo = request.GET.get('modo', 'descarga')
     
     try:
-        response = requests.get(item.archivo.url, stream=True)
+        # Usar original por defecto, o preview si es para visualizacion en UI que lo requiera
+        url_archivo = item.original_archivo.url
+        response = requests.get(url_archivo, stream=True)
         response.raise_for_status()
         
-        nombre_original = os.path.basename(item.archivo.name)
+        nombre_original = os.path.basename(item.original_archivo.name)
         content_type = response.headers.get('Content-Type', 'application/octet-stream')
         
         res = HttpResponse(response.content, content_type=content_type)
@@ -362,20 +388,56 @@ def api_archivos_proyector(request, evento_id):
     except (ValueError, TypeError):
         ultimo_id = 0
     
-    # Filtrar archivos con IDs mayores al último procesado
-    archivos_nuevos = evento.fotos.filter(id__gt=ultimo_id).order_by('-fecha_subida')
+    # Para lidiar con videos asincronos que pueden completarse tarde, 
+    # buscamos archivos completados con ID > ultimo_id - 50 (margen de seguridad)
+    margen_id = max(0, ultimo_id - 50)
+    
+    archivos_nuevos = evento.fotos.filter(
+        id__gt=margen_id, 
+        estado_procesamiento='COMPLETADO'
+    ).order_by('-fecha_subida')
     
     # Construir respuesta JSON con URLs del proxy
     archivos_data = []
     for archivo in archivos_nuevos:
         archivos_data.append({
             'id': archivo.id,
-            'url': request.build_absolute_uri(f"/ver/{archivo.id}/?modo=visualizacion"),
+            'url': request.build_absolute_uri(archivo.original_archivo.url) if archivo.original_archivo else '',
+            'thumb_url': request.build_absolute_uri(archivo.thumb_archivo.url) if archivo.thumb_archivo else '',
+            'preview_url': request.build_absolute_uri(archivo.preview_archivo.url) if archivo.preview_archivo else '',
             'es_video': archivo.es_video(),
             'mensaje': archivo.mensaje or '',
-            'likes': archivo.likes
+            'likes': archivo.likes,
+            'estado': archivo.estado_procesamiento
         })
     
     return JsonResponse({
         'archivos': archivos_data
     })
+
+
+def api_estado_archivos(request, evento_id):
+    """Devuelve el estado actual de los archivos solicitados por ID (útil para actualizar spinners de carga en frontend)"""
+    ids_param = request.GET.get('ids', '')
+    if not ids_param:
+        return JsonResponse({'archivos': []})
+    
+    try:
+        ids_list = [int(i) for i in ids_param.split(',') if i.strip().isdigit()]
+    except Exception:
+        ids_list = []
+        
+    archivos = FotoInvitado.objects.filter(evento_id=evento_id, id__in=ids_list)
+    
+    data = []
+    for archivo in archivos:
+        data.append({
+            'id': archivo.id,
+            'estado': archivo.estado_procesamiento,
+            'thumb_url': request.build_absolute_uri(archivo.thumb_archivo.url) if archivo.thumb_archivo else '',
+            'preview_url': request.build_absolute_uri(archivo.preview_archivo.url) if archivo.preview_archivo else '',
+            'archivo_url': request.build_absolute_uri(archivo.original_archivo.url) if archivo.original_archivo else '',
+            'es_video': archivo.es_video()
+        })
+        
+    return JsonResponse({'archivos': data})

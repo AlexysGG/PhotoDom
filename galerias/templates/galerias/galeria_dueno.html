@@ -151,11 +151,20 @@
 
                     <div class="aspect-square neu-pressed overflow-hidden rounded-xl relative bg-black flex items-center justify-center">
                         {% if archivo.es_video %}
+                            {% if archivo.estado_procesamiento == 'PROCESANDO' %}
+                                <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20 text-center p-2">
+                                    <div class="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-1"></div>
+                                    <span class="text-[9px] font-bold text-gray-500">Procesando...</span>
+                                </div>
+                            {% elif archivo.thumb_archivo %}
+                            <img src="{{ archivo.thumb_archivo.url }}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
+                            {% else %}
                             <video class="w-full h-full object-cover rounded-xl pointer-events-none" preload="metadata" muted loop autoplay>
-                                <source src="{{ archivo.archivo.url }}#t=0.5" type="video/mp4">
+                                <source src="{{ archivo.original_archivo.url }}#t=0.5" type="video/mp4">
                             </video>
+                            {% endif %}
                         {% else %}
-                            <img src="{{ archivo.archivo.url }}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
+                            <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% else %}{{ archivo.original_archivo.url }}{% endif %}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
                         {% endif %}
                     </div>
 
@@ -207,17 +216,30 @@
                 <!-- CONTENEDOR DE MEDIOS -->
                 <div class="media-item aspect-square neu-pressed overflow-hidden rounded-xl cursor-pointer"
                     data-id="{{ item.id }}"
-                    data-url="{{ item.archivo.url }}"
+                    data-url="{% if item.preview_archivo %}{{ item.preview_archivo.url }}{% else %}{{ item.original_archivo.url }}{% endif %}"
                     data-es-video="{% if item.es_video %}true{% else %}false{% endif %}"
                     data-likes="{{ item.likes|default:0 }}"
                     data-liked="false"
-                    onclick="abrirCarrusel({{ forloop.counter0 }})">
-                    {% if item.es_video %}
-                    <video class="w-full h-full object-cover pointer-events-none" preload="metadata">
-                        <source src="{{ item.archivo.url }}#t=0.5" type="video/mp4">
-                    </video>
+                    onclick="{% if item.estado_procesamiento != 'PROCESANDO' %}abrirCarrusel({{ forloop.counter0 }}){% endif %}">
+                    
+                    {% if item.estado_procesamiento == 'PROCESANDO' %}
+                        <!-- Skeleton loader / Spinner -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20">
+                            <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2"></div>
+                            <span class="text-[10px] font-bold text-gray-500">Procesando video...</span>
+                        </div>
                     {% else %}
-                    <img src="{{ item.archivo.url }}" class="w-full h-full object-cover" alt="Recuerdo">
+                        {% if item.es_video %}
+                            {% if item.thumb_archivo %}
+                            <img src="{{ item.thumb_archivo.url }}" class="w-full h-full object-cover" alt="Video thumbnail">
+                            {% else %}
+                            <video class="w-full h-full object-cover pointer-events-none" preload="metadata">
+                                <source src="{{ item.original_archivo.url }}#t=0.5" type="video/mp4">
+                            </video>
+                            {% endif %}
+                        {% else %}
+                            <img src="{% if item.thumb_archivo %}{{ item.thumb_archivo.url }}{% else %}{{ item.original_archivo.url }}{% endif %}" class="w-full h-full object-cover" alt="Recuerdo">
+                        {% endif %}
                     {% endif %}
                 </div>
 

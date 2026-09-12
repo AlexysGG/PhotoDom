@@ -4,6 +4,16 @@ from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.core.validators import RegexValidator
+import os
+
+def get_original_path(instance, filename):
+    return f'eventos/{instance.evento.id}/originals/{filename}'
+
+def get_preview_path(instance, filename):
+    return f'eventos/{instance.evento.id}/previews/{filename}'
+
+def get_thumb_path(instance, filename):
+    return f'eventos/{instance.evento.id}/thumbs/{filename}'
 
 # PALETAS DE COLORES PARA EL HTML
 PALETAS_COLOR = [
@@ -177,8 +187,12 @@ class Evento(models.Model):
     def eliminar_completamente(self):
         """Elimina todos los archivos en el storage externo y luego borra el evento."""
         for foto in self.fotos.all():
-            if foto.archivo:
-                foto.archivo.delete(save=False)
+            if foto.original_archivo:
+                foto.original_archivo.delete(save=False)
+            if foto.preview_archivo:
+                foto.preview_archivo.delete(save=False)
+            if foto.thumb_archivo:
+                foto.thumb_archivo.delete(save=False)
         self.delete()
 
     def __str__(self):
@@ -254,7 +268,28 @@ class Evento(models.Model):
 class FotoInvitado(models.Model):
     """Modelo para guardar fotos y videos de invitados"""
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='fotos')
-    archivo = models.FileField(upload_to='archivos_eventos/')
+    
+    TIPO_CHOICES = [
+        ('IMAGEN', 'Imagen'),
+        ('VIDEO', 'Video')
+    ]
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='IMAGEN')
+    
+    ESTADO_CHOICES = [
+        ('PROCESANDO', 'Procesando...'),
+        ('COMPLETADO', 'Completado'),
+        ('ERROR', 'Error')
+    ]
+    estado_procesamiento = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='COMPLETADO')
+    
+    peso_bytes = models.BigIntegerField(default=0)
+    ancho = models.IntegerField(null=True, blank=True)
+    alto = models.IntegerField(null=True, blank=True)
+
+    original_archivo = models.FileField(upload_to=get_original_path)
+    preview_archivo = models.FileField(upload_to=get_preview_path, null=True, blank=True)
+    thumb_archivo = models.FileField(upload_to=get_thumb_path, null=True, blank=True)
+    
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     # Campos opcionales de interacción (Para plan Experiencia y Premium)
@@ -266,5 +301,4 @@ class FotoInvitado(models.Model):
         return f'Archivo en {self.evento.nombre_evento} - {self.fecha_subida.strftime("%H:%M:%S")}'
 
     def es_video(self):
-        ext = os.path.splitext(self.archivo.name)[1].lower()
-        return ext in ['.mp4', '.mov', '.avi', '.mpeg']
+        return self.tipo == 'VIDEO'
