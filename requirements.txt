@@ -158,9 +158,6 @@ python-json-logger==4.1.0
 pythonnet==3.0.5
 pytz==2025.2
 pywebview==5.4
-pywin32==312
-pywin32-ctypes==0.2.3
-pywinpty==3.0.5
 PyYAML==6.0.3
 pyzmq==27.1.0
 qrcode==8.2
