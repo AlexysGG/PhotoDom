@@ -1,0 +1,22 @@
+# Reglas de Seguridad y Ejecución de Comandos para PhotoDom
+
+## 1. Comandos Estrictamente Prohibidos
+Bajo NINGUNA circunstancia intentes ejecutar, sugerir o encadenar los siguientes comandos:
+- Comandos de exfiltración o lectura de archivos sensibles: `cat`, `type`, `Get-Content`, `head`, `tail` sobre archivos `.env*`, `*key*.json` o credenciales.
+- Volcados de variables de entorno: `printenv`, `env`, `export`, `set`, `Get-ChildItem env:`.
+- Peticiones externas de red por terminal: `curl`, `wget`, `Invoke-WebRequest`, `Invoke-RestMethod`, `nc`, `ssh`.
+- Comandos destructivos sin confirmación: `rm -rf`, `Remove-Item -Recurse -Force`, `rmdir /s /q`.
+- Destrucción de base de datos o Git forzado: `python manage.py flush`, `git reset --hard`, `git push --force`, `git clean -fd`.
+
+## 2. Buenas Prácticas en Comandos Permitidos
+- Cuando necesites inspeccionar directorios en PowerShell, usa `Get-ChildItem` o `dir` sin el flag `-Recurse` a menos que sea en una carpeta específica y acotada (NUNCA en la raíz completa para no recorrer `venv/`).
+- Las operaciones de Django permitidas son: `python manage.py makemigrations`, `python manage.py migrate`, `python manage.py runserver`, `python manage.py check`.
+- Respeta en todo momento las exclusiones definidas en `.clineignore`.
+
+## 3. Entorno de Terminal
+- La terminal configurada es exclusivamente **Windows Command Prompt (CMD)**, NO PowerShell.
+- Usa sintaxis estándar de CMD:
+  - Para listar: `dir` (sin flags recursivos `/s` en la raíz).
+  - Para navegar: `cd`.
+  - Para rutas usa barras invertidas `\` o rutas estándar de Windows.
+- NUNCA generes cmdlets de PowerShell como `Get-ChildItem`, `Get-Content`, `Invoke-WebRequest` o similares.
