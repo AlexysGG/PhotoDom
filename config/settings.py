@@ -110,15 +110,21 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if os.environ.get('DATABASE_URL'):
-    # Configuración para Producción (Render / PostgreSQL)
+if DATABASE_URL:
+    # 1. Capturamos la configuración de Producción
+    db_config = dj_database_url.config(
+        conn_max_age=300,  # Reducido de 600 a 300 segundos para evitar problemas de conexiones cerradas
+        conn_health_checks=True,
+        ssl_require=True,  # Es mejor usar el booleano True en lugar de texto 'true'
+    )
+    
+    # 2. Desactivamos los cursores para evitar el error con PgBouncer en Render
+    db_config['DISABLE_SERVER_SIDE_CURSORS'] = True
+
+    # 3. Asignamos la configuración final a Django
     DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        'default': db_config
     }
-else:
     # Configuración para Desarrollo Local (SQLite local)
     DATABASES = {
         'default': {
