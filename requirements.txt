@@ -12,6 +12,7 @@ django-storages==1.14.6
 django-unfold==0.91.0
 django-q2==1.11.1
 django-picklefield==3.4.0
+psycopg2-binary>=2.9.9
 
 # Google Cloud Storage
 google-cloud-storage==3.13.1
