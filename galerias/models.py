@@ -324,11 +324,11 @@ class Evento(models.Model):
         """Precio base según el plan"""
         precios = {
             200: 0,      # Debug
-            5000: 650,   # Esencial
+            5000: 500,   # Esencial
             10000: 900,  # Experiencia
             15000: 1500, # Premium
         }
-        return precios.get(self.plan_almacenamiento, 650)
+        return precios.get(self.plan_almacenamiento, 500)
 
     @property
     def costo_total(self):
