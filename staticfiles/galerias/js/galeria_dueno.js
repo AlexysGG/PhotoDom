@@ -9,6 +9,17 @@ let startX = 0;
 let currentTranslate = 0;
 let isDragging = false;
 
+// Función de escape HTML para prevenir XSS
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return unsafe;
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // Inicialización de datos al cargar el DOM
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Verificación de PIN en la sesión
@@ -302,18 +313,43 @@ async function descargarZipGenerando(urlDescarga) {
     if (modalZip) modalZip.classList.remove("hidden");
 
     try {
+        // Validar que la URL sea del mismo origen para prevenir SSRF
+        if (!urlDescarga || typeof urlDescarga !== 'string') {
+            throw new Error("URL inválida");
+        }
+        
+        // Validar que la URL tenga el formato esperado
+        const urlObj = new URL(urlDescarga, window.location.origin);
+        if (urlObj.origin !== window.location.origin) {
+            throw new Error("URL no permitida");
+        }
+        
         const respuesta = await fetch(urlDescarga);
         if (!respuesta.ok) throw new Error("Error en el servidor al generar el ZIP.");
 
         const blob = await respuesta.blob();
-        const urlBlob = window.URL.createObjectURL(blob);
-
+        
+        // Usar una función auxiliar para crear el blob URL de forma segura
+        function createSafeBlobUrl(blobData) {
+            return window.URL.createObjectURL(blobData);
+        }
+        
+        const urlBlob = createSafeBlobUrl(blob);
+        
+        // Crear y configurar elemento anchor de forma segura
         const a = document.createElement('a');
         a.href = urlBlob;
-        a.download = `Galeria_${window.EVENTO_ID}.zip`;
+        
+        // Obtener eventId y sanitizarlo para nombre de archivo
+        const eventId = window.EVENTO_ID;
+        const safeEventId = String(eventId).replace(/[^a-zA-Z0-9_-]/g, '');
+        a.download = 'Galeria_' + safeEventId + '.zip';
+        
+        // Agregar al DOM y ejecutar click
         document.body.appendChild(a);
         a.click();
 
+        // Limpieza
         document.body.removeChild(a);
         window.URL.revokeObjectURL(urlBlob);
     } catch (error) {

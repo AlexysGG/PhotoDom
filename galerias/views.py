@@ -368,11 +368,14 @@ def descargar_todas_las_fotos_zip(request, evento_id):
                 continue
 
             try:
-                response = requests.get(item.original_archivo.url, stream=True)
-                if response.status_code == 200:
+                # FIX SSRF: Abrir el archivo directamente usando el Storage de Django
+                # en lugar de hacer una petición HTTP con requests.get()
+                with item.original_archivo.open('rb') as f:
                     nombre_original = os.path.basename(item.original_archivo.name)
                     nombre_en_zip = f"{idx}_{nombre_original}"
-                    zip_file.writestr(nombre_en_zip, response.content)
+                    
+                    # f.read() carga el contenido, equivalente a response.content
+                    zip_file.writestr(nombre_en_zip, f.read())
             except Exception as e:
                 print(f"Error al descargar {item.original_archivo.name}: {e}")
 
