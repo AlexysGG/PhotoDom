@@ -13,7 +13,7 @@ class SolicitudEventoForm(forms.ModelForm):
         label='Acepto el Aviso de Privacidad',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-    aceptar_cookies = forms.BooleanField(
+    aceptar_legacy = forms.BooleanField(
         required=True,
         label='Acepto la Política de Cookies',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
