@@ -30,4 +30,9 @@ urlpatterns = [
 
     # Solicitud de evento
     path('solicitar-evento/', views.crear_solicitud_evento, name='crear_solicitud_evento'),
+
+    # Páginas legales
+    path('terminos-condiciones/', views.terminos_condiciones, name='terminos_condiciones'),
+    path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
+    path('politica-cookies/', views.politica_cookies, name='politica_cookies'),
 ]

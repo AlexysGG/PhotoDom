@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones - PhotoDom</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}">
+    <style>
+        .legal-page {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+
+        .legal-page h1 {
+            font-family: "Fraunces", Georgia, serif;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #1f2937;
+        }
+
+        .legal-page h2 {
+            font-family: "Fraunces", Georgia, serif;
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+
+        .legal-page h3 {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .legal-page p {
+            line-height: 1.8;
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        .legal-page ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-page li {
+            line-height: 1.8;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .legal-page .last-updated {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .legal-page .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .legal-page .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .legal-page .highlight {
+            background: rgba(99, 102, 241, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #6366f1;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="legal-page">
+        <a href="{% url 'home' %}" class="back-link">← Volver al inicio</a>
+
+        <h1>Términos y Condiciones de Uso — PhotoDom</h1>
+
+        <p>
+            <strong>Última actualización:</strong> 14 de septiembre de 2026
+        </p>
+
+        <h2>1. Identidad del Prestador del Servicio y Aceptación</h2>
+        <p>
+            El presente documento constituye un contrato de adhesión electrónico celebrado entre usted (en adelante, el "Usuario") y Alexis Hernandez Juarez, quien opera comercialmente bajo la denominación PhotoDom (en adelante, "PhotoDom"), con correo electrónico de contacto: domphoto405@gmail.com.
+        </p>
+        <p>
+            Al acceder, navegar o utilizar la plataforma PhotoDom (en adelante, el "Servicio"), ya sea en calidad de organizador del evento ("Anfitrión") o como asistente/colaborador ("Invitado"), el Usuario declara tener al menos 18 años de edad y plena capacidad legal para contratar, aceptando expresamente los presentes Términos y Condiciones. Si no está de acuerdo, debe abstenerse de utilizar el Servicio.
+        </p>
+
+        <h2>2. Descripción del Servicio y Almacenamiento</h2>
+        <p>
+            PhotoDom provee una solución tecnológica que permite crear galerías colaborativas para que anfitriones e invitados compartan fotografías y videos en eventos privados.
+        </p>
+        <div class="highlight">
+            <p><strong>Disponibilidad y retención:</strong> Las galerías y sus archivos permanecerán disponibles en la nube durante la vigencia contratada según el plan adquirido. Al concluir dicho periodo, PhotoDom procederá al borrado de los archivos de sus servidores sin responsabilidad de indemnización. Es responsabilidad exclusiva del Anfitrión descargar y respaldar su material antes de la fecha de vencimiento.</p>
+        </div>
+        <p>
+            <strong>Límites de descarga masiva:</strong> La descarga de archivos en formato ZIP comprimido está sujeta a un límite de 3 solicitudes por evento para salvaguardar la estabilidad de la infraestructura técnica.
+        </p>
+
+        <h2>3. Planes, Mecánica de Pago y Reembolsos</h2>
+        <p>
+            <strong>Tarifas:</strong> Los planes vigentes corresponden a: Plan Esencial (5 GB) por $500 MXN; Plan Experiencia (10 GB) por $900 MXN; y Plan Premium (15 GB) por $1,500 MXN. Cualquier modificación de tarifas para contrataciones futuras será notificada oportunamente en la plataforma antes de perfeccionar la contratación.
+        </p>
+        <p>
+            <strong>Forma de Pago:</strong> La contratación de planes se efectúa mediante transferencia bancaria electrónica (SPEI) a la cuenta provista por PhotoDom. La habilitación del espacio o plan seleccionado se confirmará una vez acreditado el pago y validado el comprobante correspondiente.
+        </p>
+        <p>
+            <strong>Política de Reembolsos:</strong> Dado que el aprovisionamiento de almacenamiento en la nube se ejecuta inmediatamente tras la confirmación de la transferencia, no se admiten devoluciones ni reembolsos una vez asignado el espacio o iniciado el evento, salvo falla técnica atribuible de manera exclusiva y directa a PhotoDom.
+        </p>
+
+        <h2>4. Responsabilidades de los Usuarios</h2>
+        <h3>4.1 Derechos sobre el contenido</h3>
+        <p>
+            El Anfitrión y los Invitados garantizan contar con la titularidad, autorización o consentimiento expreso de las personas cuya imagen u obra aparezca en los archivos subidos (haciéndose especial énfasis en la imagen de menores de edad, cuyo consentimiento recae en sus tutores legales).
+        </p>
+
+        <h3>4.2 Contenido Prohibido</h3>
+        <p>
+            Queda estrictamente prohibido cargar, almacenar o difundir material pornográfico, violencia, conductas discriminatorias, contenido sin consentimiento que vulnere la intimidad personal o archivos maliciosos. PhotoDom se reserva la facultad de suspender el acceso o remover de forma inmediata cualquier archivo que vulnere esta prohibición.
+        </p>
+
+        <h3>4.3 Seguridad del Evento</h3>
+        <p>
+            El Anfitrión es el único responsable de la debida custodia de su PIN y del enlace o código QR de acceso. Cualquier actividad ejecutada mediante dicho PIN se presumirá realizada por el Anfitrión.
+        </p>
+
+        <h2>5. Protección de Datos Personales</h2>
+        <p>
+            El tratamiento de los datos personales (incluyendo nombres, correos electrónicos, datos bancarios derivados de transferencias e imágenes personales) se encuentra sujeto al Aviso de Privacidad Integral de PhotoDom, accesible en <a href="{% url 'aviso_privacidad' %}">Aviso de Privacidad</a>, en apego a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP). El Usuario puede ejercer en todo momento sus Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) a través de los medios señalados en dicho aviso.
+        </p>
+
+        <h2>6. Limitación de Responsabilidad</h2>
+        <p>
+            PhotoDom opera como un intermediario técnico de almacenamiento pasivo y no realiza una supervisión editorial previa de los archivos cargados por los usuarios. PhotoDom no responderá por pérdidas de datos ocasionadas por interrupciones ajenas a su control, borrados accidentales de los usuarios o brechas derivadas de la divulgación voluntaria de enlaces o credenciales. En cualquier caso donde legalmente se determine responsabilidad imputable a PhotoDom, la indemnización máxima estará topada al importe efectivamente pagado por el Usuario por el plan contratado.
+        </p>
+
+        <h2>7. Terminación y Suspensión</h2>
+        <p>
+            PhotoDom se reserva el derecho de suspender o cancelar unilateralmente el servicio y el acceso a las galerías a los usuarios que contravengan las disposiciones de este contrato, sin derecho a compensación o reembolso alguno.
+        </p>
+
+        <h2>8. Legislación Aplicable y Jurisdicción</h2>
+        <p>
+            Los presentes Términos se rigen por las leyes federales de los Estados Unidos Mexicanos. Para la interpretación o resolución de controversias derivadas de este contrato, las partes se someten a la competencia de los tribunales correspondientes a la Ciudad de México o al domicilio del prestador, renunciando a cualquier otro fuero que pudiera corresponderles por razón de sus domicilios presentes o futuros.
+        </p>
+
+        <div class="last-updated">
+            <p><strong>Última actualización:</strong> 14 de septiembre de 2026</p>
+            <p>Contacto: domphoto405@gmail.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

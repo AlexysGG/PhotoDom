@@ -55,7 +55,7 @@
             </div>
 
             <div class="hero__stack" aria-hidden="true">
-                <div class="polaroid polaroid--1">
+                <div class="polaroid polaroid--1" >
                     <div class="polaroid__photo"></div>
                     <span class="polaroid__caption">Ceremonia</span>
                 </div>
@@ -423,6 +423,28 @@
                     </div>
                 </div>
 
+                <!-- Checkbox de términos y condiciones -->
+                <div class="request-form__legal">
+                    <div class="form-check">
+                        <input type="checkbox" id="aceptar_terminos" name="aceptar_terminos" class="form-check-input" required>
+                        <label for="aceptar_terminos" class="form-check-label">
+                            He leído y acepto los <a href="{% url 'terminos_condiciones' %}" target="_blank">Términos y Condiciones</a>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="aceptar_privacidad" name="aceptar_privacidad" class="form-check-input" required>
+                        <label for="aceptar_privacidad" class="form-check-label">
+                            He leído y acepto el <a href="{% url 'aviso_privacidad' %}" target="_blank">Aviso de Privacidad</a>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="aceptar_cookies" name="aceptar_cookies" class="form-check-input" required>
+                        <label for="aceptar_cookies" class="form-check-label">
+                            He leído y acepto la <a href="{% url 'politica_cookies' %}" target="_blank">Política de Cookies</a>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="request-form__actions">
                     <button type="submit" class="button button--primary">Enviar solicitud</button>
                     <button type="reset" class="button button--text" style="color:black">Limpiar formulario</button>
@@ -469,6 +491,11 @@
 
     <footer class="footer">
         <p>PhotoDom</p>
+        <div class="footer__links">
+            <a href="{% url 'terminos_condiciones' %}">Términos y Condiciones</a>
+            <a href="{% url 'aviso_privacidad' %}">Aviso de Privacidad</a>
+            <a href="{% url 'politica_cookies' %}">Política de Cookies</a>
+        </div>
     </footer>
 
     <script>

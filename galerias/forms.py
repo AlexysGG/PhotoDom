@@ -2,6 +2,23 @@ from django import forms
 from .models import SolicitudEvento, Marco, PALETAS_COLOR
 
 class SolicitudEventoForm(forms.ModelForm):
+    # Campos adicionales para checkboxes legales
+    aceptar_terminos = forms.BooleanField(
+        required=True,
+        label='Acepto los Términos y Condiciones',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    aceptar_privacidad = forms.BooleanField(
+        required=True,
+        label='Acepto el Aviso de Privacidad',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    aceptar_cookies = forms.BooleanField(
+        required=True,
+        label='Acepto la Política de Cookies',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
     class Meta:
         model = SolicitudEvento
         fields = [

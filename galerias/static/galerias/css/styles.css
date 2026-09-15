@@ -23,6 +23,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 body {
@@ -33,6 +34,9 @@ body {
     font-size: 17px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
 }
 
 h1,
@@ -152,6 +156,9 @@ section {
     gap: 3rem;
     align-items: center;
     padding-top: 3rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .hero__sub {
@@ -168,11 +175,15 @@ section {
 .hero__stack {
     position: relative;
     height: 320px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    overflow: hidden;
 }
 
 .polaroid {
     position: absolute;
-    width: 190px;
+    width: 55%;
     background: var(--paper);
     padding: 0.7rem 0.7rem 1.6rem;
     border-radius: 2px;
@@ -196,24 +207,108 @@ section {
 }
 
 .polaroid--1 {
-    top: 10px;
-    left: 30px;
+    top: 3%;
+    left: 7.5%;
     transform: rotate(-9deg);
     z-index: 1;
 }
 
 .polaroid--2 {
-    top: 60px;
-    left: 210px;
+    top: 18%;
+    left: 52.5%;
     transform: rotate(6deg);
     z-index: 2;
 }
 
 .polaroid--3 {
-    top: 190px;
-    left: 90px;
+    top: 59%;
+    left: 22.5%;
     transform: rotate(-3deg);
     z-index: 3;
+}
+
+/* Responsive hero stack */
+@media (max-width: 768px) {
+    .hero {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+        padding: 0 1rem;
+    }
+
+    .hero__stack {
+        height: 280px;
+        margin: 0 auto;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .polaroid {
+        width: 30%;
+        padding: 0.5rem 0.5rem 1rem;
+    }
+
+    .polaroid--1 {
+        top: 20px;
+        left: 10%;
+        transform: rotate(-6deg);
+    }
+
+    .polaroid--2 {
+        top: 50px;
+        left: 50%;
+        transform: rotate(4deg);
+    }
+
+    .polaroid--3 {
+        top: 150px;
+        left: 30%;
+        transform: rotate(-2deg);
+    }
+
+    .hero__actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: 0 0.5rem;
+    }
+
+    .hero__stack {
+        height: 500px;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .polaroid {
+        width: 55%;
+        padding: 0.4rem 0.4rem 0.8rem;
+    }
+
+    .polaroid__caption {
+        font-size: 0.75rem;
+    }
+
+    .polaroid--1 {
+        top: 15px;
+        left: 5%;
+        transform: rotate(-5deg);
+    }
+
+    .polaroid--2 {
+        top: 40px;
+        left: 45%;
+        transform: rotate(3deg);
+    }
+
+    .polaroid--3 {
+        top: 120px;
+        left: 25%;
+        transform: rotate(-1deg);
+    }
 }
 
 .like-badge,
@@ -677,6 +772,68 @@ section {
     margin-top: 2rem;
 }
 
+.request-form__legal {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-card);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.form-check:last-child {
+    margin-bottom: 0;
+}
+
+.form-check-input {
+    margin-top: 0.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #4b5563;
+    cursor: pointer;
+}
+
+.form-check-label a {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.form-check-label a:hover {
+    text-decoration: underline;
+}
+
+.footer__links {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.footer__links a {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+}
+
+.footer__links a:hover {
+    color: #6366f1;
+}
+
 @media (max-width: 860px) {
     .form-row {
         grid-template-columns: 1fr;
@@ -706,4 +863,80 @@ section {
 #horas-extra::-webkit-outer-spin-button {
     opacity: 1;
     cursor: pointer;
+}
+
+/* Estilos para páginas legales (Aviso de Privacidad, Términos y Condiciones) */
+.legal-page {
+    max-width: 900px;
+    margin: 4rem auto;
+    padding: 2rem;
+    
+}
+
+.legal-page h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #ffffff;
+}
+
+.legal-page h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #ffffff;
+}
+
+.legal-page h3 {
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.legal-page p {
+    line-height: 1.8;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.legal-page ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.legal-page li {
+    line-height: 1.8;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.legal-page .last-updated {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    color: #585151;
+    font-size: 0.875rem;
+}
+
+.legal-page .back-link {
+    display: inline-block;
+    margin-bottom: 2rem;
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.legal-page .back-link:hover {
+    text-decoration: underline;
+}
+
+.legal-page .highlight {
+    background: rgba(99, 102, 241, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #6366f1;
+    margin: 1rem 0;
 }

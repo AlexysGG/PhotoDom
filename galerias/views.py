@@ -493,6 +493,14 @@ def crear_solicitud_evento(request):
                 fecha_hora_inicio_utc = fecha_hora_inicio.astimezone(dt_timezone.utc)
                 form.instance.fecha_hora_inicio = fecha_hora_inicio_utc
 
+            # Eliminar campos extra del formulario (checkboxes legales no guardados en BD)
+            if 'aceptar_terminos' in form.cleaned_data:
+                del form.cleaned_data['aceptar_terminos']
+            if 'aceptar_privacidad' in form.cleaned_data:
+                del form.cleaned_data['aceptar_privacidad']
+            if 'aceptar_cookies' in form.cleaned_data:
+                del form.cleaned_data['aceptar_cookies']
+
             solicitud = form.save()
             return render(request, 'galerias/solicitud_confirmada.html', {
                 'solicitud': solicitud
@@ -504,6 +512,26 @@ def crear_solicitud_evento(request):
         'form': form,
         'mostrar_formulario': True
     })
+
+
+def custom_404(request, exception):
+    """Página 404 personalizada"""
+    return render(request, 'galerias/404.html', status=404)
+
+
+def terminos_condiciones(request):
+    """Página de Términos y Condiciones"""
+    return render(request, 'galerias/terminos_condiciones.html')
+
+
+def aviso_privacidad(request):
+    """Página de Aviso de Privacidad"""
+    return render(request, 'galerias/aviso_privacidad.html')
+
+
+def politica_cookies(request):
+    """Página de Política de Cookies"""
+    return render(request, 'galerias/politica_cookies.html')
 
 
 def modo_proyector(request, evento_id):

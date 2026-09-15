@@ -104,6 +104,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# Custom 404 handler
+handler404 = 'galerias.views.custom_404'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
