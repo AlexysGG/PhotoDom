@@ -380,24 +380,124 @@
                 <div class="request-form__section">
                     <h3>Personalización de tu galería</h3>
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group form-group--full">
                             <label for="{{ form.tema_color.id_for_label }}">{{ form.tema_color.label }}</label>
                             {{ form.tema_color }}
                             {% if form.tema_color.errors %}
                                 <div class="form-error">{{ form.tema_color.errors }}</div>
                             {% endif %}
+
+                            <!-- Preview interactivo de temas mediante cuadritos de colores -->
+                            <div class="tema-preview-wrapper">
+                                <span class="tema-preview-title">Elige un tema o haz clic en los cuadritos para previsualizarlo:</span>
+                                <div class="temas-swatches-grid" id="temas-swatches-container">
+                                    {% for tema in temas_lista %}
+                                    <button type="button" class="tema-swatch-card" data-tema-codigo="{{ tema.codigo }}" aria-label="{{ tema.nombre }}">
+                                        <div class="tema-swatch-header">
+                                            <span class="tema-swatch-name">{{ tema.nombre }}</span>
+                                        </div>
+                                        <div class="tema-swatch-boxes">
+                                            <div class="cuadrito-color" style="background-color: {{ tema.primary }};" title="Color Principal ({{ tema.primary }})"></div>
+                                            <div class="cuadrito-color" style="background-color: {{ tema.bg }};" title="Color de Fondo ({{ tema.bg }})"></div>
+                                            <div class="cuadrito-color" style="background-color: {{ tema.text }};" title="Color de Texto ({{ tema.text }})"></div>
+                                        </div>
+                                    </button>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Tarjeta de previsualización en vivo del tema seleccionado -->
+                                <div id="tema-live-preview" class="tema-live-preview">
+                                    <div class="tema-live-header">
+                                        <span class="tema-live-label">Muestra del tema activo:</span>
+                                        <strong id="tema-live-nombre" class="tema-live-name">Clásico / Gris Neumórfico</strong>
+                                    </div>
+                                    <div id="tema-live-mockup" class="tema-live-mockup">
+                                        <div class="tema-live-mockup-btn" id="tema-live-button">Botón en tu galería</div>
+                                        <div class="tema-live-mockup-text" id="tema-live-text">"¡Bienvenidos a nuestro gran día!"</div>
+                                    </div>
+                                    <div class="tema-live-palette-row">
+                                        <div class="tema-live-color-item">
+                                            <span class="cuadrito-color cuadrito-color--mini" id="cuadrito-indicator-primary"></span>
+                                            <span class="color-item-text">Principal: <strong id="val-indicator-primary">#4f46e5</strong></span>
+                                        </div>
+                                        <div class="tema-live-color-item">
+                                            <span class="cuadrito-color cuadrito-color--mini" id="cuadrito-indicator-bg"></span>
+                                            <span class="color-item-text">Fondo: <strong id="val-indicator-bg">#e0e5ec</strong></span>
+                                        </div>
+                                        <div class="tema-live-color-item">
+                                            <span class="cuadrito-color cuadrito-color--mini" id="cuadrito-indicator-text"></span>
+                                            <span class="color-item-text">Texto: <strong id="val-indicator-text">#4a5568</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Campos exclusivos de Experiencia y Premium -->
                     <div id="campos-experiencia-premium" class="campos-plan">
-                        <div class="form-group">
+                        <div class="form-group form-group--full">
                             <label for="{{ form.marco_seleccionado.id_for_label }}">{{ form.marco_seleccionado.label }}</label>
                             {{ form.marco_seleccionado }}
                             {% if form.marco_seleccionado.errors %}
                                 <div class="form-error">{{ form.marco_seleccionado.errors }}</div>
                             {% endif %}
                             <small class="form-help">{{ form.marco_seleccionado.help_text }}</small>
+
+                            <!-- Previsualización de marco personalizado (archivos servidos localmente en la app) -->
+                            <div id="marco-preview-container" class="marco-preview-container">
+                                {% if marcos_lista %}
+                                <div class="marcos-selector-row">
+                                    <button type="button" class="marco-pill-btn active" data-marco-id="">
+                                        Sin marco
+                                    </button>
+                                    {% for m in marcos_lista %}
+                                    <button type="button" class="marco-pill-btn" data-marco-id="{{ m.id }}" data-tiene-preview="{{ m.tiene_preview|yesno:'true,false' }}">
+                                        {{ m.nombre }}
+                                        {% if m.solo_premium %}<span class="badge-premium">Premium</span>{% endif %}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <div id="marco-preview-card" class="marco-preview-card">
+                                    <div class="marco-preview-header">
+                                        <div class="marco-preview-title-group">
+                                            <span id="marco-preview-nombre" class="marco-preview-nombre">Sin marco seleccionado</span>
+                                            <span id="marco-preview-badge" class="marco-status-badge">Vista previa</span>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="marco-stage" id="marco-stage">
+
+
+                                        <!-- Marco PNG cargado de la carpeta local de la app -->
+                                        <img id="marco-overlay-img" class="marco-overlay-img hidden" src="" alt="Marco preview">
+
+                                        <!-- Mensaje cuando no hay marco seleccionado -->
+                                        <div id="marco-empty-state" class="marco-state-message">
+                                            <span class="state-icon">🖼️</span>
+                                            <p class="state-text">Selecciona un marco arriba para ver la vista previa.</p>
+                                        </div>
+
+                                        <!-- Mensaje cuando el marco de Google Cloud aún no tiene archivo local emparejado -->
+                                        <div id="marco-missing-state" class="marco-state-message hidden">
+                                            <span class="state-icon">📂</span>
+                                            <p class="state-title">Vista previa no disponible</p>
+                                            <p class="state-text" id="marco-missing-desc">
+                                                No es posible cargarlo, contáctate con el desarrollador.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="marco-preview-footer">
+                                        <span class="marco-local-notice">
+                                            El marco solo se aplica en la galeria. Ninguna foto descargada llevara el marco adquirido.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -435,12 +535,6 @@
                         <input type="checkbox" id="aceptar_privacidad" name="aceptar_privacidad" class="form-check-input" required>
                         <label for="aceptar_privacidad" class="form-check-label">
                             He leído y acepto el <a href="{% url 'aviso_privacidad' %}" target="_blank">Aviso de Privacidad</a>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" id="aceptar_legacy" name="aceptar_legacy" class="form-check-input" required>
-                        <label for="aceptar_cookies" class="form-check-label">
-                            He leído y acepto la <a href="{% url 'politica_cookies' %}" target="_blank">Política de Cookies</a>
                         </label>
                     </div>
                 </div>
@@ -498,6 +592,10 @@
         </div>
     </footer>
 
+    <script>
+        window.TEMAS_DATA = {{ temas_preview_json|default:'{}'|safe }};
+        window.MARCOS_PREVIEW_DATA = {{ marcos_preview_json|default:'{}'|safe }};
+    </script>
     <script src="{% static 'galerias/js/index.js' %}"></script>
 
 </body>

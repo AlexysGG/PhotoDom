@@ -13,11 +13,6 @@ class SolicitudEventoForm(forms.ModelForm):
         label='Acepto el Aviso de Privacidad',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-    aceptar_legacy = forms.BooleanField(
-        required=True,
-        label='Acepto la Política de Cookies',
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    )
 
     class Meta:
         model = SolicitudEvento
@@ -122,3 +117,25 @@ class SolicitudEventoForm(forms.ModelForm):
         # Hacer obligatorios los campos clave
         self.fields['fecha_hora_inicio'].required = True
         self.fields['telefono'].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        plan = cleaned_data.get('plan_almacenamiento') or 5000
+
+        # Plan Esencial (< 10000): No incluye marcos, fondo ni mensaje de bienvenida
+        if plan < 10000:
+            cleaned_data['marco_seleccionado'] = None
+            cleaned_data['fondo_personalizado'] = None
+            cleaned_data['mensaje_bienvenida'] = None
+
+        # Plan Experiencia (10000 <= plan < 15000): Incluye marcos y fondo, pero no mensaje de bienvenida
+        elif plan < 15000:
+            cleaned_data['mensaje_bienvenida'] = None
+            marco = cleaned_data.get('marco_seleccionado')
+            if marco and marco.solo_premium:
+                self.add_error(
+                    'marco_seleccionado',
+                    f'El marco "{marco.nombre}" es exclusivo del Plan Premium. Selecciona otro marco o actualiza tu paquete a Premium.'
+                )
+
+        return cleaned_data

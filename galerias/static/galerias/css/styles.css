@@ -765,7 +765,431 @@ section {
 }
 
 .campos-plan.visible {
+    display: block !important;
+}
+
+.form-group--full {
+    grid-column: 1 / -1;
+}
+
+/* ========================================================
+   PREVIEW DE TEMAS DE COLORES (CUADRITOS Y MOCKUP EN VIVO)
+   ======================================================== */
+.tema-preview-wrapper {
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+
+.tema-preview-title {
     display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+.temas-swatches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.tema-swatch-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.tema-swatch-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(242, 181, 68, 0.4);
+    transform: translateY(-1px);
+}
+
+.tema-swatch-card.active {
+    background: rgba(242, 181, 68, 0.12);
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(242, 181, 68, 0.25);
+}
+
+.tema-swatch-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tema-swatch-boxes {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cuadrito-color {
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.cuadrito-color--mini {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+/* Tarjeta en vivo del tema seleccionado */
+.tema-live-preview {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(242, 181, 68, 0.25);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+
+.tema-live-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.tema-live-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.tema-live-name {
+    font-size: 0.9rem;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.tema-live-mockup {
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.tema-live-mockup-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+}
+
+.tema-live-mockup-text {
+    font-size: 0.85rem;
+    font-style: italic;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.tema-live-palette-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line);
+}
+
+.tema-live-color-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.tema-live-color-item strong {
+    color: var(--text);
+    font-family: monospace;
+}
+
+/* ========================================================
+   PREVIEW DE MARCOS PERSONALIZADOS (LOCALES / APP)
+   ======================================================== */
+.marco-preview-container {
+    margin-top: 1rem;
+}
+
+.marcos-selector-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.marco-pill-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+}
+
+.marco-pill-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(242, 181, 68, 0.4);
+}
+
+.marco-pill-btn.active {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(242, 181, 68, 0.3);
+}
+
+.badge-premium {
+    background: #e11d48;
+    color: #ffffff;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.marco-preview-card {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.marco-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.marco-preview-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.marco-preview-nombre {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.marco-status-badge {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.marco-status-badge--success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.marco-status-badge--warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.marco-status-badge--neutral {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    border: 1px solid var(--line);
+}
+
+.marco-view-toggle {
+    display: flex;
+    gap: 0.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.2rem;
+    border-radius: 6px;
+}
+
+.view-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 0.78rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.view-toggle-btn.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text);
+    font-weight: 700;
+}
+
+.marco-stage {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
+    margin: 1.25rem auto;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #1a1622;
+    background-image: 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%), 
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%), 
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    border: 1px solid var(--line);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.marco-sample-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #382c47 0%, #1f1828 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+.sample-photo-content {
+    text-align: center;
+    padding: 1.5rem;
+    max-width: 280px;
+}
+
+.sample-icon {
+    font-size: 2.2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.sample-title {
+    display: block;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+}
+
+.sample-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.4;
+    display: block;
+}
+
+.marco-overlay-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.marco-state-message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    z-index: 5;
+    background: rgba(26, 22, 34, 0.9);
+}
+
+.state-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.state-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+}
+
+.state-text {
+    font-size: 0.82rem;
+    color: var(--muted);
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+.state-text code {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fca5a5;
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+.marco-preview-footer {
+    padding: 0.65rem 1.25rem;
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--line);
+    text-align: center;
+}
+
+.marco-local-notice {
+    font-size: 0.75rem;
+    color: var(--muted);
 }
 
 .request-form__actions {
@@ -941,4 +1365,6 @@ section {
     border-radius: 8px;
     border-left: 4px solid #6366f1;
     margin: 1rem 0;
-}
+}. h i d d e n  
+   d i s p l a y :   n o n e   ! i m p o r t a n t ;    
+ 

@@ -42,6 +42,7 @@ function obtenerSubirUrl() {
     }
     // Fallback seguro sin usar window.location
     return '';
+}
 
 function obtenerPlanMaxMB() {
     return (window.APP_CONFIG && window.APP_CONFIG.planMaxMb) || 200;
@@ -802,4 +803,4 @@ function iniciarPollingEstado() {
 // Arrancamos el polling también al iniciar
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPollingEstado();
-});
+});

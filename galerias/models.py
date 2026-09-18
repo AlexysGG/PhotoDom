@@ -17,12 +17,12 @@ def get_thumb_path(instance, filename):
 
 # PALETAS DE COLORES PARA EL HTML
 PALETAS_COLOR = [
-    ('clasico', 'Clásico / Gris Neumórfico (#e0e5ec)'),
-    ('rosa_pastell', 'Rosa & Pastel (Baby Shower / XV Años)'),
-    ('azul_elegante', 'Azul Noche & Plata (Graduaciones / Bodas)'),
-    ('verde_bosque', 'Verde Bosque & Muted Teal (Botánico / Orgánico)'),
-    ('morado_fiesta', 'Morado & Lavanda (Fiestas / Neón)'),
-    ('blanco_boda', 'Blanco Marfil & Dorado (Bodas Elegantes)'),
+    ('clasico', 'Clásico / Gris Neumórfico'),
+    ('rosa_pastell', 'Rosa & Pastel'),
+    ('azul_elegante', 'Azul Noche & Plata'),
+    ('verde_bosque', 'Verde Bosque & Muted Teal'),
+    ('morado_fiesta', 'Morado & Lavanda'),
+    ('blanco_boda', 'Blanco Marfil & Dorado'),
 ]
 
 # CONFIGURACIÓN DE VARIABLES CSS POR TEMA

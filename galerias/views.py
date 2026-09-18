@@ -17,7 +17,9 @@ from django.utils import timezone
 from django.conf import settings
 from .models import Evento, FotoInvitado, Marco, SolicitudEvento
 from django_q.tasks import async_task
+import json
 from .utils_media import procesar_imagen_pil
+from .utils_marcos import obtener_catalogo_marcos_preview, obtener_paletas_preview
 from .forms import SolicitudEventoForm
 
 
@@ -465,10 +467,25 @@ def descargar_archivo_proxy(request, archivo_id):
         }, status=500)
 
 
+def obtener_contexto_index(form, mostrar_formulario=False):
+    """Genera el contexto para la landing page index con marcos y temas mapeados"""
+    marcos_lista, marcos_dict = obtener_catalogo_marcos_preview()
+    temas_dict = obtener_paletas_preview()
+
+    return {
+        'form': form,
+        'mostrar_formulario': mostrar_formulario,
+        'marcos_lista': marcos_lista,
+        'marcos_preview_json': json.dumps(marcos_dict),
+        'temas_lista': list(temas_dict.values()),
+        'temas_preview_json': json.dumps(temas_dict),
+    }
+
+
 def home(request):
     """Página de inicio / Landing Page principal del sitio"""
     form = SolicitudEventoForm()
-    return render(request, 'galerias/index.html', {'form': form})
+    return render(request, 'galerias/index.html', obtener_contexto_index(form))
 
 
 def crear_solicitud_evento(request):
@@ -511,10 +528,7 @@ def crear_solicitud_evento(request):
     else:
         form = SolicitudEventoForm()
 
-    return render(request, 'galerias/index.html', {
-        'form': form,
-        'mostrar_formulario': True
-    })
+    return render(request, 'galerias/index.html', obtener_contexto_index(form, mostrar_formulario=True))
 
 
 def custom_404(request, exception):
