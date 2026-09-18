@@ -1,8 +1,17 @@
 import os
+import re
 import json
 from django.conf import settings
 from django.templatetags.static import static
 from .models import Marco, PALETAS_COLOR, CONFIGURACION_TEMAS
+
+def strip_django_suffix(filename):
+    """
+    Remove the Django random 7-character suffix if it exists.
+    e.g. 'CumpleanosNino_aB3dE9f.png' -> 'CumpleanosNino.png'
+    """
+    pattern = r'_([a-zA-Z0-9]{7})(\.[^.]+)$'
+    return re.sub(pattern, r'\2', filename)
 
 def obtener_archivos_marcos_locales():
     """
@@ -40,14 +49,26 @@ def obtener_catalogo_marcos_preview():
 
     for marco in marcos_activos:
         nombre_archivo_gc = os.path.basename(marco.imagen.name) if marco.imagen else ''
-        nombre_lower = nombre_archivo_gc.lower()
+        nombre_sin_sufijo = strip_django_suffix(nombre_archivo_gc)
+        nombre_lower = nombre_sin_sufijo.lower()
         
-        # Coincidencia ÚNICAMENTE por nombre exacto del archivo en Google Cloud
         archivo_local_encontrado = None
-        if nombre_archivo_gc in archivos_locales:
-            archivo_local_encontrado = nombre_archivo_gc
+        
+        # 1. Intento por coincidencia exacta (ignorando hash de Django)
+        if nombre_sin_sufijo in archivos_locales:
+            archivo_local_encontrado = nombre_sin_sufijo
         elif nombre_lower in archivos_locales_map:
             archivo_local_encontrado = archivos_locales_map[nombre_lower]
+        elif nombre_archivo_gc in archivos_locales:
+            archivo_local_encontrado = nombre_archivo_gc
+        else:
+            # 2. Intento de coincidencia parcial (el nombre local es parte del nombre en GC)
+            # Esto cubre "CumpleanosNino (1).png" o cualquier otro sufijo no estándar
+            for f in archivos_locales:
+                base_local, _ = os.path.splitext(f)
+                if base_local.lower() in nombre_archivo_gc.lower():
+                    archivo_local_encontrado = f
+                    break
         
         preview_url = None
         if archivo_local_encontrado:
