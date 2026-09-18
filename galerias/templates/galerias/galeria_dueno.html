@@ -34,7 +34,7 @@
                 </svg>
             </div>
 
-            <h2 class="font-display text-xl text-gray-700 mb-1">Acceso Propietario</h2>
+            <h2 class="font-display text-xl text-[color:var(--neu-text)] mb-1">Acceso Propietario</h2>
             <p class="text-xs text-gray-500 mb-6">Ingresa el PIN de 4 dígitos</p>
 
             <div class="flex justify-center space-x-4 mb-8" id="pin-dots">
@@ -73,15 +73,15 @@
     <header class="max-w-4xl mx-auto mt-6 mx-4 p-6 neu-flat">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <span class="text-xs font-black uppercase text-indigo-600 tracking-wider">Tu galeria</span>
-                <h1 class="font-display text-3xl text-gray-700">{{ evento.nombre_evento }}</h1>
+                <span class="text-xs font-black uppercase text-[color:var(--neu-primary)] tracking-wider">Tu galeria</span>
+                <h1 class="font-display text-3xl text-[color:var(--neu-text)]">{{ evento.nombre_evento }}</h1>
                 <p class="text-xs text-gray-500 font-semibold mt-1">Cliente: {{ evento.nombre_cliente }}</p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
                 {% if evento.es_plan_premium %}
                 <a href="{% url 'modo_proyector' evento.id %}"
-                    class="neu-button px-6 py-3 rounded-xl font-bold text-purple-600 text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
+                    class="neu-button px-6 py-3 rounded-xl font-bold text-[color:var(--neu-primary)] text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
@@ -92,7 +92,7 @@
                 <button onclick="descargarZipGenerando('{% url 'descargar_todas_zip' evento.id %}')"
                     id="btn-zip-main"
                     data-descargas-restantes="{{ evento.descargas_zip_restantes }}"
-                    class="neu-button px-6 py-3 rounded-xl font-bold text-indigo-600 text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
+                    class="neu-button px-6 py-3 rounded-xl font-bold text-[color:var(--neu-primary)] text-xs uppercase tracking-wider flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -107,13 +107,55 @@
                 class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
                 <div class="neu-flat p-8 max-w-sm w-full text-center rounded-3xl">
                     <div class="w-16 h-16 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="animate-spin h-8 w-8 text-[color:var(--neu-primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     </div>
-                    <h3 class="font-display text-lg text-gray-700">Comprimiendo fotos y videos...</h3>
+                    <h3 class="font-display text-lg text-[color:var(--neu-text)]">Comprimiendo fotos y videos...</h3>
                     <p class="text-xs text-gray-500 mt-2">Por favor espera un momento mientras preparamos tu archivo. Esto puede tardar unos minutos...</p>
+                </div>
+            </div>
+
+            <!-- MODAL ADVERTENCIA POCOS ARCHIVOS ZIP -->
+            <div id="modal-advertencia-zip"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+                <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50 rounded-3xl">
+                    <div class="w-12 h-12 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-amber-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-lg text-[color:var(--neu-text)]">Pocos archivos en la galería</h3>
+                    <p class="text-xs text-gray-500 mt-1 mb-4">Actualmente hay <span class="font-bold text-[color:var(--neu-text)]">{{ total_archivos }}</span> archivo(s). Descargar el ZIP consumirá una de tus descargas restantes.</p>
+                    <p class="text-xs text-gray-500 mb-6">Si son pocos archivos, te recomendamos descargarlos de forma individual (botón de flecha en cada foto/video) para no gastar tus usos del ZIP.</p>
+
+                    <div class="flex flex-col space-y-3">
+                        <button onclick="confirmarDescargaZip()" class="w-full neu-button py-2.5 rounded-xl font-bold text-[color:var(--neu-primary)] text-sm">
+                            Descargar ZIP de todos modos
+                        </button>
+                        <button onclick="cancelarDescargaZip()" class="w-full neu-button py-2.5 rounded-xl font-bold text-gray-500 text-sm">
+                            Cancelar (Descargar individual)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL ALERTA GENÉRICA -->
+            <div id="modal-alerta-generica"
+                class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+                <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50 rounded-3xl">
+                    <div class="w-12 h-12 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 id="modal-alerta-titulo" class="font-display text-lg text-[color:var(--neu-text)]">Aviso</h3>
+                    <p id="modal-alerta-mensaje" class="text-xs text-gray-500 mt-1 mb-6"></p>
+
+                    <button onclick="cerrarModalAlerta()" class="w-full neu-button py-2.5 rounded-xl font-bold text-gray-600 text-sm">
+                        Aceptar
+                    </button>
                 </div>
             </div>
         </div>
@@ -124,15 +166,15 @@
         <!-- RESUMEN DE MÉTRICAS -->
         <div class="grid grid-cols-3 gap-4 mb-6">
             <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="font-display block text-2xl text-indigo-600">{{ total_archivos }}</span>
+                <span class="font-display block text-2xl text-[color:var(--neu-primary)]">{{ total_archivos }}</span>
                 <span class="text-xs font-bold text-gray-500 uppercase">Archivos</span>
             </div>
             <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="font-display block text-2xl text-emerald-600">{{ total_fotos }}</span>
+                <span class="font-display block text-2xl text-[color:var(--neu-primary)]">{{ total_fotos }}</span>
                 <span class="text-xs font-bold text-gray-500 uppercase">Fotos</span>
             </div>
             <div class="neu-pressed p-4 text-center rounded-2xl">
-                <span class="font-display block text-2xl text-purple-600">{{ total_videos }}</span>
+                <span class="font-display block text-2xl text-[color:var(--neu-primary)]">{{ total_videos }}</span>
                 <span class="text-xs font-bold text-gray-500 uppercase">Videos</span>
             </div>
         </div>
@@ -141,7 +183,7 @@
         {% if fotos_destacadas and evento.permite_interaccion %}
         <section class="mb-10 w-full">
             <div class="flex items-center gap-2 mb-4 px-1">
-                <h2 class="font-display text-lg text-gray-700 font-bold">Las más favoritas:</h2>
+                <h2 class="font-display text-lg text-[color:var(--neu-text)] font-bold">Las más favoritas:</h2>
             </div>
 
             <div class="grid grid-cols-3 gap-3 sm:gap-4">
@@ -155,7 +197,7 @@
                         {% if archivo.es_video %}
                             {% if archivo.estado_procesamiento == 'PROCESANDO' %}
                                 <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20 text-center p-2">
-                                    <div class="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-1"></div>
+                                    <div class="w-6 h-6 border-2 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-1"></div>
                                     <span class="text-[9px] font-bold text-gray-500">Procesando...</span>
                                 </div>
                             {% elif archivo.thumb_archivo %}
@@ -191,9 +233,9 @@
             <button onclick="filtrarGaleria('todos')"
                 class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-gray-600 uppercase">Todos</button>
             <button onclick="filtrarGaleria('foto')"
-                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-emerald-600 uppercase">Fotos</button>
+                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-[color:var(--neu-primary)] uppercase">Fotos</button>
             <button onclick="filtrarGaleria('video')"
-                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-purple-600 uppercase">Videos</button>
+                class="neu-button px-5 py-2 rounded-xl text-xs font-bold text-[color:var(--neu-primary)] uppercase">Videos</button>
         </div>
 
         <!-- GALLERÍA / MALLA PRINCIPAL -->
@@ -204,7 +246,7 @@
 
                 <!-- BOTÓN DESCARGAR -->
                 <a href="{% url 'descargar_archivo' item.id %}"
-                    class="neu-button absolute top-4 left-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-indigo-600 font-bold"
+                    class="neu-button absolute top-4 left-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-[color:var(--neu-primary)] font-bold"
                     title="Descargar archivo">
                     ↓
                 </a>
@@ -217,11 +259,11 @@
                 </button>
 
                 <!-- CONTENEDOR DE MEDIOS -->
-                <div class="media-item aspect-square neu-pressed overflow-hidden rounded-xl cursor-pointer"
-                    data-id="{{ item.id }}"
-                    data-url="{% if item.preview_archivo %}{{ item.preview_archivo.url }}{% else %}{{ item.thumb_archivo.url }}{% endif %}"
-                    data-procesando="{% if item.estado_procesamiento == 'PROCESANDO' %}true{% else %}false{% endif %}"
+                <div class="media-item relative overflow-hidden rounded-xl bg-gray-200 aspect-square cursor-pointer flex-shrink-0"
+                    data-url="{% if item.preview_archivo %}{{ item.preview_archivo.url }}{% elif item.thumb_archivo %}{{ item.thumb_archivo.url }}{% endif %}"
                     data-es-video="{% if item.es_video %}true{% else %}false{% endif %}"
+                    data-id="{{ item.id }}"
+                    data-procesando="{% if item.estado_procesamiento == 'PROCESANDO' %}true{% else %}false{% endif %}"
                     data-likes="{{ item.likes|default:0 }}"
                     data-liked="false"
                     onclick="abrirCarrusel({{ forloop.counter0 }})">
@@ -229,7 +271,7 @@
                     {% if item.estado_procesamiento == 'PROCESANDO' %}
                         <!-- Skeleton loader / Spinner -->
                         <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20">
-                            <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2"></div>
+                            <div class="w-8 h-8 border-4 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-2"></div>
                             <span class="text-[10px] font-bold text-gray-500">Procesando video...</span>
                         </div>
                     {% else %}
@@ -286,7 +328,7 @@
 
     <!-- SECCIÓN DE CÓDIGO QR -->
     <div class="neu-flat p-6 rounded-3xl text-center max-w-xs mx-auto my-8">
-        <h3 class="font-display text-base text-gray-700 mb-1">Código QR de Invitados</h3>
+        <h3 class="font-display text-base text-[color:var(--neu-text)] mb-1">Código QR de Invitados</h3>
         <p class="text-[11px] text-gray-400 font-medium mb-4">Descarga y comparte el código QR con tus invitados.</p>
 
         <div class="neu-pressed p-4 rounded-2xl inline-block mb-4">
@@ -299,7 +341,7 @@
 
         {% if qr_base64 %}
         <a href="data:image/png;base64,{{ qr_base64 }}" download="QR_{{ evento.nombre_evento }}.png"
-            class="neu-button block w-full py-2.5 rounded-xl text-xs font-bold text-indigo-600 uppercase tracking-wider text-center">
+            class="neu-button block w-full py-2.5 rounded-xl text-xs font-bold text-[color:var(--neu-primary)] uppercase tracking-wider text-center">
             Descargar QR
         </a>
         {% endif %}
@@ -310,7 +352,7 @@
         class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center p-2 bg-black/90 backdrop-blur-md transition-opacity duration-300">
 
         <button onclick="cerrarCarrusel()"
-            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-gray-700 font-bold shadow-lg">
+            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-[color:var(--neu-text)] font-bold shadow-lg">
             ✕
         </button>
 
@@ -356,7 +398,7 @@
                     </path>
                 </svg>
             </div>
-            <h3 class="font-display text-lg text-gray-700">¿Eliminar del evento?</h3>
+            <h3 class="font-display text-lg text-[color:var(--neu-text)]">¿Eliminar del evento?</h3>
             <p class="text-xs text-gray-500 mt-1 mb-6">El archivo se borrará de la galería del evento permanentemente.</p>
 
             <div class="flex space-x-4">
@@ -375,6 +417,7 @@
         window.PIN_CORRECTO = "{{ evento.pin_dueno }}";
         window.EVENTO_ID = "{{ evento.id }}";
         window.DESCARGAS_RESTANTES = {{ evento.descargas_zip_restantes }};
+        window.TOTAL_ARCHIVOS = {{ total_archivos }};
 
         // Función para actualizar descargas restantes de forma asíncrona
         function actualizarDescargasRestantes() {
@@ -401,40 +444,6 @@
 
         // Actualizar descargas cada 5 segundos
         setInterval(actualizarDescargasRestantes, 5000);
-
-        // Sobrescribir la función de descarga con límite
-        function descargarZipGenerando(url) {
-            if (window.DESCARGAS_RESTANTES <= 0) {
-                alert('Has alcanzado el límite máximo de descargas completas permitidas.');
-                return;
-            }
-
-            const btn = document.getElementById('btn-zip-main');
-            btn.disabled = true;
-            btn.innerHTML = '<span>Generando ZIP...</span>';
-
-            window.location.href = url;
-
-            // Actualizar inmediatamente después de iniciar descarga
-            actualizarDescargasRestantes();
-
-            if (window.DESCARGAS_RESTANTES <= 0) {
-                btn.disabled = true;
-                btn.innerHTML = '<span>Límite alcanzado</span>';
-            } else {
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = `
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        <span>Descargar Todo (.ZIP)</span>
-                        <span id="descargas-info">(${window.DESCARGAS_RESTANTES} restantes)</span>
-                    `;
-                }, 2000);
-            }
-        }
 
         // Inicializar estado del botón si no hay descargas restantes
         document.addEventListener('DOMContentLoaded', function() {

@@ -117,7 +117,7 @@ function abrirCarrusel(index) {
 
     // Si aún se está procesando, bloqueamos la apertura para no pedir bytes al bucket
     if (el && el.dataset.procesando === "true") {
-        alert("El archivo aún se está procesando. Estará listo para visualizarse en unos momentos.");
+        mostrarModalAlerta("Procesando Archivo", "El archivo aún se está procesando. Estará listo para visualizarse en unos momentos.");
         return;
     }
 
@@ -287,10 +287,10 @@ function confirmarEliminar() {
             if (card) card.remove();
             cerrarModal();
         } else {
-            alert(data.error || "No se pudo eliminar el archivo.");
+            mostrarModalAlerta("Error al Eliminar", data.error || "No se pudo eliminar el archivo.");
         }
     })
-    .catch(() => alert("Error al procesar la solicitud."));
+    .catch(() => mostrarModalAlerta("Error", "Error al procesar la solicitud."));
 }
 
 function getCookie(name) {
@@ -308,7 +308,68 @@ function getCookie(name) {
     return cookieValue;
 }
 
+let urlZipPendiente = null;
+
+function cancelarDescargaZip() {
+    urlZipPendiente = null;
+    const modal = document.getElementById("modal-advertencia-zip");
+    if (modal) modal.classList.add("hidden");
+}
+
+function confirmarDescargaZip() {
+    const modal = document.getElementById("modal-advertencia-zip");
+    if (modal) modal.classList.add("hidden");
+    if (urlZipPendiente) {
+        ejecutarDescargaZipReal(urlZipPendiente);
+    }
+}
+
+function mostrarModalAlerta(titulo, mensaje) {
+    const modal = document.getElementById("modal-alerta-generica");
+    if (modal) {
+        document.getElementById("modal-alerta-titulo").textContent = titulo;
+        document.getElementById("modal-alerta-mensaje").textContent = mensaje;
+        modal.classList.remove("hidden");
+    } else {
+        alert(mensaje);
+    }
+}
+
+function cerrarModalAlerta() {
+    const modal = document.getElementById("modal-alerta-generica");
+    if (modal) modal.classList.add("hidden");
+}
+
 async function descargarZipGenerando(urlDescarga) {
+    if (window.DESCARGAS_RESTANTES <= 0) {
+        mostrarModalAlerta("Límite Alcanzado", "Has alcanzado el límite máximo de descargas completas permitidas.");
+        return;
+    }
+
+    // Verificar si hay pocos archivos
+    if (window.TOTAL_ARCHIVOS <= 5 && window.TOTAL_ARCHIVOS > 0) {
+        urlZipPendiente = urlDescarga;
+        const modal = document.getElementById("modal-advertencia-zip");
+        if (modal) modal.classList.remove("hidden");
+        return; // Detenemos aquí, la confirmación continuará el flujo
+    }
+
+    if (window.TOTAL_ARCHIVOS === 0) {
+        mostrarModalAlerta("Galería Vacía", "No hay archivos para descargar.");
+        return;
+    }
+
+    // Si hay > 5 archivos, descargar directo
+    ejecutarDescargaZipReal(urlDescarga);
+}
+
+async function ejecutarDescargaZipReal(urlDescarga) {
+    const btn = document.getElementById('btn-zip-main');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Generando ZIP...</span>';
+    }
+
     const modalZip = document.getElementById("modal-zip-loading");
     if (modalZip) modalZip.classList.remove("hidden");
 
@@ -352,9 +413,76 @@ async function descargarZipGenerando(urlDescarga) {
         // Limpieza
         document.body.removeChild(a);
         window.URL.revokeObjectURL(urlBlob);
+
+        // Actualizar estado de usos restantes
+        if (typeof actualizarDescargasRestantes === 'function') {
+            actualizarDescargasRestantes();
+        }
+
     } catch (error) {
-        alert("Ocurrió un error al preparar la descarga. Intenta de nuevo.");
+        mostrarModalAlerta("Error", "Ocurrió un error al preparar la descarga. Intenta de nuevo.");
     } finally {
         if (modalZip) modalZip.classList.add("hidden");
+        
+        if (btn) {
+            // Restaurar botón después de unos segundos
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span>Descargar Todo (.ZIP)</span>
+                    <span id="descargas-info">(${window.DESCARGAS_RESTANTES} restantes)</span>
+                `;
+            }, 2000);
+        }
     }
 }
+
+// ----------------------------------------------------
+// POLLING DE VIDEOS EN PROCESO
+// ----------------------------------------------------
+function iniciarPollingVideosProcesando() {
+    setInterval(() => {
+        const items = document.querySelectorAll('.media-item[data-procesando="true"]');
+        if (items.length === 0) return;
+
+        const ids = Array.from(items).map(item => item.dataset.id).join(',');
+        
+        // Obtener el ID del evento de la URL o variable global
+        const eventoId = window.EVENTO_ID;
+
+        if (!eventoId) return;
+
+        fetch(`/api/evento/${eventoId}/estado-archivos/?ids=${ids}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.archivos) {
+                    data.archivos.forEach(archivo => {
+                        if (archivo.estado === 'COMPLETADO') {
+                            const item = document.querySelector(`.media-item[data-id="${archivo.id}"]`);
+                            if (item) {
+                                item.dataset.procesando = "false";
+                                item.dataset.url = archivo.preview_url || archivo.thumb_url;
+                                
+                                // Reemplazar el spinner por la imagen thumbnail
+                                const videoIndicator = `<span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none backdrop-blur-sm"><svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video</span>`;
+                                
+                                item.innerHTML = `
+                                    <img src="${archivo.thumb_url}" class="absolute inset-0 block w-full h-full object-cover z-0" alt="Vista previa video" loading="lazy">
+                                    ${videoIndicator}
+                                `;
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error("Error polling video status:", err));
+    }, 5000); // Revisar cada 5 segundos
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    iniciarPollingVideosProcesando();
+});

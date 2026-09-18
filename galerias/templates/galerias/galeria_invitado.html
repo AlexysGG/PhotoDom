@@ -33,7 +33,7 @@
             <p class="text-sm sm:text-base text-gray-200 font-medium max-w-md">¡Bienvenido! Comparte tus fotos y recuerdos con {{ evento.nombre_cliente }}</p>
 
             <button onclick="desplazarAGaleria()" type="button"
-                class="mt-8 neu-flat bg-indigo-600 text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-2xl active:scale-95 transition-all">
+                class="mt-8 neu-flat bg-[color:var(--neu-primary)] text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-2xl active:scale-95 transition-all">
                 VER GALERÍA Y SUBIR FOTOS
             </button>
         </div>
@@ -43,7 +43,7 @@
     <!-- Header Convencional -->
     {% if not evento.permite_portada_hero %}
     <header class="max-w-2xl mx-auto mt-6 mx-4 p-6 neu-flat text-center">
-        <h1 class="font-display text-3xl text-gray-700">{{ evento.nombre_evento }}</h1>
+        <h1 class="font-display text-3xl text-[color:var(--neu-text)]">{{ evento.nombre_evento }}</h1>
         <p class="text-xs text-gray-500 font-semibold mt-1">¡Comparte tus fotos y videos con {{ evento.nombre_cliente }}!</p>
     </header>
     {% endif %}
@@ -56,7 +56,7 @@
             <div class="w-16 h-16 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <img src="{% static 'img/ico_heart.png' %}" alt="thanks" class="w-8 h-8 object-contain">
             </div>
-            <h3 class="font-display text-xl text-gray-700 mb-2">¡Bienvenidos!</h3>
+            <h3 class="font-display text-xl text-[color:var(--neu-text)] mb-2">¡Bienvenidos!</h3>
             <p class="text-xs text-gray-600 font-medium leading-relaxed mb-6">{{ evento.mensaje_bienvenida }}</p>
             <button onclick="cerrarModalBienvenida()" type="button"
                 class="w-full neu-btn-success py-3 rounded-2xl font-bold text-sm shadow-md">
@@ -81,7 +81,7 @@
         <!-- SECCIÓN: Previsualización de Selección Previa -->
         <div id="seccion-previsualizacion" class="hidden mb-8 p-4 neu-pressed rounded-2xl">
             <div class="flex justify-between items-center mb-1 px-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                <span class="text-xs font-bold uppercase tracking-wider text-[color:var(--neu-primary)]">
                     Archivos seleccionados <span id="contador-preview" class="neu-chip ml-1">(0)</span>
                 </span>
             </div>
@@ -111,7 +111,7 @@
         {% if fotos_destacadas %}
         <section class="mb-10 w-full">
             <div class="flex items-center gap-2 mb-4 px-1">
-                <h2 class="font-display text-lg text-gray-700 font-bold">Fotos destacadas:</h2>
+                <h2 class="font-display text-lg text-[color:var(--neu-text)] font-bold">Fotos destacadas:</h2>
             </div>
 
             <div class="grid grid-cols-3 gap-3 sm:gap-4">
@@ -128,7 +128,7 @@
                         {% if archivo.es_video %}
                             {% if archivo.estado_procesamiento == 'PROCESANDO' %}
                                 <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20 text-center p-2">
-                                    <div class="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-1"></div>
+                                    <div class="w-6 h-6 border-2 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-1"></div>
                                     <span class="text-[9px] font-bold text-gray-500">Procesando...</span>
                                 </div>
                             {% elif archivo.thumb_archivo %}
@@ -202,6 +202,7 @@
                     data-url="{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% elif archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% endif %}"
                     data-es-video="{% if archivo.es_video %}true{% else %}false{% endif %}"
                     data-id="{{ archivo.id }}"
+                    data-procesando="{% if archivo.estado_procesamiento == 'PROCESANDO' %}true{% else %}false{% endif %}"
                     data-liked="{% if archivo.id in likes_sesion %}true{% else %}false{% endif %}"
                     data-likes="{{ archivo.likes|default:0 }}"
                     onclick="abrirCarrusel({{ forloop.counter0 }})">
@@ -209,7 +210,7 @@
                     {% if archivo.es_video %}
                         {% if archivo.estado_procesamiento == 'PROCESANDO' %}
                         <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20 text-center p-2">
-                            <div class="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-1"></div>
+                            <div class="w-6 h-6 border-2 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-1"></div>
                             <span class="text-[9px] font-bold text-gray-500">Procesando...</span>
                         </div>
                         {% elif archivo.thumb_archivo %}
@@ -277,7 +278,7 @@
                     <p class="font-display text-xl text-gray-500 mb-1">Aún no hay recuerdos.</p>
                     <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
                     <button onclick="document.getElementById('input-fotos').click()" type="button"
-                        class="neu-flat px-6 py-3 rounded-2xl text-indigo-600 font-bold text-sm flex items-center gap-2">
+                        class="neu-flat px-6 py-3 rounded-2xl text-[color:var(--neu-primary)] font-bold text-sm flex items-center gap-2">
                         SELECCIONAR FOTOS/VIDEOS
                     </button>
                 </div>
@@ -292,7 +293,7 @@
 
         <!-- Botón Cerrar -->
         <button onclick="cerrarCarrusel()"
-            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-gray-700 font-bold shadow-lg">
+            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-[color:var(--neu-text)] font-bold shadow-lg">
             ✕
         </button>
 
@@ -335,7 +336,7 @@
     <!-- Contenedor Flotante Inferior Sticky -->
     <div class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4">
         <button id="btn-seleccionar-flotante" onclick="document.getElementById('input-fotos').click()" type="button"
-            class="{% if not archivos %}hidden{% endif %} neu-flat px-8 py-4 rounded-full text-indigo-600 font-black text-sm tracking-wider flex items-center gap-3 border border-white/40 shadow-lg active:scale-95 transition-all">
+            class="{% if not archivos %}hidden{% endif %} neu-flat px-8 py-4 rounded-full text-[color:var(--neu-primary)] font-black text-sm tracking-wider flex items-center gap-3 border border-white/40 shadow-lg active:scale-95 transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -343,7 +344,7 @@
         </button>
 
         <button id="btn-subir-flotante" onclick="subirTodosLosArchivos()" type="button"
-            class="hidden neu-flat bg-indigo-600 text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-xl active:scale-95 transition-all">
+            class="hidden neu-flat bg-[color:var(--neu-primary)] text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-xl active:scale-95 transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -358,10 +359,10 @@
         <div
             class="neu-flat p-8 max-w-xs w-full text-center border border-white/60 shadow-2xl rounded-3xl transition-all">
             <div class="w-20 h-20 neu-pressed rounded-full flex items-center justify-center mx-auto mb-5 relative">
-                <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div class="w-12 h-12 border-4 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin"></div>
             </div>
-            <h3 class="font-display text-lg text-gray-700 mb-2">Subiendo recuerdos</h3>
-            <p id="progreso-texto" class="text-xs font-bold text-indigo-600 mb-2">Iniciando subida...</p>
+            <h3 class="font-display text-lg text-[color:var(--neu-text)] mb-2">Subiendo recuerdos</h3>
+            <p id="progreso-texto" class="text-xs font-bold text-[color:var(--neu-primary)] mb-2">Iniciando subida...</p>
             <p class="text-[11px] text-gray-400 font-medium leading-relaxed">
                 Por favor, no cierres esta ventana mientras enviamos tus archivos.
             </p>
@@ -375,7 +376,7 @@
                 class="w-12 h-12 neu-pressed rounded-full mb-4 text-emerald-500 flex items-center justify-center mx-auto">
                 <img src="{% static 'img/ico_heart.png' %}" alt="thanks" class="w-8 h-8 object-contain">
             </div>
-            <h3 class="font-display text-xl text-gray-700">¡Muchas Gracias!</h3>
+            <h3 class="font-display text-xl text-[color:var(--neu-text)]">¡Muchas Gracias!</h3>
             <p class="text-xs text-gray-500 mt-2 mb-6">Gracias por colaborar compartiendo tus recuerdos para este
                 evento.</p>
             <button onclick="cerrarModalGracias()" class="w-full neu-btn-success py-2.5 rounded-xl font-bold text-sm">
@@ -395,7 +396,7 @@
                     </path>
                 </svg>
             </div>
-            <h3 class="font-display text-xl text-gray-700">¿Eliminar recuerdo?</h3>
+            <h3 class="font-display text-xl text-[color:var(--neu-text)]">¿Eliminar recuerdo?</h3>
             <p class="text-xs text-gray-500 mt-1 mb-6">Esta acción no se puede deshacer.</p>
             <div class="flex space-x-4">
                 <button onclick="cerrarModalEliminar()"

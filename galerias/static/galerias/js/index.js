@@ -59,6 +59,37 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Limitar paletas de color según el plan
+        if (selectTema) {
+            const esEsencial = planSeleccionado < 10000;
+            
+            // Ocultar tarjetas de previsualización que no sean 'clasico'
+            swatchCards.forEach(card => {
+                if (esEsencial && card.getAttribute('data-tema-codigo') !== 'clasico') {
+                    card.style.display = 'none';
+                } else {
+                    card.style.display = '';
+                }
+            });
+
+            // Ocultar opciones del select que no sean 'clasico'
+            Array.from(selectTema.options).forEach(opt => {
+                if (esEsencial && opt.value !== 'clasico') {
+                    opt.style.display = 'none';
+                    opt.disabled = true;
+                } else {
+                    opt.style.display = '';
+                    opt.disabled = false;
+                }
+            });
+
+            // Si es esencial y tenía seleccionado otro tema, forzar a 'clasico'
+            if (esEsencial && selectTema.value !== 'clasico') {
+                selectTema.value = 'clasico';
+                actualizarPreviewTema('clasico');
+            }
+        }
+
         // Actualizar cotización
         actualizarCotizacion();
 

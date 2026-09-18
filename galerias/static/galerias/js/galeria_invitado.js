@@ -293,12 +293,14 @@ async function subirTodosLosArchivos() {
             const grid = document.getElementById('grid-fotos');
             
             let mediaTag = '';
+            let isProcesando = false;
             if (data.es_video) {
                 if (data.estado === 'PROCESANDO') {
+                    isProcesando = true;
                     mediaTag = `
                         <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20">
-                            <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2"></div>
-                            <span class="text-[10px] font-bold text-gray-500">Procesando video...</span>
+                            <div class="w-8 h-8 border-4 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-2"></div>
+                            <span class="text-[10px] font-bold text-gray-500">Procesando video... Esto podria llevar unos minutos.</span>
                         </div>
                     `;
                 } else if (data.thumb_url) {
@@ -346,9 +348,10 @@ async function subirTodosLosArchivos() {
                     </button>
                     
                     <div class="media-item aspect-square neu-pressed relative overflow-hidden rounded-xl mb-2 cursor-pointer"
-                        data-url="${escapeHtml(data.preview_url || data.archivo_url)}"
+                        data-url="${escapeHtml(data.preview_url || data.thumb_url || data.archivo_url)}"
                         data-es-video="${data.es_video ? 'true' : 'false'}"
                         data-id="${escapeHtml(String(data.id))}"
+                        data-procesando="${isProcesando}"
                         data-estado="${escapeHtml(data.estado)}"
                         data-liked="false"
                         data-likes="0"
@@ -479,6 +482,7 @@ function darLike(fotoId) {
 document.addEventListener("DOMContentLoaded", () => {
     sincronizarGaleriaCarrusel();
     actualizarOnclickCarrusel();
+    iniciarPollingVideosProcesando();
 
     const area = document.getElementById("carrusel-touch-area");
     if (area) {
@@ -538,10 +542,59 @@ function abrirCarrusel(index) {
 }
 
 function cerrarCarrusel() {
-    const video = document.getElementById("carrusel-video");
-    if (video) video.pause();
-    document.getElementById("lightbox-modal").classList.add("hidden");
+    const modal = document.getElementById('lightbox-modal');
+    modal.classList.add('hidden');
+
+    // Pausar video si estaba reproduciéndose
+    const videoObj = document.getElementById('carrusel-video');
+    if (videoObj && !videoObj.paused) {
+        videoObj.pause();
+    }
     document.body.style.overflow = "";
+}
+
+// ----------------------------------------------------
+// POLLING DE VIDEOS EN PROCESO
+// ----------------------------------------------------
+function iniciarPollingVideosProcesando() {
+    setInterval(() => {
+        const items = document.querySelectorAll('.media-item[data-procesando="true"]');
+        if (items.length === 0) return;
+
+        const ids = Array.from(items).map(item => item.dataset.id).join(',');
+        
+        // Obtener el ID del evento de la URL
+        const urlParams = window.location.pathname.split('/');
+        const eventoIdIndex = urlParams.indexOf('evento') + 1;
+        const eventoId = urlParams[eventoIdIndex];
+
+        if (!eventoId) return;
+
+        fetch(`/api/evento/${eventoId}/estado-archivos/?ids=${ids}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.archivos) {
+                    data.archivos.forEach(archivo => {
+                        if (archivo.estado === 'COMPLETADO') {
+                            const item = document.querySelector(`.media-item[data-id="${archivo.id}"]`);
+                            if (item) {
+                                item.dataset.procesando = "false";
+                                item.dataset.url = archivo.preview_url || archivo.thumb_url;
+                                
+                                // Reemplazar el spinner por la imagen thumbnail
+                                const videoIndicator = `<span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none backdrop-blur-sm"><svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video</span>`;
+                                
+                                item.innerHTML = `
+                                    <img src="${archivo.thumb_url}" class="absolute inset-0 block w-full h-full object-cover z-0" alt="Vista previa video" loading="lazy">
+                                    ${videoIndicator}
+                                `;
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error("Error polling video status:", err));
+    }, 5000); // Revisar cada 5 segundos
 }
 
 function cambiarSlide(direccion) {
@@ -803,4 +856,4 @@ function iniciarPollingEstado() {
 // Arrancamos el polling también al iniciar
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPollingEstado();
-});
+});

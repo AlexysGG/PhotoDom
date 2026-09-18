@@ -95,7 +95,6 @@ class Marco(models.Model):
 
 class Evento(models.Model):
     PLANES = [
-        (200, 'DEBUG (200 MB)'),
         (5000, 'Esencial (5 GB - $500 MXN)'),
         (10000, 'Experiencia (10 GB - $900 MXN)'),
         (15000, 'Premium (15 GB - $1,500 MXN)'),
@@ -194,7 +193,6 @@ class Evento(models.Model):
         # Asigna automáticamente los días de vigencia según el plan al crear el evento
         if not self.pk:
             dias_por_plan = {
-                200: 30,     # Debug
                 5000: 20,    # Esencial
                 10000: 30,   # Experiencia
                 15000: 45,   # Premium
@@ -323,7 +321,6 @@ class Evento(models.Model):
     def precio_base(self):
         """Precio base según el plan"""
         precios = {
-            200: 0,      # Debug
             5000: 500,   # Esencial
             10000: 900,  # Experiencia
             15000: 1500, # Premium
