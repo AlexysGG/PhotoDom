@@ -1,35 +1,84 @@
 {
-  "name": "Your Application Name",
-  "short_name": "App",
-  "description": "Application description",
-  "start_url": "/",
+  "$schema": "https://json.schemastore.org/web-manifest.json",
+  "id": "https://photodom.onrender.com/",
+  "name": "PhotoDom — Galerías de Fotos",
+  "short_name": "PhotoDom",
+  "description": "Galería interactiva para bodas y eventos. Comparte, visualiza y descarga fotos y videos en tiempo real.",
+  "start_url": "https://photodom.onrender.com/?source=pwa",
+  "scope": "https://photodom.onrender.com/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "orientation": "portrait-primary",
+  "background_color": "#241c2c",
+  "theme_color": "#241c2c",
+  "orientation": "any",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "categories": [
+    "lifestyle",
+    "photo",
+    "social"
+  ],
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/static/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/static/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "categories": [
-    "productivity"
-  ],
-  "lang": "en",
-  "dir": "ltr"
+  "shortcuts": [
+    {
+      "name": "Inicio PhotoDom",
+      "short_name": "Inicio",
+      "description": "Ir al inicio de PhotoDom",
+      "url": "https://photodom.onrender.com/?source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/static/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Crear Galería",
+      "short_name": "Crear",
+      "description": "Solicitar una nueva galería de fotos",
+      "url": "https://photodom.onrender.com/#solicitar",
+      "icons": [
+        {
+          "src": "/static/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

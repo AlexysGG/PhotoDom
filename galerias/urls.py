@@ -35,4 +35,11 @@ urlpatterns = [
     path('terminos-condiciones/', views.terminos_condiciones, name='terminos_condiciones'),
     path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
     path('politica-cookies/', views.politica_cookies, name='politica_cookies'),
+
+    # PWA (Progressive Web App)
+    path('sw.js', views.service_worker, name='service_worker'),
+    path('manifest.json', views.manifest_json, name='manifest_json'),
+    path('site.webmanifest', views.manifest_json, name='site_webmanifest'),
+    path('offline/', views.offline_view, name='offline'),
 ]
+

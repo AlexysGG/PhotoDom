@@ -12,16 +12,7 @@
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}">
-    <!-- Favicons & Manifest -->
-    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'favicon-96x96.png' %}">
-    <link rel="icon" type="image/svg+xml" sizes="any" href="{% static 'favicon.svg' %}">
-    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
-    <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
-    <link rel="manifest" href="{% static 'site.webmanifest' %}">
-
-    <!-- Colores del navegador (Modo Claro / Oscuro) -->
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    {% include 'galerias/includes/pwa_tags.html' %}
 </head>
 
 <body>
@@ -34,6 +25,13 @@
             <a href="#planes">Planes</a>
             <a href="#almacenamiento">Almacenamiento</a>
         </nav>
+        <button id="pwa-install-btn" class="button button--ghost pwa-install-btn" style="display: none;" title="Instalar aplicación en tu dispositivo">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                <path d="M12 18h.01"/>
+            </svg>
+            <span>Instalar App</span>
+        </button>
         <a href="#solicitar" class="button button--ghost">Crear galería</a>
     </header>
 
@@ -541,8 +539,7 @@
 
                 <div class="request-form__actions">
                     <button type="submit" class="button button--primary">Enviar solicitud</button>
-                    <button type="reset" class="button button--text" style="color:black">Limpiar formulario</button>
-
+                    <button type="reset" class="button button--text">Limpiar formulario</button>
                 </div>
             </form>
         </section>

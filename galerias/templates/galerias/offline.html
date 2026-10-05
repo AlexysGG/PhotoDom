@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin conexión — PhotoDom</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="{% static 'favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#241c2c">
+
+    <style>
+        .offline-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: radial-gradient(circle at 50% 20%, #2f2438 0%, #241c2c 100%);
+            text-align: center;
+        }
+
+        .offline-card {
+            max-width: 520px;
+            width: 100%;
+            background: rgba(47, 36, 56, 0.7);
+            border: 1px solid rgba(243, 236, 224, 0.14);
+            border-radius: 16px;
+            padding: 40px 28px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .offline-icon-wrapper {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            background: rgba(242, 181, 68, 0.12);
+            border: 1px solid rgba(242, 181, 68, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+        }
+
+        .offline-title {
+            font-family: var(--font-display, Georgia, serif);
+            font-size: clamp(1.8rem, 4vw, 2.3rem);
+            color: #f3ece0;
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+
+        .offline-desc {
+            color: #b8aec2;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .offline-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        @media (min-width: 480px) {
+            .offline-actions {
+                flex-direction: row;
+            }
+        }
+
+        .btn-retry {
+            background: linear-gradient(135deg, #f2b544, #ef6f5b);
+            color: #241c2c;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(242, 181, 68, 0.3);
+        }
+
+        .btn-retry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(242, 181, 68, 0.45);
+        }
+
+        .btn-home {
+            background: transparent;
+            color: #f3ece0;
+            border: 1px solid rgba(243, 236, 224, 0.2);
+            padding: 12px 24px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-home:hover {
+            background: rgba(243, 236, 224, 0.08);
+            border-color: rgba(243, 236, 224, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="offline-container">
+        <div class="offline-card">
+            <div class="offline-icon-wrapper" aria-hidden="true">
+                📶
+            </div>
+            <h1 class="offline-title">Sin conexión a internet</h1>
+            <p class="offline-desc">
+                Parece que perdiste la señal de red o wifi. No te preocupes: si estás en un evento de PhotoDom,
+                en cuanto recuperes la conexión podrás continuar explorando y compartiendo momentos.
+            </p>
+            <div class="offline-actions">
+                <button type="button" class="btn-retry" onclick="window.location.reload()">
+                    🔄 Reintentar conexión
+                </button>
+                <a href="/" class="btn-home">
+                    Ir al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Si la conexión vuelve sola, recargar la página automáticamente
+        window.addEventListener('online', function () {
+            window.location.reload();
+        });
+    </script>
+</body>
+
+</html>

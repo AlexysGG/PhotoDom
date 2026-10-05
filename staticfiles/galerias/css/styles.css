@@ -113,52 +113,94 @@ section {
 
 /* ---------- Buttons ---------- */
 
-.button {
+/* ---------- Buttons ---------- */
+
+.button,
+button.button {
     display: inline-flex;
     align-items: center;
-    gap: 0.4em;
+    justify-content: center;
+    gap: 0.5em;
     padding: 0.75em 1.5em;
     border-radius: var(--radius-pill);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
+    font-family: var(--font-body);
     border: 1px solid transparent;
+    cursor: pointer;
+    line-height: 1.2;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: all 0.2s ease;
 }
 
-.button--primary {
-    background: var(--gold);
-    color: #241c2c;
+/* Botón primario dorado */
+.button--primary,
+button.button--primary,
+input[type="submit"].button--primary {
+    background: var(--gold) !important;
+    color: #241c2c !important;
+    border: 1px solid var(--gold) !important;
 }
 
-.button--primary:hover {
-    background: #ffcf6f;
+.button--primary:hover,
+button.button--primary:hover,
+input[type="submit"].button--primary:hover {
+    background: #ffcf6f !important;
+    border-color: #ffcf6f !important;
+    color: #241c2c !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(242, 181, 68, 0.35);
 }
 
-.button--ghost {
-    border-color: var(--line);
-    color: var(--text);
+/* Botón fantasma / delineado */
+.button--ghost,
+button.button--ghost {
+    background: transparent !important;
+    border: 1px solid var(--line) !important;
+    color: var(--text) !important;
 }
 
-.button--ghost:hover {
-    border-color: var(--gold);
+.button--ghost:hover,
+button.button--ghost:hover {
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
 }
 
-.button--text {
-    padding: 0.75em 0.25em;
-    color: var(--text);
+.button--ghost svg {
+    transition: transform 0.2s ease;
+}
+
+.button--ghost:hover svg {
+    transform: scale(1.1);
+}
+
+/* Botón de texto */
+.button--text,
+button.button--text {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: var(--muted) !important;
+    padding: 0.75em 1.2em;
+}
+
+.button--text:hover,
+button.button--text:hover {
+    color: var(--text) !important;
+    text-decoration: underline;
 }
 
 /* ---------- Hero ---------- */
 
 .hero {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: 3rem;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 3.5rem;
     align-items: center;
     padding-top: 3rem;
-    width: 55%;
+    width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
 }
 
 .hero__sub {
@@ -174,20 +216,28 @@ section {
 
 .hero__stack {
     position: relative;
-    height: 320px;
+    height: 480px;
+    min-height: 470px;
     width: 100%;
-    max-width: 400px;
+    max-width: 440px;
     margin: 0 auto;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .polaroid {
     position: absolute;
-    width: 55%;
+    width: 60%;
     background: var(--paper);
-    padding: 0.7rem 0.7rem 1.6rem;
-    border-radius: 2px;
-    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+    padding: 0.75rem 0.75rem 1.6rem;
+    border-radius: 3px;
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.45);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.polaroid:hover {
+    transform: scale(1.04) rotate(0deg) !important;
+    z-index: 10 !important;
+    box-shadow: 0 24px 44px rgba(0, 0, 0, 0.6);
 }
 
 .polaroid__photo {
@@ -202,28 +252,28 @@ section {
     margin-top: 0.6rem;
     font-family: var(--font-display);
     color: var(--ink);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     text-align: center;
 }
 
 .polaroid--1 {
-    top: 3%;
-    left: 7.5%;
+    top: 15px;
+    left: 4%;
     transform: rotate(-9deg);
     z-index: 1;
 }
 
 .polaroid--2 {
-    top: 18%;
-    left: 52.5%;
+    top: 50px;
+    left: 42%;
     transform: rotate(6deg);
     z-index: 2;
 }
 
 .polaroid--3 {
-    top: 59%;
-    left: 22.5%;
-    transform: rotate(-3deg);
+    top: 180px;
+    left: 18%;
+    transform: rotate(-2deg);
     z-index: 3;
 }
 
@@ -609,8 +659,9 @@ section {
     }
 
     .hero__stack {
-        height: 320px;
+        height: 420px;
         margin-top: 1rem;
+        overflow: visible;
     }
 
     .interactivity {
@@ -648,6 +699,13 @@ section {
     background: var(--bg-alt);
     border-radius: 6px;
     padding: 3rem 2rem;
+    margin-top: 2rem;
+}
+
+.request-form__actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
     margin-top: 2rem;
 }
 
@@ -1365,6 +1423,8 @@ section {
     border-radius: 8px;
     border-left: 4px solid #6366f1;
     margin: 1rem 0;
-}. h i d d e n  
-   d i s p l a y :   n o n e   ! i m p o r t a n t ;    
- 
+}
+
+.hidden {
+    display: none !important;
+}

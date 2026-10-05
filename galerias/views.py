@@ -11,7 +11,7 @@ from datetime import datetime, timezone as dt_timezone, timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django_ratelimit.decorators import ratelimit
 from django.utils import timezone
 from django.conf import settings
@@ -658,3 +658,98 @@ def api_estado_descargas(request, evento_id):
         'descargas_restantes': evento.descargas_zip_restantes,
         'limite_alcanzado': evento.descargas_zip_restantes <= 0
     })
+
+
+@require_GET
+def service_worker(request):
+    """Sirve el Service Worker de la PWA con scope raíz '/'"""
+    response = render(request, 'galerias/sw.js', content_type='application/javascript; charset=utf-8')
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
+
+@require_GET
+def manifest_json(request):
+    """Sirve el Web App Manifest en la raíz '/manifest.json' y '/site.webmanifest'"""
+    host = request.get_host()
+    if 'photodom.onrender.com' in host:
+        base_url = 'https://photodom.onrender.com'
+    elif host.startswith(('localhost', '127.0.0.1')):
+        base_url = f"{request.scheme}://{host}"
+    else:
+        base_url = 'https://photodom.onrender.com'
+
+    manifest_path = os.path.join(settings.BASE_DIR, 'galerias', 'static', 'manifest.json')
+    if not os.path.exists(manifest_path):
+        manifest_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'manifest.json')
+
+    data = None
+    if os.path.exists(manifest_path):
+        try:
+            with open(manifest_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception:
+            data = None
+
+    if data:
+        data['id'] = f"{base_url}/"
+        data['start_url'] = f"{base_url}/?source=pwa"
+        data['scope'] = f"{base_url}/"
+        if 'shortcuts' in data and isinstance(data['shortcuts'], list):
+            for shortcut in data['shortcuts']:
+                if 'url' in shortcut:
+                    if shortcut['url'].startswith('/'):
+                        shortcut['url'] = f"{base_url}{shortcut['url']}"
+    else:
+        data = {
+            "$schema": "https://json.schemastore.org/web-manifest.json",
+            "id": f"{base_url}/",
+            "name": "PhotoDom — Galerías de Fotos",
+            "short_name": "PhotoDom",
+            "description": "Galería interactiva para bodas y eventos. Comparte, visualiza y descarga fotos y videos en tiempo real.",
+            "start_url": f"{base_url}/?source=pwa",
+            "scope": f"{base_url}/",
+            "display": "standalone",
+            "background_color": "#241c2c",
+            "theme_color": "#241c2c",
+            "orientation": "any",
+            "lang": "es-MX",
+            "dir": "ltr",
+            "categories": ["lifestyle", "photo", "social"],
+            "icons": [
+                {"src": "/static/favicon-96x96.png", "sizes": "96x96", "type": "image/png", "purpose": "any"},
+                {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+                {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+                {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+                {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+                {"src": "/static/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any"}
+            ],
+            "shortcuts": [
+                {
+                    "name": "Inicio PhotoDom",
+                    "short_name": "Inicio",
+                    "description": "Ir al inicio de PhotoDom",
+                    "url": f"{base_url}/?source=pwa_shortcut",
+                    "icons": [{"src": "/static/icon-192.png", "sizes": "192x192"}]
+                },
+                {
+                    "name": "Crear Galería",
+                    "short_name": "Crear",
+                    "description": "Solicitar una nueva galería de fotos",
+                    "url": f"{base_url}/#solicitar",
+                    "icons": [{"src": "/static/icon-192.png", "sizes": "192x192"}]
+                }
+            ]
+        }
+
+    response = JsonResponse(data, content_type='application/manifest+json; charset=utf-8')
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+
+@require_GET
+def offline_view(request):
+    """Página de respaldo cuando el usuario no tiene conexión a internet"""
+    return render(request, 'galerias/offline.html')

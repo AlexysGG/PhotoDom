@@ -1,0 +1,20 @@
+{% load static %}
+<!-- Favicons & Manifest PWA -->
+<link rel="icon" type="image/png" sizes="96x96" href="{% static 'favicon-96x96.png' %}">
+<link rel="icon" type="image/svg+xml" sizes="any" href="{% static 'favicon.svg' %}">
+<link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+<link rel="manifest" href="/manifest.json">
+
+<!-- Configuración de aplicación móvil (iOS / Android PWA) -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PhotoDom">
+<meta name="application-name" content="PhotoDom">
+<meta name="msapplication-TileColor" content="#241c2c">
+<meta name="theme-color" content="#241c2c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+<!-- Script de registro de Service Worker e instalación PWA -->
+<script src="{% static 'galerias/js/pwa.js' %}" defer></script>
