@@ -184,10 +184,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (marcoImgOverlay) {
                 marcoImgOverlay.removeAttribute('src');
+                marcoImgOverlay.classList.add('hidden');
                 marcoImgOverlay.style.display = 'none';
             }
-            if (marcoEmptyState) marcoEmptyState.style.display = 'flex';
-            if (marcoMissingState) marcoMissingState.style.display = 'none';
+            if (marcoEmptyState) {
+                marcoEmptyState.classList.remove('hidden');
+                marcoEmptyState.style.display = 'flex';
+            }
+            if (marcoMissingState) {
+                marcoMissingState.classList.add('hidden');
+                marcoMissingState.style.display = 'none';
+            }
             return;
         }
 
@@ -201,10 +208,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (marcoInfo.tiene_preview && marcoInfo.preview_url) {
             // Existe coincidencia exacta de archivo local en la app
-            if (marcoEmptyState) marcoEmptyState.style.display = 'none';
-            if (marcoMissingState) marcoMissingState.style.display = 'none';
+            if (marcoEmptyState) {
+                marcoEmptyState.classList.add('hidden');
+                marcoEmptyState.style.display = 'none';
+            }
+            if (marcoMissingState) {
+                marcoMissingState.classList.add('hidden');
+                marcoMissingState.style.display = 'none';
+            }
 
             if (marcoImgOverlay) {
+                marcoImgOverlay.classList.remove('hidden');
                 marcoImgOverlay.src = marcoInfo.preview_url;
                 marcoImgOverlay.style.display = 'block';
             }
@@ -215,15 +229,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             // Marco en catálogo GC sin archivo local en galerias/static/galerias/marcos/
-            if (marcoEmptyState) marcoEmptyState.style.display = 'none';
+            if (marcoEmptyState) {
+                marcoEmptyState.classList.add('hidden');
+                marcoEmptyState.style.display = 'none';
+            }
             if (marcoImgOverlay) {
+                marcoImgOverlay.classList.add('hidden');
                 marcoImgOverlay.removeAttribute('src');
                 marcoImgOverlay.style.display = 'none';
             }
 
-            if (marcoMissingState) marcoMissingState.style.display = 'flex';
+            if (marcoMissingState) {
+                marcoMissingState.classList.remove('hidden');
+                marcoMissingState.style.display = 'flex';
+            }
             if (marcoMissingDesc) {
-                marcoMissingDesc.innerHTML = `No es posible cargar, contancte con el desarrollador.`;
+                marcoMissingDesc.innerHTML = `No es posible cargarlo, contáctate con el desarrollador.`;
             }
 
             if (marcoPreviewBadge) {

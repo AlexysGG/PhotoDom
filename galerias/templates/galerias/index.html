@@ -25,14 +25,16 @@
             <a href="#planes">Planes</a>
             <a href="#almacenamiento">Almacenamiento</a>
         </nav>
-        <button id="pwa-install-btn" class="button button--ghost pwa-install-btn" style="display: none;" title="Instalar aplicación en tu dispositivo">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                <path d="M12 18h.01"/>
-            </svg>
-            <span>Instalar App</span>
-        </button>
-        <a href="#solicitar" class="button button--ghost">Crear galería</a>
+        <div class="nav__actions">
+            <button id="pwa-install-btn" class="button button--ghost pwa-install-btn" style="display: none;" title="Instalar aplicación en tu dispositivo">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                    <path d="M12 18h.01"/>
+                </svg>
+                <span>Instalar App</span>
+            </button>
+            <a href="#solicitar" class="button button--ghost nav__cta">Crear galería</a>
+        </div>
     </header>
 
     <main>
@@ -468,10 +470,8 @@
                                     </div>
 
                                     <div class="marco-stage" id="marco-stage">
-
-
                                         <!-- Marco PNG cargado de la carpeta local de la app -->
-                                        <img id="marco-overlay-img" class="marco-overlay-img hidden" src="" alt="Marco preview">
+                                        <img id="marco-overlay-img" class="marco-overlay-img" style="display: none;" src="" alt="Marco preview">
 
                                         <!-- Mensaje cuando no hay marco seleccionado -->
                                         <div id="marco-empty-state" class="marco-state-message">
@@ -480,7 +480,7 @@
                                         </div>
 
                                         <!-- Mensaje cuando el marco de Google Cloud aún no tiene archivo local emparejado -->
-                                        <div id="marco-missing-state" class="marco-state-message hidden">
+                                        <div id="marco-missing-state" class="marco-state-message" style="display: none;">
                                             <span class="state-icon">📂</span>
                                             <p class="state-title">Vista previa no disponible</p>
                                             <p class="state-text" id="marco-missing-desc">
