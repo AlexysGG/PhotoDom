@@ -140,52 +140,33 @@
           </div>
         </div>
 
-        <!-- STACK DE POLAROIDS INTERACTIVAS -->
+        <!-- STACK DE POLAROIDS INTERACTIVAS CON CAPTURAS REALES -->
         <div class="hero__stack-wrapper">
           <div class="hero__stack" id="polaroid-stack" aria-hidden="true">
-            <!-- Polaroid 1: Ceremonia -->
+            <!-- Polaroid 1: Portada de Entrada con Fondo Personalizado -->
             <div class="polaroid polaroid--1" title="Haz hover para enfocar">
               <div class="polaroid__photo">
-                <svg width="100%" height="100%" viewBox="0 0 250 200" preserveAspectRatio="xMidYMid slice" style="background: linear-gradient(135deg, #fbcfe8 0%, #fda4af 100%);">
-                  <circle cx="125" cy="80" r="40" fill="#fff" opacity="0.4" />
-                  <path d="M85 160 C90 120, 160 120, 165 160 Z" fill="#fff" opacity="0.6" />
-                  <circle cx="125" cy="55" r="16" fill="#fff" opacity="0.8" />
-                  <circle cx="118" cy="115" r="14" fill="none" stroke="#d97706" stroke-width="3" opacity="0.85" />
-                  <circle cx="132" cy="115" r="14" fill="none" stroke="#f59e0b" stroke-width="3" opacity="0.85" />
-                </svg>
+                <img src="{% static 'galerias/galeriaejemplofotos/entrada.png' %}" alt="Portada de bienvenida personalizada" style="width: 100%; height: 100%; object-fit: cover; object-position: center top;" loading="eager" />
               </div>
-              <span class="polaroid__caption">Ceremonia</span>
+              <span class="polaroid__caption">Portada de Bienvenida</span>
             </div>
 
-            <!-- Polaroid 2: Fiesta / Brindis -->
+            <!-- Polaroid 2: Muro con Likes y Comentarios -->
             <div class="polaroid polaroid--2" title="Haz hover para enfocar">
               <div class="polaroid__photo">
-                <svg width="100%" height="100%" viewBox="0 0 250 200" preserveAspectRatio="xMidYMid slice" style="background: linear-gradient(135deg, #c7d2fe 0%, #818cf8 100%);">
-                  <circle cx="40" cy="50" r="18" fill="#fff" opacity="0.3" />
-                  <circle cx="210" cy="70" r="24" fill="#fff" opacity="0.25" />
-                  <circle cx="130" cy="30" r="15" fill="#fff" opacity="0.35" />
-                  <path d="M100 80 L115 120 L115 150 M110 150 L120 150" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none" />
-                  <path d="M140 80 L125 120 L125 150 M120 150 L130 150" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none" />
-                  <circle cx="120" cy="75" r="4" fill="#fde047" />
-                  <circle cx="128" cy="65" r="3" fill="#fde047" />
-                </svg>
+                <img src="{% static 'galerias/galeriaejemplofotos/ss2.jpg' %}" alt="Muro interactivo con comentarios" style="width: 100%; height: 100%; object-fit: cover; object-position: center 30%;" loading="eager" />
               </div>
-              <span class="like-badge">♥ 34</span>
+              <span class="like-badge">♥ 41</span>
+              <span class="polaroid__caption">Muro con Likes</span>
             </div>
 
-            <!-- Polaroid 3: Momento Destacado -->
+            <!-- Polaroid 3: Fotos Destacadas -->
             <div class="polaroid polaroid--3" title="Haz hover para enfocar">
               <div class="polaroid__photo">
-                <svg width="100%" height="100%" viewBox="0 0 250 200" preserveAspectRatio="xMidYMid slice" style="background: linear-gradient(135deg, #fef08a 0%, #f59e0b 100%);">
-                  <path d="M0 25 Q125 70 250 25" stroke="#fff" stroke-width="2" fill="none" opacity="0.6" />
-                  <circle cx="60" cy="40" r="5" fill="#fff" />
-                  <circle cx="125" cy="47" r="5" fill="#fff" />
-                  <circle cx="190" cy="40" r="5" fill="#fff" />
-                  <circle cx="125" cy="95" r="18" fill="#1e293b" opacity="0.4" />
-                  <path d="M100 165 C110 125, 140 125, 150 165 Z" fill="#1e293b" opacity="0.4" />
-                </svg>
+                <img src="{% static 'galerias/galeriaejemplofotos/ss3n.jpg' %}" alt="Apartado de fotos destacadas" style="width: 100%; height: 100%; object-fit: cover; object-position: center 20%;" loading="eager" />
               </div>
               <span class="star-badge">★ Destacada</span>
+              <span class="polaroid__caption">Fotos Destacadas</span>
             </div>
           </div>
         </div>
@@ -288,16 +269,14 @@
             </div>
 
             <div class="interactive-photos-feed">
-              <!-- FOTO 1: CEREMONIA -->
+              <!-- FOTO 1: CEREMONIA CON COMENTARIO -->
               <div class="photo-feed-card" id="feed-card-1">
                 <div class="photo-feed-canvas">
-                  <svg viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice" style="background: linear-gradient(135deg, #fed7aa 0%, #fb923c 100%);">
-                    <circle cx="150" cy="95" r="45" fill="#fff" opacity="0.35"/>
-                    <path d="M90 195 C100 135, 200 135, 210 195 Z" fill="#fff" opacity="0.55"/>
-                    <circle cx="150" cy="70" r="18" fill="#fff" opacity="0.8"/>
-                    <!-- Anillos -->
-                    <circle cx="140" cy="135" r="16" fill="none" stroke="#d97706" stroke-width="3" opacity="0.9"/>
-                    <circle cx="160" cy="135" r="16" fill="none" stroke="#f59e0b" stroke-width="3" opacity="0.9"/>
+                  <svg viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice" style="background: linear-gradient(135deg, #c7d2fe 0%, #818cf8 100%);">
+                    <circle cx="150" cy="90" r="32" fill="#fff" opacity="0.85"/>
+                    <path d="M100 195 C115 135, 185 135, 200 195 Z" fill="#fff" opacity="0.85"/>
+                    <circle cx="210" cy="110" r="18" fill="#fbcfe8" opacity="0.9"/>
+                    <path d="M185 195 C195 155, 235 155, 245 195 Z" fill="#fbcfe8" opacity="0.9"/>
                   </svg>
                   <span class="card-category-label">Ceremonia</span>
                 </div>
@@ -378,6 +357,45 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRIO DE DEMOSTRACIÓN DE LA EXPERIENCIA COMPLETA (CAPTURAS REALES) -->
+        <div class="gallery-showcase-trio">
+          <!-- Tarjeta 1: Portada de Entrada -->
+          <div class="gallery-showcase-card">
+            <div class="gallery-showcase-media">
+              <img src="{% static 'galerias/galeriaejemplofotos/entrada.png' %}" alt="Imagen personalizada al entrar" class="gallery-showcase-img" loading="lazy">
+              <span class="gallery-showcase-badge badge--purple">✨ Portada al entrar</span>
+            </div>
+            <div class="gallery-showcase-info">
+              <h3>Fondo Personalizado</h3>
+              <p>Tus invitados son recibidos con tu foto favorita de portada y un mensaje cálido de bienvenida.</p>
+            </div>
+          </div>
+
+          <!-- Tarjeta 2: Apartado de Destacadas -->
+          <div class="gallery-showcase-card is-highlight">
+            <div class="gallery-showcase-media">
+              <img src="{% static 'galerias/galeriaejemplofotos/ss3n.jpg' %}" alt="Apartado de fotos destacadas" class="gallery-showcase-img" loading="lazy">
+              <span class="gallery-showcase-badge badge--gold">⭐ Fotos Destacadas</span>
+            </div>
+            <div class="gallery-showcase-info">
+              <h3>Podio en Vivo</h3>
+              <p>Las capturas con más reacciones de tus invitados suben automáticamente al podio de honor.</p>
+            </div>
+          </div>
+
+          <!-- Tarjeta 3: Muro con comentarios y likes -->
+          <div class="gallery-showcase-card">
+            <div class="gallery-showcase-media">
+              <img src="{% static 'galerias/galeriaejemplofotos/ss2.jpg' %}" alt="Galería con comentarios y likes" class="gallery-showcase-img" loading="lazy">
+              <span class="gallery-showcase-badge badge--green">💬 Likes y Comentarios</span>
+            </div>
+            <div class="gallery-showcase-info">
+              <h3>Muro de Recuerdos</h3>
+              <p>Cada foto tiene su espacio de dedicatorias y comentarios para atesorar las anécdotas de tu evento.</p>
             </div>
           </div>
         </div>
