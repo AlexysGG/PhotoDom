@@ -285,23 +285,92 @@ section {
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
-  .nav__actions {
-    gap: 0.4rem;
-  }
-}
-
 .nav__cta {
   display: inline-flex;
+  align-items: center;
   white-space: nowrap;
   padding: 0.5rem 1.15rem;
   font-size: 0.875rem;
 }
 
-@media (max-width: 640px) {
-  .nav__cta {
+.nav__cta--primary .cta-short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    gap: 0.5rem;
+    padding: 0 0.85rem;
+  }
+
+  .nav__brand {
+    font-size: 1.15rem;
+    gap: 0.35rem;
+  }
+
+  .nav__brand-logo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .nav__actions {
+    gap: 0.4rem;
+  }
+
+  /* Ocultar botón PWA en la barra superior móvil para no robar espacio; vive en el menú móvil */
+  .nav__cta--pwa,
+  #pwa-install-btn {
+    display: none !important;
+  }
+
+  /* El botón de acceso a galería se convierte en un icono cuadrado compacto en móviles */
+  #btn-open-acceso-galeria {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+  }
+
+  #btn-open-acceso-galeria .nav__cta-text {
+    display: none;
+  }
+
+  .nav__cta--primary {
     padding: 0.42rem 0.75rem;
     font-size: 0.8rem;
+  }
+
+  .mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+  }
+
+  .nav__links {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav__actions {
+    gap: 0.3rem;
+  }
+
+  .nav__cta--primary {
+    padding: 0.38rem 0.6rem;
+    font-size: 0.775rem;
+  }
+
+  .nav__cta--primary .cta-full {
+    display: none;
+  }
+
+  .nav__cta--primary .cta-short {
+    display: inline;
   }
 }
 
@@ -316,15 +385,6 @@ section {
   border: 1px solid var(--border-light);
   color: var(--text-main);
   flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .nav__links {
-    display: none;
-  }
-  .mobile-menu-btn {
-    display: inline-flex;
-  }
 }
 
 .mobile-drawer {
@@ -2137,4 +2197,173 @@ select.form-control {
   border-top: 1px solid var(--border-light);
   padding-top: 1.25rem;
 }
+
+/* ==========================================================================
+   SECCIÓN: DEMO DE INVITACIÓN WEB INTERACTIVA (IFRAME & SMARTPHONE MOCKUP)
+   ========================================================================== */
+.invitation-showcase {
+  padding: 5.5rem 0;
+  background: linear-gradient(180deg, var(--bg-base) 0%, rgba(241, 245, 249, 0.6) 50%, var(--bg-base) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.invitation-showcase__centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2.5rem;
+  width: 100%;
+}
+
+.invitation-showcase__device-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Teléfono inteligente realista */
+.device-phone {
+  width: 100%;
+  max-width: 380px;
+  background: #18181b;
+  border-radius: 46px;
+  padding: 12px;
+  box-shadow: 
+    0 0 0 2px rgba(255, 255, 255, 0.12),
+    0 25px 50px -12px rgba(15, 23, 42, 0.35),
+    0 12px 24px -8px rgba(79, 70, 229, 0.25);
+  position: relative;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.device-phone:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 0 0 2px rgba(79, 70, 229, 0.3),
+    0 30px 60px -15px rgba(15, 23, 42, 0.4),
+    0 16px 30px -8px rgba(79, 70, 229, 0.35);
+}
+
+.device-phone__notch {
+  position: absolute;
+  top: 19px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 22px;
+  background: #09090b;
+  border-radius: 14px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.device-phone__camera {
+  width: 9px;
+  height: 9px;
+  background: #1e1b4b;
+  border-radius: 50%;
+  border: 1.5px solid #27272a;
+}
+
+.device-phone__speaker {
+  width: 38px;
+  height: 3.5px;
+  background: #27272a;
+  border-radius: 2px;
+}
+
+.device-phone__screen {
+  width: 100%;
+  height: 760px;
+  border-radius: 36px;
+  overflow: hidden;
+  background: #09090b;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.device-phone__iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  background: #ffffff;
+}
+
+.device-phone__glare {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  border-radius: 36px;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 45%);
+}
+
+.device-phone__toolbar {
+  width: 100%;
+  max-width: 380px;
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.device-phone__hint {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.device-phone__actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.device-phone__actions .button--sm {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 480px) {
+  .device-phone {
+    max-width: 100%;
+    border-radius: 38px;
+    padding: 8px;
+  }
+  .device-phone__screen {
+    height: 650px !important;
+    border-radius: 30px;
+  }
+  .device-phone__notch {
+    top: 14px;
+    width: 80px;
+    height: 18px;
+  }
+  .device-phone__actions .button--sm {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 

@@ -38,31 +38,35 @@
       <nav class="nav__links" id="desktop-nav">
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#interactividad">Interactividad</a>
+        <a href="#invitacion-demo">Invitación Web</a>
         <a href="#planes">Planes</a>
         <a href="#almacenamiento">Almacenamiento</a>
       </nav>
 
       <!-- Zona 3: Botones y Acciones -->
       <div class="nav__actions">
-        <button id="pwa-install-btn" class="button button--ghost nav__cta" style="display: none;" title="Instalar aplicación">
+        <button id="pwa-install-btn" class="button button--ghost nav__cta nav__cta--pwa" style="display: none;" title="Instalar aplicación">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
             <path d="M12 18h.01"/>
           </svg>
-          <span>Instalar App</span>
+          <span class="nav__cta-text">Instalar App</span>
         </button>
 
         <!-- Botón Entrar a mi galería -->
-        <button type="button" id="btn-open-acceso-galeria" class="button button--ghost nav__cta" title="Entrar a mi galería de fotos">
+        <button type="button" id="btn-open-acceso-galeria" class="button button--ghost nav__cta nav__cta--acceso" title="Entrar a mi galería de fotos" aria-label="Entrar a mi galería">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
-          <span>Entrar a mi galería</span>
+          <span class="nav__cta-text">Entrar a mi galería</span>
         </button>
 
         <!-- CTA Principal -->
-        <a href="#solicitar" class="button button--primary nav__cta">Crear galería</a>
+        <a href="#solicitar" class="button button--primary nav__cta nav__cta--primary">
+          <span class="cta-full">Crear galería</span>
+          <span class="cta-short">Crear</span>
+        </a>
 
         <!-- Botón Menú Móvil -->
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Abrir menú de navegación">
@@ -80,6 +84,7 @@
   <div class="mobile-drawer" id="mobile-drawer">
     <a href="#como-funciona" class="mobile-nav-link">Cómo funciona</a>
     <a href="#interactividad" class="mobile-nav-link">Interactividad</a>
+    <a href="#invitacion-demo" class="mobile-nav-link">Invitación Web</a>
     <a href="#planes" class="mobile-nav-link">Planes y Precios</a>
     <a href="#almacenamiento" class="mobile-nav-link">Almacenamiento</a>
     <button type="button" id="btn-open-acceso-galeria-mobile" class="button button--ghost mobile-nav-link" style="margin-top: 0.5rem; justify-content: center; width: 100%;">
@@ -88,6 +93,13 @@
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
       <span>Entrar a mi galería</span>
+    </button>
+    <button type="button" class="button button--ghost mobile-nav-link pwa-install-btn" style="margin-top: 0.35rem; justify-content: center; width: 100%; display: none;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+        <path d="M12 18h.01"/>
+      </svg>
+      <span>Instalar App en tu dispositivo</span>
     </button>
     <a href="#solicitar" class="button button--primary mobile-nav-link" style="margin-top: 0.5rem;">Crear mi galería ahora</a>
   </div>
@@ -365,6 +377,71 @@
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         SECCIÓN: DEMO DE INVITACIÓN WEB INTERACTIVA (EN VIVO)
+         ======================================================================== -->
+    <section id="invitacion-demo" class="invitation-showcase">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-pill">✨ Experiencia Interactiva en Vivo</span>
+          <h2>Invitaciones Web que enamoran a tus invitados</h2>
+          <p>
+            Di adiós a las invitaciones en papel que se extravían y a los PDFs estáticos. Envía un enlace interactivo por WhatsApp con música, mapas y confirmación directa.
+          </p>
+        </div>
+
+        <div class="invitation-showcase__centered">
+          <!-- Mockup de Celular con iframe interactivo en vivo -->
+          <div class="invitation-showcase__device-wrapper">
+            <div class="device-phone">
+              <!-- Bocina / Notch superior estilo Smartphone moderno -->
+              <div class="device-phone__notch">
+                <span class="device-phone__camera"></span>
+                <span class="device-phone__speaker"></span>
+              </div>
+              
+              <!-- Pantalla interactiva con la demo en vivo extendida en largo -->
+              <div class="device-phone__screen" style="height: 760px;">
+                <iframe 
+                  id="iframe-invitacion"
+                  src="https://invitacionejemplo.onrender.com" 
+                  title="Demostración de Invitación Web Interactiva"
+                  loading="lazy"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  style="width: 100%; height: 100%; border: none; display: block; background: #ffffff;"
+                  class="device-phone__iframe">
+                </iframe>
+              </div>
+
+              <!-- Reflejo sutil de cristal -->
+              <div class="device-phone__glare" aria-hidden="true"></div>
+            </div>
+
+            <!-- Controles: solo Pantalla Completa y hint -->
+            <div class="device-phone__toolbar">
+              <span class="device-phone__hint">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+                ¡Interactúa y desliza directamente dentro de la pantalla!
+              </span>
+              <div class="device-phone__actions">
+                <a href="https://invitacionejemplo.onrender.com" target="_blank" rel="noopener noreferrer" class="button button--primary button--sm" title="Ver en pantalla completa">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                  Ver en pantalla completa
+                </a>
               </div>
             </div>
           </div>
@@ -658,16 +735,29 @@
               Personalización de tu galería
             </h3>
 
-            <div class="form-group form-group--full">
-              <label for="{{ form.tema_color.id_for_label }}">{{ form.tema_color.label }}</label>
+            <!-- Aviso cuando se elige Solo Galería QR -->
+            <div id="aviso-galeria-clasica" class="plan-info-callout" style="display: none; background: var(--bg-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+              <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="font-size: 1.35rem; line-height: 1;">🎨</span>
+                <div>
+                  <strong style="color: var(--text-main); font-size: 0.95rem; display: block; margin-bottom: 0.2rem;">Diseño Oficial Incluido: Clásico / Gris Neumórfico</strong>
+                  <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.45;">
+                    El paquete <strong>Solo Galería QR</strong> incluye de forma predeterminada el tema oficial <strong>Clásico</strong>. La personalización de paleta de colores, marcos digitales y fondos personalizados es exclusiva del <strong>Paquete VIP</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group form-group--full" id="contenedor-seleccion-paleta">
+              <label for="{{ form.tema_color.id_for_label }}" id="label-tema-color">{{ form.tema_color.label }}</label>
               {{ form.tema_color }}
               {% if form.tema_color.errors %}
                 <div class="form-error">{{ form.tema_color.errors }}</div>
               {% endif %}
 
               <!-- Swatches interactivos con nombres y colores exactos de models.py -->
-              <div class="tema-preview-wrapper">
-                <span class="tema-preview-title">O haz clic en cualquier muestra para previsualizar al instante:</span>
+              <div class="tema-preview-wrapper" id="tema-swatches-wrapper">
+                <span class="tema-preview-title" id="tema-preview-title">O haz clic en cualquier muestra para previsualizar al instante:</span>
                 <div class="temas-swatches-grid" id="temas-swatches-container">
                   {% for tema in temas_lista %}
                   <button type="button" class="tema-swatch-card{% if tema.codigo == 'clasico' %} active{% endif %}" data-tema-codigo="{{ tema.codigo }}" aria-label="{{ tema.nombre }}">

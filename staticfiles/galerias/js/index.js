@@ -117,97 +117,6 @@
       15000: 1190    // Paquete VIP
     };
 
-    window.seleccionarPlan = function (planKey) {
-      if (!planSelect) return;
-      const targetVal = PLAN_MAPPING[planKey] !== undefined ? PLAN_MAPPING[planKey] : planKey;
-      planSelect.value = targetVal;
-      calcularCotizacion();
-      const solicitarSec = document.getElementById('solicitar');
-      if (solicitarSec) {
-        solicitarSec.scrollIntoView({ behavior: 'smooth' });
-      }
-    };
-
-    function calcularCotizacion() {
-      if (!planSelect) return;
-      const rawVal = String(planSelect.value);
-      const planId = PLAN_MAPPING[rawVal] !== undefined ? PLAN_MAPPING[rawVal] : (parseInt(rawVal, 10) || 5000);
-      const horasExtra = Math.max(0, parseInt(horasExtraInput ? horasExtraInput.value : 0, 10) || 0);
-
-      const base = PRECIOS_BASE[planId] !== undefined ? PRECIOS_BASE[planId] : 500;
-      let costoProyector = 0;
-      const costoHoras = horasExtra * 100;
-
-      if (planId === 0) {
-        // Solo Invitación Web
-        if (proyectorContainer) proyectorContainer.style.display = 'none';
-        if (avisoInvitacion) avisoInvitacion.style.display = 'block';
-        if (filaProyector) filaProyector.style.display = 'none';
-        if (seccionPersonalizacion) seccionPersonalizacion.style.display = 'none';
-        if (proyectorCheckbox) {
-          proyectorCheckbox.checked = false;
-          proyectorCheckbox.disabled = true;
-        }
-      } else if (planId === 15000) {
-        // Paquete VIP
-        if (proyectorContainer) proyectorContainer.style.display = 'block';
-        if (avisoInvitacion) avisoInvitacion.style.display = 'none';
-        if (filaProyector) filaProyector.style.display = 'flex';
-        if (seccionPersonalizacion) seccionPersonalizacion.style.display = 'block';
-        if (camposPremium) camposPremium.style.display = 'block';
-        if (proyectorCheckbox) {
-          proyectorCheckbox.checked = true;
-          proyectorCheckbox.disabled = true;
-        }
-        if (proyectorBadgePrice) {
-          proyectorBadgePrice.textContent = 'INCLUIDO GRATIS';
-          proyectorBadgePrice.style.background = 'var(--gold-soft)';
-          proyectorBadgePrice.style.color = 'var(--gold)';
-        }
-        if (proyectorHelpText) {
-          proyectorHelpText.textContent = 'El Modo Proyector en vivo ya viene incluido sin costo adicional en el Paquete VIP.';
-        }
-        costoProyector = 0;
-        if (costoProyectorEl) costoProyectorEl.textContent = '$0 MXN (Incluido)';
-      } else {
-        // Solo Galería QR (5000)
-        if (proyectorContainer) proyectorContainer.style.display = 'block';
-        if (avisoInvitacion) avisoInvitacion.style.display = 'none';
-        if (filaProyector) filaProyector.style.display = 'flex';
-        if (seccionPersonalizacion) seccionPersonalizacion.style.display = 'block';
-        if (camposPremium) camposPremium.style.display = 'none';
-        if (proyectorCheckbox) {
-          proyectorCheckbox.disabled = false;
-        }
-        if (proyectorBadgePrice) {
-          proyectorBadgePrice.textContent = '+ $250 MXN';
-          proyectorBadgePrice.style.background = 'var(--primary-soft)';
-          proyectorBadgePrice.style.color = 'var(--primary)';
-        }
-        if (proyectorHelpText) {
-          proyectorHelpText.textContent = 'Transmite en vivo las fotos y videos de tus invitados en pantalla o proyector durante el evento.';
-        }
-        if (proyectorCheckbox && proyectorCheckbox.checked) {
-          costoProyector = 250;
-          if (costoProyectorEl) costoProyectorEl.textContent = '+$250 MXN';
-        } else {
-          costoProyector = 0;
-          if (costoProyectorEl) costoProyectorEl.textContent = '$0 MXN';
-        }
-      }
-
-      const total = base + costoProyector + costoHoras;
-
-      if (precioBaseEl) precioBaseEl.textContent = `$${base.toLocaleString('es-MX')} MXN`;
-      if (costoHorasExtraEl) costoHorasExtraEl.textContent = costoHoras > 0 ? `+$${costoHoras.toLocaleString('es-MX')} MXN` : '$0 MXN';
-      if (costoTotalEl) costoTotalEl.textContent = `$${total.toLocaleString('es-MX')} MXN`;
-    }
-
-    if (planSelect) planSelect.addEventListener('change', calcularCotizacion);
-    if (proyectorCheckbox) proyectorCheckbox.addEventListener('change', calcularCotizacion);
-    if (horasExtraInput) horasExtraInput.addEventListener('input', calcularCotizacion);
-    calcularCotizacion();
-
     // ----------------------------------------------------------------------
     // 4. PERSONALIZACIÓN DE TEMAS Y SWATCHES (Colores exactos de models.py)
     // ----------------------------------------------------------------------
@@ -269,10 +178,147 @@
       temaSelect.addEventListener('change', function () {
         aplicarTema(this.value);
       });
-      if (temaSelect.value) {
-        aplicarTema(temaSelect.value);
-      }
     }
+
+    window.seleccionarPlan = function (planKey) {
+      if (!planSelect) return;
+      const targetVal = PLAN_MAPPING[planKey] !== undefined ? PLAN_MAPPING[planKey] : planKey;
+      planSelect.value = targetVal;
+      calcularCotizacion();
+      const solicitarSec = document.getElementById('solicitar');
+      if (solicitarSec) {
+        solicitarSec.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    function calcularCotizacion() {
+      if (!planSelect) return;
+      const rawVal = String(planSelect.value);
+      const planId = PLAN_MAPPING[rawVal] !== undefined ? PLAN_MAPPING[rawVal] : (parseInt(rawVal, 10) || 5000);
+      const horasExtra = Math.max(0, parseInt(horasExtraInput ? horasExtraInput.value : 0, 10) || 0);
+
+      const base = PRECIOS_BASE[planId] !== undefined ? PRECIOS_BASE[planId] : 500;
+      let costoProyector = 0;
+      const costoHoras = horasExtra * 100;
+
+      const avisoGaleriaClasica = document.getElementById('aviso-galeria-clasica');
+      const temaSwatchesWrapper = document.getElementById('tema-swatches-wrapper');
+      const temaSelectLabel = document.getElementById('label-tema-color') || document.querySelector('label[for="' + (temaSelect ? temaSelect.id : '') + '"]');
+      const temaPreviewInstruction = document.getElementById('tema-preview-title');
+
+      if (planId === 0) {
+        // Solo Invitación Web
+        if (proyectorContainer) proyectorContainer.style.display = 'none';
+        if (avisoInvitacion) avisoInvitacion.style.display = 'block';
+        if (filaProyector) filaProyector.style.display = 'none';
+        if (seccionPersonalizacion) seccionPersonalizacion.style.display = 'none';
+        if (proyectorCheckbox) {
+          proyectorCheckbox.checked = false;
+          proyectorCheckbox.disabled = true;
+        }
+      } else if (planId === 15000) {
+        // Paquete VIP: Personalización completa habilitada
+        if (proyectorContainer) proyectorContainer.style.display = 'block';
+        if (avisoInvitacion) avisoInvitacion.style.display = 'none';
+        if (filaProyector) filaProyector.style.display = 'flex';
+        if (seccionPersonalizacion) seccionPersonalizacion.style.display = 'block';
+        if (camposPremium) camposPremium.style.display = 'block';
+        if (avisoGaleriaClasica) avisoGaleriaClasica.style.display = 'none';
+
+        // Habilitar y mostrar el selector de temas y todas las 6 muestras
+        if (temaSelect) {
+          temaSelect.style.display = 'block';
+          Array.from(temaSelect.options).forEach(function (opt) {
+            opt.hidden = false;
+            opt.disabled = false;
+          });
+        }
+        if (temaSelectLabel) temaSelectLabel.style.display = 'block';
+        if (temaSwatchesWrapper) temaSwatchesWrapper.style.display = 'block';
+        if (temaPreviewInstruction) {
+          temaPreviewInstruction.textContent = 'O haz clic en cualquier muestra para previsualizar al instante:';
+        }
+        swatchCards.forEach(function (card) {
+          card.style.display = 'flex';
+        });
+
+        if (proyectorCheckbox) {
+          proyectorCheckbox.checked = true;
+          proyectorCheckbox.disabled = true;
+        }
+        if (proyectorBadgePrice) {
+          proyectorBadgePrice.textContent = 'INCLUIDO GRATIS';
+          proyectorBadgePrice.style.background = 'var(--gold-soft)';
+          proyectorBadgePrice.style.color = 'var(--gold)';
+        }
+        if (proyectorHelpText) {
+          proyectorHelpText.textContent = 'El Modo Proyector en vivo ya viene incluido sin costo adicional en el Paquete VIP.';
+        }
+        costoProyector = 0;
+        if (costoProyectorEl) costoProyectorEl.textContent = '$0 MXN (Incluido)';
+      } else {
+        // Solo Galería QR (5000): Quitar personalización de temas y dejar únicamente Clásico
+        if (proyectorContainer) proyectorContainer.style.display = 'block';
+        if (avisoInvitacion) avisoInvitacion.style.display = 'none';
+        if (filaProyector) filaProyector.style.display = 'flex';
+        if (seccionPersonalizacion) seccionPersonalizacion.style.display = 'block';
+        if (camposPremium) camposPremium.style.display = 'none';
+
+        // Forzar y aplicar diseño Clásico
+        aplicarTema('clasico');
+        if (temaSelect) {
+          temaSelect.value = 'clasico';
+          temaSelect.style.display = 'none';
+        }
+        if (temaSelectLabel) temaSelectLabel.style.display = 'none';
+        if (avisoGaleriaClasica) avisoGaleriaClasica.style.display = 'block';
+
+        // Ocultar las demás paletas y dejar únicamente visible la muestra Clásica
+        swatchCards.forEach(function (card) {
+          if (card.getAttribute('data-tema-codigo') === 'clasico') {
+            card.style.display = 'flex';
+            card.classList.add('active');
+          } else {
+            card.style.display = 'none';
+            card.classList.remove('active');
+          }
+        });
+
+        if (temaPreviewInstruction) {
+          temaPreviewInstruction.textContent = 'Diseño oficial incluido en Solo Galería:';
+        }
+
+        if (proyectorCheckbox) {
+          proyectorCheckbox.disabled = false;
+        }
+        if (proyectorBadgePrice) {
+          proyectorBadgePrice.textContent = '+ $250 MXN';
+          proyectorBadgePrice.style.background = 'var(--primary-soft)';
+          proyectorBadgePrice.style.color = 'var(--primary)';
+        }
+        if (proyectorHelpText) {
+          proyectorHelpText.textContent = 'Transmite en vivo las fotos y videos de tus invitados en pantalla o proyector durante el evento.';
+        }
+        if (proyectorCheckbox && proyectorCheckbox.checked) {
+          costoProyector = 250;
+          if (costoProyectorEl) costoProyectorEl.textContent = '+$250 MXN';
+        } else {
+          costoProyector = 0;
+          if (costoProyectorEl) costoProyectorEl.textContent = '$0 MXN';
+        }
+      }
+
+      const total = base + costoProyector + costoHoras;
+
+      if (precioBaseEl) precioBaseEl.textContent = `$${base.toLocaleString('es-MX')} MXN`;
+      if (costoHorasExtraEl) costoHorasExtraEl.textContent = costoHoras > 0 ? `+$${costoHoras.toLocaleString('es-MX')} MXN` : '$0 MXN';
+      if (costoTotalEl) costoTotalEl.textContent = `$${total.toLocaleString('es-MX')} MXN`;
+    }
+
+    if (planSelect) planSelect.addEventListener('change', calcularCotizacion);
+    if (proyectorCheckbox) proyectorCheckbox.addEventListener('change', calcularCotizacion);
+    if (horasExtraInput) horasExtraInput.addEventListener('input', calcularCotizacion);
+    calcularCotizacion();
 
     // ----------------------------------------------------------------------
     // 5. SELECTOR DE MARCOS Y STAGE INTERACTIVO
@@ -564,5 +610,17 @@
         }, 50);
       });
     }
+
+    // Función para reiniciar/recargar la demo del iframe de invitación
+    window.recargarIframeInvitacion = function () {
+      const iframe = document.getElementById('iframe-invitacion');
+      if (iframe) {
+        const currentSrc = iframe.src;
+        iframe.src = '';
+        setTimeout(function () {
+          iframe.src = currentSrc;
+        }, 80);
+      }
+    };
   });
 })();

@@ -20,7 +20,7 @@
 
     <!-- SECCIÓN: Portada Hero Fullscreen -->
     {% if evento.permite_portada_hero %}
-    <section class="min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center mb-6"
+    <section id="seccion-hero" class="min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center mb-6"
         style="background-image: url('{{ evento.fondo_personalizado.url }}');">
         <div
             class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80 flex flex-col items-center justify-center p-6 text-center text-white">
@@ -82,6 +82,19 @@
             </div>
             <!-- Padding superior añadido (pt-3) para evitar encimamiento de botones flotantes -->
             <div id="grid-preview" class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 overflow-visible"></div>
+
+            <!-- Botón de acción directa para confirmar y subir en la previsualización (móvil y escritorio) -->
+            <div class="mt-5 pt-3 border-t border-gray-300/40 flex justify-center">
+                <button id="btn-subir-inline" onclick="subirTodosLosArchivos()" type="button"
+                    style="background-color: var(--neu-primary) !important; color: #ffffff !important;"
+                    class="w-full sm:w-auto neu-flat text-white px-5 sm:px-8 py-3 rounded-full font-black text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 border border-indigo-400 shadow-xl active:scale-95 transition-all whitespace-nowrap">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    <span>CONFIRMAR Y SUBIR (<span id="cant-archivos-inline">0</span>)</span>
+                </button>
+            </div>
         </div>
 
         <!-- Plantilla reutilizable para renderizar tarjetas de previsualización -->
@@ -329,7 +342,9 @@
     </div>
 
     <!-- Contenedor Flotante Inferior Sticky -->
-    <div class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4">
+    <div id="contenedor-botones-flotantes"
+        class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 transition-all duration-300 ease-out {% if evento.permite_portada_hero %}opacity-0 pointer-events-none translate-y-8{% endif %}"
+        style="bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));">
         <button id="btn-seleccionar-flotante" onclick="document.getElementById('input-fotos').click()" type="button"
             class="{% if not archivos %}hidden{% endif %} neu-flat px-8 py-4 rounded-full text-[color:var(--neu-primary)] font-black text-sm tracking-wider flex items-center gap-3 border border-white/40 shadow-lg active:scale-95 transition-all">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,12 +354,13 @@
         </button>
 
         <button id="btn-subir-flotante" onclick="subirTodosLosArchivos()" type="button"
-            class="hidden neu-flat bg-[color:var(--neu-primary)] text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-xl active:scale-95 transition-all">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            style="background-color: var(--neu-primary) !important; color: #ffffff !important;"
+            class="hidden neu-flat text-white px-5 sm:px-8 py-3 rounded-full font-black text-xs sm:text-sm tracking-wider flex items-center gap-2 border border-indigo-400 shadow-xl active:scale-95 transition-all whitespace-nowrap">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
             </svg>
-            CONFIRMAR Y SUBIR
+            <span>CONFIRMAR Y SUBIR (<span id="cant-archivos-btn">0</span>)</span>
         </button>
     </div>
 

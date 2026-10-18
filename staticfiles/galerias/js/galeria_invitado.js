@@ -425,19 +425,43 @@ function confirmarEliminar() {
 function actualizarBotonesFlotantes() {
     const btnSeleccionar = document.getElementById('btn-seleccionar-flotante');
     const btnSubir = document.getElementById('btn-subir-flotante');
+    const btnSubirInline = document.getElementById('btn-subir-inline');
     const badgeCant = document.getElementById('cant-archivos-btn');
+    const badgeCantInline = document.getElementById('cant-archivos-inline');
     const sinFotosCard = document.getElementById('sin-fotos');
 
-    if (colaArchivos.length > 0) {
-        if (btnSeleccionar) btnSeleccionar.classList.add('hidden');
-        if (btnSubir) btnSubir.classList.remove('hidden');
-        if (badgeCant) badgeCant.innerText = colaArchivos.length;
+    const hayArchivosEnCola = colaArchivos.length > 0;
 
+    if (badgeCant) badgeCant.innerText = colaArchivos.length;
+    if (badgeCantInline) badgeCantInline.innerText = colaArchivos.length;
+
+    if (hayArchivosEnCola) {
+        if (btnSeleccionar) {
+            btnSeleccionar.classList.add('hidden');
+            btnSeleccionar.style.display = 'none';
+        }
+        if (btnSubir) {
+            btnSubir.classList.remove('hidden');
+            btnSubir.style.display = 'flex';
+        }
+        if (btnSubirInline) {
+            btnSubirInline.classList.remove('hidden');
+            btnSubirInline.style.display = 'flex';
+        }
         if (sinFotosCard) sinFotosCard.classList.add('hidden');
     } else {
-        if (btnSeleccionar) btnSeleccionar.classList.remove('hidden');
-        if (btnSubir) btnSubir.classList.add('hidden');
-
+        if (btnSeleccionar) {
+            btnSeleccionar.classList.remove('hidden');
+            btnSeleccionar.style.display = 'flex';
+        }
+        if (btnSubir) {
+            btnSubir.classList.add('hidden');
+            btnSubir.style.display = 'none';
+        }
+        if (btnSubirInline) {
+            btnSubirInline.classList.add('hidden');
+            btnSubirInline.style.display = 'none';
+        }
         if (sinFotosCard) sinFotosCard.classList.remove('hidden');
     }
 }
@@ -853,7 +877,54 @@ function iniciarPollingEstado() {
     }, 4000);
 }
 
-// Arrancamos el polling también al iniciar
+// Control de visibilidad del botón flotante para no opacar la portada hero personalizada
+function iniciarControlVisibilidadFlotante() {
+    const heroSection = document.getElementById('seccion-hero');
+    const contenedorFlotante = document.getElementById('contenedor-botones-flotantes');
+
+    if (!contenedorFlotante) return;
+
+    if (!heroSection) {
+        contenedorFlotante.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-8');
+        contenedorFlotante.classList.add('opacity-100', 'translate-y-0');
+        return;
+    }
+
+    function evaluarVisibilidadHero() {
+        const rect = heroSection.getBoundingClientRect();
+        // Si la parte inferior del hero aún ocupa más de 120px en la ventana, está en portada
+        if (rect.bottom > 120) {
+            contenedorFlotante.classList.add('opacity-0', 'pointer-events-none', 'translate-y-8');
+            contenedorFlotante.classList.remove('opacity-100', 'translate-y-0');
+        } else {
+            // Pasó a la sección de la galería: mostrar con animación suave
+            contenedorFlotante.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-8');
+            contenedorFlotante.classList.add('opacity-100', 'translate-y-0');
+        }
+    }
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+                    contenedorFlotante.classList.add('opacity-0', 'pointer-events-none', 'translate-y-8');
+                    contenedorFlotante.classList.remove('opacity-100', 'translate-y-0');
+                } else {
+                    contenedorFlotante.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-8');
+                    contenedorFlotante.classList.add('opacity-100', 'translate-y-0');
+                }
+            });
+        }, { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0] });
+
+        observer.observe(heroSection);
+    }
+
+    window.addEventListener('scroll', evaluarVisibilidadHero, { passive: true });
+    evaluarVisibilidadHero();
+}
+
+// Arrancamos polling y control de visibilidad al iniciar
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPollingEstado();
+    iniciarControlVisibilidadFlotante();
 });
