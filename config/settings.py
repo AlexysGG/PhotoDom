@@ -300,3 +300,6 @@ Q_CLUSTER = {
     'label': 'Django Q',
     'orm': 'default'
 }
+
+# Configuración de WhatsApp Soporte (Backend)
+WHATSAPP_NUMERO_SOPORTE = os.environ.get('WHATSAPP_NUMERO_SOPORTE', '522227751013')

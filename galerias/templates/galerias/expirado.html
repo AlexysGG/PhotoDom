@@ -1,164 +1,86 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evento terminado - {{ evento.nombre_evento }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {% include 'galerias/includes/pwa_tags.html' %}
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
-    <style>
-        :root {
-            --bg: #241c2c;
-            --bg-alt: #2f2438;
-            --paper: #faf6ee;
-            --ink: #241c2c;
-            --text: #f3ece0;
-            --muted: #b8aec2;
-            --gold: #f2b544;
-            --coral: #ef6f5b;
-            --line: rgba(243, 236, 224, 0.14);
-            --font-display: "Fraunces", Georgia, serif;
-            --font-body: "Inter", system-ui, sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--font-body);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .expirado-container {
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-        }
-
-        .icono-expirado {
-            font-size: 4rem;
-            margin-bottom: 2rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        h1 {
-            font-family: var(--font-display);
-            font-size: 2rem;
-            color: var(--coral);
-            margin-bottom: 1rem;
-        }
-
-        .nombre-evento {
-            font-size: 1.5rem;
-            color: var(--text);
-            margin-bottom: 2rem;
-        }
-
-        .mensaje-expirado {
-            background: var(--bg-alt);
-            border-radius: 8px;
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 1px solid var(--line);
-        }
-
-        .mensaje-expirado h2 {
-            font-family: var(--font-display);
-            font-size: 1.2rem;
-            color: var(--muted);
-            margin-bottom: 1rem;
-        }
-
-        .mensaje-expirado p {
-            color: var(--text);
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        .mensaje-informativo {
-            color: var(--muted);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-top: 2rem;
-        }
-
-        .contacto-info {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: rgba(242, 181, 68, 0.1);
-            border: 1px solid rgba(242, 181, 68, 0.3);
-            border-radius: 8px;
-        }
-
-        .contacto-info h3 {
-            font-family: var(--font-display);
-            color: var(--gold);
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-
-        .contacto-info p {
-            color: var(--text);
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .nombre-evento {
-                font-size: 1.2rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Galería no disponible — {{ evento.nombre_evento }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}" />
+  {% include 'galerias/includes/pwa_tags.html' %}
 </head>
 
 <body>
-    <div class="expirado-container">
-        <div class="icono-expirado">🔒</div>
-        <h1>El evento ha terminado</h1>
-        <p class="nombre-evento">{{ evento.nombre_evento }}</p>
-
-        <div class="mensaje-expirado">
-            <h2>Esta galería ya no está disponible</h2>
-            <p>
-                El tiempo contratado para este evento ha finalizado. La galería
-                ha cerrado y ya no acepta nuevas fotos ni permite visualizar el contenido.
-            </p>
-        </div>
-
-        <p class="mensaje-informativo">
-            Si necesitas descargar las fotos del evento o tienes alguna pregunta,
-                por favor contacta al organizador del evento.
-        </p>
-
-        <div class="contacto-info">
-            <h3>Información del evento</h3>
-            <p>Cliente: {{ evento.nombre_cliente }}</p>
-            <p>Plan: {{ evento.get_plan_almacenamiento_display }}</p>
-        </div>
+  <!-- Header -->
+  <header class="nav-header">
+    <div class="container nav-container">
+      <a href="{% url 'home' %}" class="nav__brand" aria-label="PhotoDom Inicio">
+        <img src="{% static 'icon-512.png' %}" alt="PhotoDom" class="nav__brand-logo" width="34" height="34" />
+        PhotoDom
+      </a>
+      <div class="nav__actions">
+        <a href="{% url 'home' %}" class="button button--ghost nav__cta">← Inicio</a>
+      </div>
     </div>
-</body>
+  </header>
 
+  <main class="status-page">
+    <div class="status-card">
+      <div class="status-icon-bubble status-icon-bubble--warning">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+
+      <h1 class="status-title">Esta galería ya no está disponible</h1>
+      <p class="status-desc">
+        El tiempo de vigencia contratado para el evento <strong>{{ evento.nombre_evento }}</strong> ha finalizado y la recepción de contenido ha concluido.
+      </p>
+
+      <div class="status-details-box">
+        <h3>Información del evento</h3>
+        <ul class="status-details-list">
+          <li>
+            <span>Evento:</span>
+            <strong>{{ evento.nombre_evento }}</strong>
+          </li>
+          {% if evento.nombre_cliente %}
+          <li>
+            <span>Cliente:</span>
+            <strong>{{ evento.nombre_cliente }}</strong>
+          </li>
+          {% endif %}
+          <li>
+            <span>Estado:</span>
+            <strong style="color: var(--warning);">Galería Finalizada</strong>
+          </li>
+        </ul>
+      </div>
+
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem;">
+        Si eres el organizador del evento y necesitas reactivar la galería o solicitar la extensión de descarga de tus archivos, ponte en contacto con nuestro equipo de soporte.
+      </p>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'home' %}" class="button button--primary">Ir a PhotoDom</a>
+        <a href="https://wa.me/5215500000000?text=Hola%20PhotoDom!%20Necesito%20asistencia%20con%20la%20galer%C3%ADa%20finalizada%20de%20{{ evento.nombre_evento|urlencode }}" target="_blank" rel="noopener" class="button button--ghost">Contactar Soporte</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer__brand">PhotoDom</div>
+      <div class="footer__links">
+        <a href="{% url 'terminos_condiciones' %}">Términos y Condiciones</a>
+        <a href="{% url 'aviso_privacidad' %}">Aviso de Privacidad</a>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">&copy; 2026 PhotoDom. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+</body>
 </html>

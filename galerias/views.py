@@ -523,12 +523,58 @@ def crear_solicitud_evento(request):
 
             solicitud = form.save()
             return render(request, 'galerias/solicitud_confirmada.html', {
-                'solicitud': solicitud
+                'solicitud': solicitud,
+                'whatsapp_url': solicitud.whatsapp_confirmacion_url,
             })
     else:
         form = SolicitudEventoForm()
 
     return render(request, 'galerias/index.html', obtener_contexto_index(form, mostrar_formulario=True))
+
+
+@require_POST
+def verificar_acceso_dueno(request):
+    """
+    Verifica el password de acceso alfanumérico ingresado desde el index.
+    Si coincide con un evento activo, autoriza la sesión y retorna la URL de galeria_dueno.
+    """
+    clave = ''
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+            clave = data.get('password_acceso', '') or data.get('password', '') or data.get('clave', '')
+        except Exception:
+            clave = ''
+    else:
+        clave = request.POST.get('password_acceso', '') or request.POST.get('password', '') or request.POST.get('clave', '')
+
+    clave = str(clave).strip()
+    if not clave:
+        return JsonResponse({
+            'success': False,
+            'error': 'Por favor ingresa la clave de tu galería.'
+        }, status=400)
+
+    evento = Evento.objects.filter(password_acceso__iexact=clave, activo=True).first()
+    if not evento:
+        return JsonResponse({
+            'success': False,
+            'error': 'La clave de acceso ingresada no coincide con ningún evento activo.'
+        }, status=404)
+
+    # Establecer credenciales en la sesión del servidor
+    request.session[f'acceso_evento_{evento.id}'] = True
+    request.session[f'es_dueno_{evento.id}'] = True
+    request.session.modified = True
+
+    redirect_url = reverse('galeria_dueno', args=[evento.id])
+
+    return JsonResponse({
+        'success': True,
+        'evento_id': str(evento.id),
+        'nombre_evento': evento.nombre_evento,
+        'redirect_url': redirect_url
+    })
 
 
 def custom_404(request, exception):
@@ -552,9 +598,9 @@ def politica_cookies(request):
 
 
 def modo_proyector(request, evento_id):
-    """Vista del modo proyector solo para planes Premium"""
+    """Vista del modo proyector para eventos que lo incluyen"""
     evento = get_object_or_404(Evento, id=evento_id, activo=True)
-    if not evento.es_plan_premium:
+    if not evento.permite_proyector:
         return redirect('galeria_invitado', evento_id=evento.id)
 
     archivos = evento.fotos.all().order_by('-fecha_subida')

@@ -1,10 +1,39 @@
 import uuid
 import os
+import logging
 from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.core.validators import RegexValidator
-import os
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+def eliminar_carpeta_evento_gcs(evento_id):
+    """
+    Elimina físicamente todos los archivos y carpetas del evento en Google Cloud Storage.
+    Elimina todos los blobs bajo el prefijo 'eventos/{evento_id}/'.
+    """
+    prefix = f'eventos/{evento_id}/'
+    try:
+        from google.cloud import storage
+        credentials = getattr(settings, 'GS_CREDENTIALS', None)
+        bucket_name = getattr(settings, 'GS_BUCKET_NAME', 'photosdomviewer')
+        if credentials:
+            client = storage.Client(credentials=credentials)
+        else:
+            client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        blobs = list(bucket.list_blobs(prefix=prefix))
+        if blobs:
+            bucket.delete_blobs(blobs)
+            logger.info(f"Se eliminaron {len(blobs)} archivos de GCS con prefijo {prefix}")
+        else:
+            logger.info(f"No se encontraron blobs en GCS con prefijo {prefix}")
+    except Exception as e:
+        logger.warning(f"No fue posible conectar con GCS para borrar prefijo {prefix}: {e}")
 
 def get_original_path(instance, filename):
     return f'eventos/{instance.evento.id}/originals/{filename}'
@@ -93,11 +122,24 @@ class Marco(models.Model):
         return f"{self.nombre}"
 
 
+def generar_password_acceso(longitud=8):
+    """
+    Genera una contraseña alfanumérica segura para acceso del dueño desde la página principal.
+    Ejemplo: 'K9mX2pL8'
+    """
+    import secrets
+    import string
+    caracteres = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(caracteres) for _ in range(longitud))
+
+
 class Evento(models.Model):
     PLANES = [
-        (5000, 'Esencial (5 GB - $500 MXN)'),
-        (10000, 'Experiencia (10 GB - $900 MXN)'),
-        (15000, 'Premium (15 GB - $1,500 MXN)'),
+        (5000, 'Solo Galería QR (5 GB - $500 MXN)'),
+        (0, 'Solo Invitación Web ($699 MXN)'),
+        (15000, 'Paquete VIP (Los Dos) (15 GB - $1,190 MXN)'),
+        (10000, 'Experiencia (10 GB - $900 MXN) [Anterior]'),
+        (200, 'DEBUG (200 MB)'),
     ]
 
     PLANTILLAS = [
@@ -161,8 +203,17 @@ class Evento(models.Model):
     pin_dueno = models.CharField(
         max_length=4,
         default='0000',
-        help_text='PIN de 4 dígitos para acceso del dueño',
+        help_text='PIN de 4 dígitos para operaciones internas del dueño',
         validators=[RegexValidator(r'^\d{4}$', 'El PIN debe ser exactamente de 4 dígitos numéricos.')]
+    )
+
+    password_acceso = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        db_index=True,
+        verbose_name='Password de Acceso a la Galería',
+        help_text='Contraseña alfanumérica segura para ingresar a la galería desde la página principal.'
     )
 
     # Campos para cotizador y control de tiempo
@@ -189,15 +240,32 @@ class Evento(models.Model):
         help_text='Número de descargas completas permitidas al dueño'
     )
 
+    # Modo proyector / Live stream en el salón
+    incluye_proyector = models.BooleanField(
+        default=False,
+        verbose_name='Incluye Modo Proyector',
+        help_text='Habilita el modo proyector en vivo en pantalla para el salón'
+    )
+
     def save(self, *args, **kwargs):
         # Asigna automáticamente los días de vigencia según el plan al crear el evento
-        if not self.pk:
+        if self._state.adding:
             dias_por_plan = {
-                5000: 20,    # Esencial
-                10000: 30,   # Experiencia
-                15000: 45,   # Premium
+                5000: 30,    # Solo Galería QR (20 - 30 días)
+                0: 30,       # Solo Invitación Web
+                10000: 30,   # Anterior
+                15000: 60,   # Paquete VIP (45 - 60 días)
+                200: 20,     # Debug
             }
-            self.dias_vigencia = dias_por_plan.get(self.plan_almacenamiento, 20)
+            self.dias_vigencia = dias_por_plan.get(self.plan_almacenamiento, 30)
+
+        # Paquete VIP siempre incluye modo proyector gratis
+        if self.plan_almacenamiento == 15000:
+            self.incluye_proyector = True
+
+        # Generar contraseña de acceso automáticamente si no fue asignada
+        if not self.password_acceso:
+            self.password_acceso = generar_password_acceso(8)
 
         # Calcular duración total automáticamente
         self.duracion_total_horas = 24 + (self.horas_extra * 24)
@@ -211,36 +279,54 @@ class Evento(models.Model):
         return timezone.now() > self.fecha_expiracion()
 
     def eliminar_completamente(self):
-        """Elimina todos los archivos en el storage externo y luego borra el evento."""
+        """Elimina todos los archivos en el storage externo, la carpeta en GCS y luego borra el evento."""
         # Eliminar fondo personalizado si existe
         if self.fondo_personalizado:
-            self.fondo_personalizado.delete(save=False)
+            try:
+                self.fondo_personalizado.delete(save=False)
+            except Exception:
+                pass
 
         # Eliminar todas las fotos del evento
         for foto in self.fotos.all():
-            if foto.original_archivo:
-                foto.original_archivo.delete(save=False)
-            if foto.preview_archivo:
-                foto.preview_archivo.delete(save=False)
-            if foto.thumb_archivo:
-                foto.thumb_archivo.delete(save=False)
+            try:
+                if foto.original_archivo:
+                    foto.original_archivo.delete(save=False)
+                if foto.preview_archivo:
+                    foto.preview_archivo.delete(save=False)
+                if foto.thumb_archivo:
+                    foto.thumb_archivo.delete(save=False)
+            except Exception:
+                pass
+
+        # Eliminar la carpeta completa en GCS
+        eliminar_carpeta_evento_gcs(self.id)
 
         self.delete()
 
     def delete(self, *args, **kwargs):
-        """Override para eliminar todos los archivos del storage externo"""
+        """Override para eliminar todos los archivos del storage externo y la carpeta en GCS"""
         # Eliminar fondo personalizado si existe
         if self.fondo_personalizado:
-            self.fondo_personalizado.delete(save=False)
+            try:
+                self.fondo_personalizado.delete(save=False)
+            except Exception:
+                pass
 
         # Eliminar todas las fotos del evento
         for foto in self.fotos.all():
-            if foto.original_archivo:
-                foto.original_archivo.delete(save=False)
-            if foto.preview_archivo:
-                foto.preview_archivo.delete(save=False)
-            if foto.thumb_archivo:
-                foto.thumb_archivo.delete(save=False)
+            try:
+                if foto.original_archivo:
+                    foto.original_archivo.delete(save=False)
+                if foto.preview_archivo:
+                    foto.preview_archivo.delete(save=False)
+                if foto.thumb_archivo:
+                    foto.thumb_archivo.delete(save=False)
+            except Exception:
+                pass
+
+        # Eliminar la carpeta completa del evento en GCS
+        eliminar_carpeta_evento_gcs(self.id)
 
         super().delete(*args, **kwargs)
 
@@ -250,6 +336,18 @@ class Evento(models.Model):
     # ==========================================================
     # PROPIEDADES DE VALIDACIÓN DE PLANES
     # ==========================================================
+
+    @property
+    def es_plan_galeria_qr(self):
+        return self.plan_almacenamiento == 5000
+
+    @property
+    def es_plan_invitacion(self):
+        return self.plan_almacenamiento == 0
+
+    @property
+    def es_plan_vip(self):
+        return self.plan_almacenamiento == 15000
 
     @property
     def es_plan_esencial(self):
@@ -269,12 +367,12 @@ class Evento(models.Model):
 
     @property
     def permite_interaccion(self):
-        """Habilita likes, mensajes en fotos y destacar fotos (Experiencia y Premium)."""
-        return self.plan_almacenamiento >= 10000
+        """Habilita likes, comentarios y fotos destacadas (Solo Galería QR y Paquete VIP)."""
+        return self.plan_almacenamiento in [5000, 10000, 15000, 200]
 
     @property
     def permite_marcos(self):
-        """Permite usar marcos si el plan es Experiencia, Premium o Debug."""
+        """Permite usar marcos si el plan es VIP o Debug."""
         return self.plan_almacenamiento >= 10000 or self.plan_almacenamiento == 200
 
     @property
@@ -286,12 +384,22 @@ class Evento(models.Model):
 
     @property
     def permite_portada_hero(self):
-        """Devuelve True si el plan es Experiencia o Premium y subieron una imagen de fondo."""
-        return self.permite_interaccion and bool(self.fondo_personalizado)
+        """Devuelve True si el plan permite personalización de fondo y subieron una imagen."""
+        return (self.plan_almacenamiento >= 10000 or self.plan_almacenamiento == 200) and bool(self.fondo_personalizado)
+
+    @property
+    def permite_mensaje_bienvenida(self):
+        """Solo disponible en Paquete VIP."""
+        return self.plan_almacenamiento == 15000
+
+    @property
+    def permite_proyector(self):
+        """Habilita el modo proyector si es Paquete VIP o si contrató el extra opcional."""
+        return self.plan_almacenamiento == 15000 or self.incluye_proyector
 
     @property
     def css_plantilla_clase(self):
-        """Asigna la clase CSS del grid según la plantilla elegida o fuerza clásica si es Esencial."""
+        """Asigna la clase CSS del grid según la plantilla elegida o fuerza clásica si es básico."""
         if not self.permite_interaccion:
             return 'layout-clasico'
             
@@ -319,18 +427,23 @@ class Evento(models.Model):
 
     @property
     def precio_base(self):
-        """Precio base según el plan"""
+        """Precio base según el paquete"""
         precios = {
-            5000: 500,   # Esencial
-            10000: 900,  # Experiencia
-            15000: 1500, # Premium
+            5000: 500,    # Solo Galería QR ($500 MXN)
+            0: 699,       # Solo Invitación Web ($699 MXN)
+            10000: 900,   # Anterior
+            15000: 1190,  # Paquete VIP ($1,190 MXN)
+            200: 500,     # Debug
         }
         return precios.get(self.plan_almacenamiento, 500)
 
     @property
     def costo_total(self):
-        """Costo total incluyendo horas extra"""
-        return self.precio_base + (self.horas_extra * 100)
+        """Costo total incluyendo horas extra y proyector si es opcional"""
+        costo = self.precio_base + (self.horas_extra * 100)
+        if self.incluye_proyector and self.plan_almacenamiento != 15000:
+            costo += 250
+        return costo
 
     @property
     def fecha_fin_evento(self):
@@ -447,17 +560,10 @@ class SolicitudEvento(models.Model):
         verbose_name='Horas extra (bloques de 24h)',
         help_text='Cada bloque de 24 horas extra cuesta $100 MXN'
     )
-
-    # Campos para cotizador y control de tiempo
-    fecha_hora_inicio = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name='Fecha y hora de inicio del evento'
-    )
-    horas_extra = models.IntegerField(
-        default=0,
-        verbose_name='Horas extra (bloques de 24h)',
-        help_text='Cada bloque de 24 horas extra cuesta $100 MXN'
+    incluye_proyector = models.BooleanField(
+        default=False,
+        verbose_name='Modo Proyector / Live Stream',
+        help_text='Habilita el modo proyector en vivo (+ $250 MXN opcional en Galería QR, gratis en VIP)'
     )
 
     # Campos opcionales (según el plan)
@@ -468,7 +574,7 @@ class SolicitudEvento(models.Model):
         blank=True,
         related_name='solicitudes',
         verbose_name="Marco Personalizado",
-        help_text="Marco PNG que se superpondrá sobre las fotos (Disponible en Experiencia y Premium)"
+        help_text="Marco PNG que se superpondrá sobre las fotos (Disponible en Paquete VIP)"
     )
     fondo_personalizado = models.ImageField(
         upload_to='fondos_solicitudes/',
@@ -483,6 +589,14 @@ class SolicitudEvento(models.Model):
         null=True,
         verbose_name='Mensaje de Bienvenida',
         help_text="Mensaje emergente al abrir la galería (ej. '¡Bienvenidos a la boda de Ana y Mario!')"
+    )
+
+    password_acceso = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        verbose_name='Password de Acceso Personalizado',
+        help_text='Opcional. Si se deja vacío, el sistema generará una contraseña alfanumérica automática al crear el evento.'
     )
 
     # Estado y metadatos
@@ -508,26 +622,56 @@ class SolicitudEvento(models.Model):
     def __str__(self):
         return f'Solicitud de {self.nombre_evento} - {self.get_estado_display()}'
 
+    @property
+    def precio_base(self):
+        """Precio base según el paquete solicitado"""
+        precios = {
+            5000: 500,    # Solo Galería QR
+            0: 699,       # Solo Invitación Web
+            15000: 1190,  # Paquete VIP
+        }
+        return precios.get(self.plan_almacenamiento, 500)
+
+    @property
+    def costo_total(self):
+        """Costo total de la cotización solicitada"""
+        costo = self.precio_base + (self.horas_extra * 100)
+        if self.incluye_proyector and self.plan_almacenamiento != 15000:
+            costo += 250
+        return costo
+
+    @property
+    def whatsapp_confirmacion_url(self):
+        """Genera el enlace de confirmación por WhatsApp en backend con número oficial blindado"""
+        import urllib.parse
+        numero = getattr(settings, 'WHATSAPP_NUMERO_SOPORTE', '522227751013')
+        mensaje = f'Hola PhotoDom! Acabo de enviar mi solicitud para el evento "{self.nombre_evento}" por ${self.costo_total} MXN. ¿Me apoyan con los detalles?'
+        return f"https://wa.me/{numero}?text={urllib.parse.quote(mensaje)}"
+
     def crear_evento_desde_solicitud(self):
         """Crea un evento a partir de los datos de esta solicitud"""
         from django.utils import timezone
         import random
 
-        # Generar PIN aleatorio de 4 dígitos
+        # Generar PIN aleatorio de 4 dígitos para operaciones administrativas
         pin_dueno = ''.join([str(random.randint(0, 9)) for _ in range(4)])
+        # Usar la contraseña personalizada o generar una segura automáticamente
+        password_acceso = self.password_acceso or generar_password_acceso(8)
 
         evento = Evento.objects.create(
             nombre_evento=self.nombre_evento,
             nombre_cliente=self.nombre_cliente,
             plan_almacenamiento=self.plan_almacenamiento,
-            plantilla_html='clasica',
+            plantilla_html=self.plantilla_html or 'clasica',
             tema_color=self.tema_color,
             marco_seleccionado=self.marco_seleccionado,
             fondo_personalizado=self.fondo_personalizado,
             mensaje_bienvenida=self.mensaje_bienvenida,
             fecha_hora_inicio=self.fecha_hora_inicio,
             horas_extra=self.horas_extra,
+            incluye_proyector=self.incluye_proyector or (self.plan_almacenamiento == 15000),
             pin_dueno=pin_dueno,
+            password_acceso=password_acceso,
             activo=True,
         )
 
@@ -540,7 +684,32 @@ class SolicitudEvento(models.Model):
 
     def delete(self, *args, **kwargs):
         """Override para eliminar el fondo personalizado del storage"""
-        # Eliminar fondo personalizado si existe
         if self.fondo_personalizado:
-            self.fondo_personalizado.delete(save=False)
+            try:
+                self.fondo_personalizado.delete(save=False)
+            except Exception:
+                pass
         super().delete(*args, **kwargs)
+
+
+# ==========================================================
+# SIGNALS DE LIMPIEZA GCS Y ARCHIVOS
+# ==========================================================
+
+@receiver(post_delete, sender=Evento)
+def post_delete_evento_gcs_cleanup(sender, instance, **kwargs):
+    """
+    Garantiza que la carpeta completa del evento en GCS se elimine,
+    incluso si el evento fue eliminado vía bulk delete en Django Admin.
+    """
+    eliminar_carpeta_evento_gcs(instance.id)
+
+
+@receiver(post_delete, sender=SolicitudEvento)
+def post_delete_solicitud_cleanup(sender, instance, **kwargs):
+    """Elimina el fondo personalizado de solicitudes si se borra la solicitud."""
+    if instance.fondo_personalizado:
+        try:
+            instance.fondo_personalizado.delete(save=False)
+        except Exception:
+            pass

@@ -1,90 +1,86 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Política de Cookies - PhotoDom</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}">
-    {% include 'galerias/includes/pwa_tags.html' %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Política de Cookies — PhotoDom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'galerias/css/styles.css' %}" />
+  {% include 'galerias/includes/pwa_tags.html' %}
 </head>
 
 <body>
-    <div class="legal-page">
-        <a href="{% url 'home' %}" class="back-link">← Volver al inicio</a>
+  <!-- Header -->
+  <header class="nav-header">
+    <div class="container nav-container">
+      <a href="{% url 'home' %}" class="nav__brand" aria-label="PhotoDom Inicio">
+        <img src="{% static 'icon-512.png' %}" alt="PhotoDom" class="nav__brand-logo" width="34" height="34" />
+        PhotoDom
+      </a>
+      <div class="nav__actions">
+        <a href="{% url 'home' %}" class="button button--ghost nav__cta">← Volver al inicio</a>
+      </div>
+    </div>
+  </header>
 
+  <main class="legal-page">
+    <div class="container">
+
+      <div class="legal-card">
         <h1>Política de Cookies y Almacenamiento Local — PhotoDom</h1>
+        <div class="legal-meta">
+          <strong>Última actualización:</strong> 18 de octubre de 2026
+        </div>
 
         <p>
-            <strong>Última actualización:</strong> 14 de septiembre de 2026
-        </p>
-
-        <p>
-            La presente Política de Cookies regula el uso de identificadores técnicos y herramientas de almacenamiento local en la plataforma digital PhotoDom (en adelante, la "Plataforma"), operada por Alexis Hernandez Juarez (en adelante, el "Responsable"), de conformidad con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y la legislación mercantil y de protección al consumidor aplicable en los Estados Unidos Mexicanos.
+          La presente Política de Cookies regula el uso de identificadores técnicos y herramientas de almacenamiento local en la plataforma digital PhotoDom, operada por Alexis Hernandez Juarez, de conformidad con la legislación aplicable en los Estados Unidos Mexicanos.
         </p>
 
         <h2>1. ¿Qué son las Cookies y Tecnologías Similares?</h2>
         <p>
-            Las cookies y las herramientas de almacenamiento local (como localStorage) son pequeños ficheros técnicos que la Plataforma solicita a su navegador almacenar en su equipo o dispositivo móvil. Su propósito exclusivo en PhotoDom es garantizar la autenticación del usuario, la integridad de los formularios y la fluidez en la visualización de las galerías multimedia.
+          Las cookies y herramientas de almacenamiento local (como localStorage) son ficheros técnicos que la plataforma solicita a su navegador almacenar en su equipo o celular. Su propósito exclusivo en PhotoDom es garantizar la autenticación de la sesión, la integridad de los formularios y la fluidez en la carga de fotografías.
         </p>
 
         <h2>2. Categorías de Tecnologías Empleadas en PhotoDom</h2>
         <p>
-            PhotoDom implementa únicamente tecnologías estrictamente indispensables para la prestación técnica del servicio. No se emplean identificadores con propósitos publicitarios, mercadotécnicos ni de rastreo conductual.
+          PhotoDom implementa únicamente tecnologías estrictamente indispensables para la prestación técnica del servicio. No se emplean identificadores con fines publicitarios ni de rastreo comercial.
         </p>
 
         <ul>
-            <li><strong>Herramientas de Sesión y Autenticación:</strong> Permiten identificar y conservar activa la sesión segura del organizador ("Anfitrión") o invitado tras la validación de sus credenciales o código de acceso (PIN), evitando requerir reautenticación en cada solicitud dentro de la galería.</li>
-            <li><strong>Mecanismos de Seguridad e Integridad:</strong> Diseñados para prevenir ciberataques, en particular la falsificación de peticiones en sitios cruzados (CSRF), resguardando los datos transmitidos en cada interacción.</li>
-            <li><strong>Funcionalidades Operativas de Galería:</strong> Permiten asociar de forma temporal los identificadores de los archivos multimedia subidos por un dispositivo específico, con la finalidad exclusiva de habilitar su gestión inmediata o eventual retiro, así como optimizar el despliegue del visualizador multimedia.</li>
-            <li><strong>Control de Tráfico y Protección de Infraestructura:</strong> Registros técnicos temporales para mitigar riesgos de sobrecarga, accesos automatizados abusivos o denegación de servicio en las descargas masivas de archivos.</li>
+          <li><strong>Herramientas de Sesión y Autenticación:</strong> Permiten mantener activa la sesión temporal del organizador o invitado sin requerir reautenticación continua en cada interacción dentro de la galería.</li>
+          <li><strong>Mecanismos de Seguridad (CSRF):</strong> Previenen ataques de falsificación de peticiones en sitios cruzados, resguardando la integridad de las cargas de fotos.</li>
+          <li><strong>Optimización Operativa de Galería:</strong> Permiten asociar de forma temporal los archivos subidos desde un dispositivo específico para facilitar su previsualización rápida.</li>
+          <li><strong>Control de Infraestructura:</strong> Registros técnicos para mitigar riesgos de sobrecarga o ataques de denegación de servicio.</li>
         </ul>
 
-        <h2>3. Base Legal del Tratamiento</h2>
-        <div class="highlight">
-            <p>
-                Al tratarse con exclusividad de mecanismos técnicos indispensables para el funcionamiento del software, la habilitación de las medidas de seguridad y el cumplimiento de la relación jurídica del servicio solicitado, la instalación de estas herramientas no requiere del consentimiento optativo previo del Titular, conforme a lo establecido en el artículo 9, fracción IV de la LFPDPPP.
-            </p>
+        <div class="legal-highlight">
+          <p>
+            Al tratarse exclusivamente de mecanismos técnicos esenciales para la operación y seguridad del servicio, no se requiere el consentimiento optativo previo, garantizando la máxima privacidad para los asistentes a tus eventos.
+          </p>
         </div>
 
-        <h2>4. Cookies de Terceros y Transferencias</h2>
+        <h2>3. Contacto</h2>
         <p>
-            PhotoDom no permite la inserción de cookies de terceros con fines publicitarios, de analítica comercial ni de perfilamiento. Los proveedores de infraestructura en la nube operan bajo la figura jurídica de Encargados del tratamiento pasivo de datos, sujetándose a directrices contractuales de estricta confidencialidad técnica y seguridad de la información.
+          Si tienes dudas o preguntas sobre nuestra política de cookies y tecnologías de almacenamiento, puedes escribirnos en cualquier momento a domphoto405@gmail.com.
         </p>
-
-        <h2>5. Deshabilitación y Configuración del Navegador</h2>
-        <p>
-            El Titular tiene la facultad de bloquear, restringir o eliminar las cookies y datos locales configurando las opciones de privacidad de su navegador web (Google Chrome, Mozilla Firefox, Apple Safari, Microsoft Edge, entre otros) o utilizando la navegación en modo privado/incógnito.
-        </p>
-        <div class="highlight">
-            <p>
-                <strong>Aviso Operativo:</strong> Si el Usuario decide inhabilitar o bloquear el almacenamiento de estas tecnologías esenciales, la Plataforma no podrá desempeñar sus funciones primarias, impidiendo la autenticación por PIN, el acceso restringido a galerías privadas y la subida de fotografías y videos.
-            </p>
-        </div>
-
-        <h2>6. Modificaciones</h2>
-        <p>
-            El Responsable se reserva el derecho de actualizar el contenido de esta Política para reflejar cambios tecnológicos o regulatorios aplicables. Cualquier ajuste se dará a conocer a través del portal oficial de la Plataforma.
-        </p>
-
-        <h2>7. Contacto</h2>
-        <p>
-            Para resolver cualquier duda o aclaración respecto al tratamiento de estos identificadores técnicos o sobre el ejercicio de sus Derechos ARCO bajo el Aviso de Privacidad Integral, favor de comunicarse a:
-        </p>
-        <ul>
-            <li>Correo electrónico: domphoto405@gmail.com</li>
-        </ul>
-
-        <div class="last-updated">
-            <p><strong>Última actualización:</strong> 14 de septiembre de 2026</p>
-        </div>
+      </div>
     </div>
-</body>
+  </main>
 
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer__brand">PhotoDom</div>
+      <div class="footer__links">
+        <a href="{% url 'terminos_condiciones' %}">Términos y Condiciones</a>
+        <a href="{% url 'aviso_privacidad' %}">Aviso de Privacidad</a>
+        <a href="{% url 'politica_cookies' %}">Política de Cookies</a>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">&copy; 2026 PhotoDom. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+</body>
 </html>

@@ -62,6 +62,7 @@ class EventoAdmin(ModelAdmin):
         'nombre_evento',
         'nombre_cliente',
         'plan_almacenamiento',
+        'incluye_proyector',
         'plantilla_html',
         'marco_seleccionado',
         'fecha_hora_inicio',
@@ -69,33 +70,34 @@ class EventoAdmin(ModelAdmin):
         'dias_vigencia',
         'activo',
         'pin_dueno',
+        'password_acceso',
         'descargas_zip_restantes',
         'ver_panel_dueno',
         'ver_panel_invitado',
     )
-    list_filter = ('plan_almacenamiento', 'plantilla_html', 'activo', 'tema_color', 'marco_seleccionado', 'fecha_hora_inicio')
-    search_fields = ('id', 'nombre_evento', 'nombre_cliente')
+    list_filter = ('plan_almacenamiento', 'incluye_proyector', 'plantilla_html', 'activo', 'tema_color', 'marco_seleccionado', 'fecha_hora_inicio')
+    search_fields = ('id', 'nombre_evento', 'nombre_cliente', 'password_acceso', 'pin_dueno')
     readonly_fields = ('id', 'fecha_creacion', 'ver_panel_dueno', 'ver_panel_invitado', 'duracion_total_horas')
 
     fieldsets = (
         ('Información del Evento', {
             'fields': ('nombre_evento', 'nombre_cliente', 'activo', 'dias_vigencia')
         }),
-        ('Control de Tiempo y Cotización', {
-            'fields': ('fecha_hora_inicio', 'horas_extra', 'duracion_total_horas'),
-            'description': 'Configuración de ventana de tiempo del evento y horas extra contratadas.'
+        ('Control de Tiempo, Extras y Cotización', {
+            'fields': ('fecha_hora_inicio', 'horas_extra', 'duracion_total_horas', 'incluye_proyector'),
+            'description': 'Configuración de ventana de tiempo del evento, horas extra y modo proyector en vivo.'
         }),
         ('Seguridad y Acceso', {
-            'fields': ('pin_dueno',),
-            'description': 'PIN numérico de 4 dígitos para que el cliente ingrese a su panel privado.'
+            'fields': ('pin_dueno', 'password_acceso'),
+            'description': 'PIN numérico de 4 dígitos para operaciones internas y Contraseña alfanumérica para acceso del dueño desde la página web principal.'
         }),
         ('Configuración, Plantilla y Apariencia', {
             'fields': ('plan_almacenamiento', 'plantilla_html', 'tema_color', 'marco_seleccionado', 'fondo_personalizado'),
-            'description': 'Los marcos solo se mostrarán si el evento está en Plan Experiencia o Premium.'
+            'description': 'Los marcos y fondos personalizados son exclusivos del Paquete VIP.'
         }),
-        ('Personalización Premium (Modal de Bienvenida)', {
+        ('Personalización VIP (Modal de Bienvenida)', {
             'fields': ('mensaje_bienvenida',),
-            'description': 'Mensaje emergente que se muestra al abrir la galería (Solo activo en Plan Premium).'
+            'description': 'Mensaje emergente que se muestra al abrir la galería (Solo activo en Paquete VIP).'
         }),
         ('Límites y Descargas', {
             'fields': ('descargas_zip_restantes',),
@@ -157,6 +159,7 @@ class SolicitudEventoAdmin(ModelAdmin):
         'telefono',
         'email',
         'plan_almacenamiento',
+        'incluye_proyector',
         'fecha_hora_inicio',
         'horas_extra',
         'estado',
@@ -164,7 +167,7 @@ class SolicitudEventoAdmin(ModelAdmin):
         'ver_evento_creado',
         'accion_crear_evento',
     )
-    list_filter = ('estado', 'plan_almacenamiento', 'fecha_creacion', 'fecha_hora_inicio')
+    list_filter = ('estado', 'plan_almacenamiento', 'incluye_proyector', 'fecha_creacion', 'fecha_hora_inicio')
     search_fields = ('nombre_evento', 'nombre_solicitante', 'email', 'telefono')
     readonly_fields = ('fecha_creacion', 'ver_evento_creado', 'accion_crear_evento_detalle')
     actions = ['crear_evento_desde_solicitud']
@@ -176,17 +179,21 @@ class SolicitudEventoAdmin(ModelAdmin):
         ('Información del Evento', {
             'fields': ('nombre_evento', 'nombre_cliente', 'plan_almacenamiento')
         }),
-        ('Control de Tiempo y Cotización', {
-            'fields': ('fecha_hora_inicio', 'horas_extra'),
-            'description': 'Fecha de inicio y horas extra contratadas.'
+        ('Control de Tiempo, Extras y Cotización', {
+            'fields': ('fecha_hora_inicio', 'horas_extra', 'incluye_proyector'),
+            'description': 'Fecha de inicio, horas extra y modo proyector solicitado.'
         }),
         ('Configuración, Plantilla y Apariencia', {
             'fields': ('tema_color', 'marco_seleccionado', 'fondo_personalizado'),
-            'description': 'Los marcos y fondos solo se aplicarán si el plan es Experiencia o Premium.'
+            'description': 'Los marcos y fondos solo se aplicarán si el paquete es Paquete VIP.'
         }),
-        ('Personalización Premium', {
+        ('Personalización VIP', {
             'fields': ('mensaje_bienvenida',),
-            'description': 'Mensaje emergente que se muestra al abrir la galería (Solo activo en Plan Premium).'
+            'description': 'Mensaje emergente al abrir la galería (Solo activo en Paquete VIP).'
+        }),
+        ('Seguridad y Acceso Personalizado', {
+            'fields': ('password_acceso',),
+            'description': 'Contraseña alfanumérica opcional para el cliente. Si se deja en blanco, se generará una automáticamente al crear el evento.'
         }),
         ('Estado y Metadatos', {
             'fields': ('estado', 'notas_admin', 'fecha_creacion', 'ver_evento_creado', 'accion_crear_evento_detalle')
@@ -270,7 +277,7 @@ class SolicitudEventoAdmin(ModelAdmin):
 
         try:
             evento = solicitud.crear_evento_desde_solicitud()
-            messages.success(request, f'Evento "{evento.nombre_evento}" creado exitosamente. PIN: {evento.pin_dueno}')
+            messages.success(request, f'Evento "{evento.nombre_evento}" creado exitosamente. PIN Dueño: {evento.pin_dueno} | Password Acceso: {evento.password_acceso}')
             return redirect('admin:galerias_evento_change', str(evento.id))
         except Exception as e:
             messages.error(request, f'Error al crear evento: {str(e)}')

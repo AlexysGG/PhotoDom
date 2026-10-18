@@ -30,6 +30,7 @@ urlpatterns = [
 
     # Solicitud de evento
     path('solicitar-evento/', views.crear_solicitud_evento, name='crear_solicitud_evento'),
+    path('acceso-galeria/', views.verificar_acceso_dueno, name='verificar_acceso_dueno'),
 
     # Páginas legales
     path('terminos-condiciones/', views.terminos_condiciones, name='terminos_condiciones'),
