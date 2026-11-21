@@ -57,46 +57,70 @@ PALETAS_COLOR = [
 # CONFIGURACIÓN DE VARIABLES CSS POR TEMA
 CONFIGURACION_TEMAS = {
     'clasico': {
-        'bg': '#e0e5ec',
-        'text': '#4a5568',
+        'bg': '#f8fafc',
+        'surface': '#ffffff',
+        'text': '#0f172a',
+        'muted': '#64748b',
         'primary': '#4f46e5',
-        'shadow_dark': '#a3b1c6',
-        'shadow_light': '#ffffff',
+        'primary_soft': 'rgba(79, 70, 229, 0.09)',
+        'border': 'rgba(148, 163, 184, 0.24)',
+        'shadow_dark': 'rgba(15, 23, 42, 0.08)',
+        'shadow_light': 'rgba(255, 255, 255, 0.92)',
     },
     'rosa_pastell': {
-        'bg': '#fce7f3',
-        'text': '#831843',
-        'primary': '#db2777',
-        'shadow_dark': '#dba9c4',
-        'shadow_light': '#ffffff',
+        'bg': '#fff5f7',
+        'surface': '#ffffff',
+        'text': '#4c0519',
+        'muted': '#9f1239',
+        'primary': '#e11d48',
+        'primary_soft': 'rgba(225, 29, 72, 0.09)',
+        'border': 'rgba(244, 63, 94, 0.16)',
+        'shadow_dark': 'rgba(136, 19, 55, 0.07)',
+        'shadow_light': 'rgba(255, 255, 255, 0.95)',
     },
     'azul_elegante': {
-        'bg': '#e0e7ff',
-        'text': '#1e1b4b',
-        'primary': '#4338ca',
-        'shadow_dark': '#b8c2ed',
-        'shadow_light': '#ffffff',
+        'bg': '#f4f7ff',
+        'surface': '#ffffff',
+        'text': '#0f172a',
+        'muted': '#475569',
+        'primary': '#3730a3',
+        'primary_soft': 'rgba(55, 48, 163, 0.09)',
+        'border': 'rgba(99, 102, 241, 0.18)',
+        'shadow_dark': 'rgba(30, 27, 75, 0.08)',
+        'shadow_light': 'rgba(255, 255, 255, 0.95)',
     },
     'verde_bosque': {
-        'bg': '#e6f0ed',
-        'text': '#1f352d',
-        'primary': '#4f7d6d',
-        'shadow_dark': '#b9d4c9',
-        'shadow_light': '#ffffff',
+        'bg': '#f3f8f6',
+        'surface': '#ffffff',
+        'text': '#0f2922',
+        'muted': '#3f6257',
+        'primary': '#0f766e',
+        'primary_soft': 'rgba(15, 118, 110, 0.09)',
+        'border': 'rgba(20, 184, 166, 0.18)',
+        'shadow_dark': 'rgba(15, 41, 34, 0.07)',
+        'shadow_light': 'rgba(255, 255, 255, 0.95)',
     },
     'morado_fiesta': {
-        'bg': '#f3e8ff',
-        'text': '#3b0764',
-        'primary': '#7e22ce',
-        'shadow_dark': '#d3b8f5',
-        'shadow_light': '#ffffff',
+        'bg': '#faf5ff',
+        'surface': '#ffffff',
+        'text': '#2e1065',
+        'muted': '#6b21a8',
+        'primary': '#7c3aed',
+        'primary_soft': 'rgba(124, 58, 237, 0.09)',
+        'border': 'rgba(167, 139, 250, 0.22)',
+        'shadow_dark': 'rgba(59, 7, 100, 0.08)',
+        'shadow_light': 'rgba(255, 255, 255, 0.95)',
     },
     'blanco_boda': {
-        'bg': '#f8f6f0',
-        'text': '#44403c',
-        'primary': '#b8860b',
-        'shadow_dark': '#ddd7c9',
-        'shadow_light': '#ffffff',
+        'bg': '#fcfbf7',
+        'surface': '#ffffff',
+        'text': '#292524',
+        'muted': '#78716c',
+        'primary': '#b45309',
+        'primary_soft': 'rgba(180, 83, 9, 0.09)',
+        'border': 'rgba(217, 119, 6, 0.18)',
+        'shadow_dark': 'rgba(41, 37, 36, 0.07)',
+        'shadow_light': 'rgba(255, 255, 255, 0.95)',
     },
 }
 
@@ -415,8 +439,12 @@ class Evento(models.Model):
         conf = CONFIGURACION_TEMAS.get(self.tema_color, CONFIGURACION_TEMAS['clasico'])
         return f"""
             --neu-bg: {conf['bg']};
+            --neu-surface: {conf['surface']};
             --neu-text: {conf['text']};
+            --neu-muted: {conf['muted']};
             --neu-primary: {conf['primary']};
+            --neu-primary-soft: {conf['primary_soft']};
+            --neu-border: {conf['border']};
             --neu-shadow-dark: {conf['shadow_dark']};
             --neu-shadow-light: {conf['shadow_light']};
         """

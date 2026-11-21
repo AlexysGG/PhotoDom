@@ -4,57 +4,91 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{{ evento.nombre_evento }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'galerias/css/galeria_invitadocss.css' %}">
     {% include 'galerias/includes/pwa_tags.html' %}
 </head>
 
-<body class="min-h-screen pb-36 font-sans" style="{{ evento.vars_css_tema|safe }}">
+<body class="min-h-screen flex flex-col" style="{{ evento.vars_css_tema|safe }}">
+
+    <!-- HEADER DISCRETO -->
+    <header class="photodom-header w-full">
+        <div class="max-w-5xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between gap-4">
+            <a href="{% url 'home' %}" class="flex items-center shrink-0 group" aria-label="Inicio">
+                <img src="{% static 'icon-512.png' %}" alt="Inicio"
+                    class="w-8 h-8 rounded-lg object-cover shadow-sm transition-transform group-hover:scale-105" width="32" height="32" />
+            </a>
+
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-xs sm:text-sm font-semibold truncate max-w-[200px] sm:max-w-[300px]" style="color: var(--neu-muted);">
+                    {{ evento.nombre_evento }}
+                </span>
+            </div>
+        </div>
+    </header>
 
     <!-- SECCIÓN: Portada Hero Fullscreen -->
     {% if evento.permite_portada_hero %}
-    <section id="seccion-hero" class="min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center mb-6"
+    <section id="seccion-hero" class="hero-portada mb-6"
         style="background-image: url('{{ evento.fondo_personalizado.url }}');">
-        <div
-            class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80 flex flex-col items-center justify-center p-6 text-center text-white">
-            <h1 class="font-display text-4xl sm:text-5xl mb-2 drop-shadow-md">{{ evento.nombre_evento }}</h1>
-            <p class="text-sm sm:text-base text-gray-200 font-medium max-w-md">¡Bienvenido! Comparte tus fotos y recuerdos con {{ evento.nombre_cliente }}</p>
+        <div class="hero-overlay">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-semibold tracking-wide uppercase mb-4">
+                Galería del evento
+            </span>
+            <h1 class="font-display text-4xl sm:text-6xl mb-3 drop-shadow-md max-w-2xl leading-tight">{{ evento.nombre_evento }}</h1>
+            <p class="text-sm sm:text-base text-slate-100/90 font-medium max-w-md leading-relaxed">
+                ¡Bienvenido! Comparte tus fotos y recuerdos con <strong class="text-white">{{ evento.nombre_cliente }}</strong>
+            </p>
 
             <button onclick="desplazarAGaleria()" type="button"
-                class="mt-8 neu-flat bg-[color:var(--neu-primary)] text-white px-8 py-4 rounded-full font-black text-sm tracking-wider flex items-center gap-3 border border-indigo-400 shadow-2xl active:scale-95 transition-all">
-                VER GALERÍA Y SUBIR FOTOS
+                class="mt-8 neu-btn-primary px-8 py-4 rounded-full font-bold text-sm tracking-wide flex items-center gap-3 shadow-2xl">
+                <span>Ver galería y subir fotos</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                </svg>
             </button>
         </div>
     </section>
     {% endif %}
 
-    <!-- Header Convencional -->
+    <!-- Header Convencional del Evento -->
     {% if not evento.permite_portada_hero %}
-    <header class="max-w-2xl mx-auto mt-6 mx-4 p-6 neu-flat text-center">
-        <h1 class="font-display text-3xl text-[color:var(--neu-text)]">{{ evento.nombre_evento }}</h1>
-        <p class="text-xs text-gray-500 font-semibold mt-1">¡Comparte tus fotos y videos con {{ evento.nombre_cliente }}!</p>
-    </header>
+    <section class="max-w-3xl w-full mx-auto px-4 pt-6">
+        <div class="neu-flat p-6 sm:p-8 text-center relative overflow-hidden">
+            <div class="inline-flex items-center gap-1.5 neu-chip mb-3">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                </svg>
+                <span>Galería de Invitados</span>
+            </div>
+            <h1 class="font-display text-3xl sm:text-4xl text-[color:var(--neu-text)] leading-tight">{{ evento.nombre_evento }}</h1>
+            <p class="text-sm font-medium mt-2 max-w-md mx-auto" style="color: var(--neu-muted);">
+                ¡Comparte tus mejores fotos y videos con <strong class="text-[color:var(--neu-text)]">{{ evento.nombre_cliente }}</strong>!
+            </p>
+        </div>
+    </section>
     {% endif %}
 
     <!-- MODAL EMERGENTE DE BIENVENIDA -->
     {% if evento.permite_mensaje_bienvenida and evento.mensaje_bienvenida %}
     <div id="modal-bienvenida"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="neu-flat p-8 max-w-sm w-full text-center border border-white/60 shadow-2xl rounded-3xl">
+        <div class="neu-flat p-8 max-w-sm w-full text-center shadow-2xl rounded-3xl">
             <div class="w-16 h-16 neu-pressed rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <img src="{% static 'img/ico_heart.png' %}" alt="thanks" class="w-8 h-8 object-contain">
             </div>
-            <h3 class="font-display text-xl text-[color:var(--neu-text)] mb-2">¡Bienvenidos!</h3>
-            <p class="text-xs text-gray-600 font-medium leading-relaxed mb-6">{{ evento.mensaje_bienvenida }}</p>
+            <h3 class="font-display text-2xl text-[color:var(--neu-text)] mb-2">¡Bienvenidos!</h3>
+            <p class="text-sm font-medium leading-relaxed mb-6" style="color: var(--neu-muted);">{{ evento.mensaje_bienvenida }}</p>
             <button onclick="cerrarModalBienvenida()" type="button"
-                class="w-full neu-btn-success py-3 rounded-2xl font-bold text-sm shadow-md">
+                class="w-full neu-btn-success py-3.5 rounded-2xl font-bold text-sm shadow-md">
                 Entrar a la Galería
             </button>
         </div>
@@ -63,19 +97,19 @@
 
     <!-- Banner de error -->
     <div id="banner-error"
-        class="hidden fixed top-4 left-4 right-4 z-50 max-w-md mx-auto neu-flat p-4 border border-red-200">
+        class="hidden fixed top-20 left-4 right-4 z-50 max-w-md mx-auto neu-flat p-4 border border-red-200 bg-white">
         <div class="flex items-start justify-between">
-            <p id="banner-error-texto" class="text-xs text-red-500 font-semibold whitespace-pre-line pr-3"></p>
+            <p id="banner-error-texto" class="text-xs text-red-600 font-semibold whitespace-pre-line pr-3"></p>
             <button onclick="cerrarBannerError()" aria-label="Cerrar aviso"
-                class="text-red-400 font-bold text-sm shrink-0">✕</button>
+                class="text-red-400 hover:text-red-600 font-bold text-sm shrink-0">✕</button>
         </div>
     </div>
 
-    <main id="seccion-galeria" class="max-w-2xl mx-auto p-4 mt-4">
+    <main id="seccion-galeria" class="flex-1 w-full max-w-3xl mx-auto px-4 py-6">
 
         <!-- SECCIÓN: Previsualización de Selección Previa -->
-        <div id="seccion-previsualizacion" class="hidden mb-8 p-4 neu-pressed rounded-2xl">
-            <div class="flex justify-between items-center mb-1 px-2">
+        <div id="seccion-previsualizacion" class="hidden mb-8 p-5 neu-flat rounded-3xl">
+            <div class="flex justify-between items-center mb-2 px-1">
                 <span class="text-xs font-bold uppercase tracking-wider text-[color:var(--neu-primary)]">
                     Archivos seleccionados <span id="contador-preview" class="neu-chip ml-1">(0)</span>
                 </span>
@@ -83,16 +117,16 @@
             <!-- Padding superior añadido (pt-3) para evitar encimamiento de botones flotantes -->
             <div id="grid-preview" class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 overflow-visible"></div>
 
-            <!-- Botón de acción directa para confirmar y subir en la previsualización (móvil y escritorio) -->
-            <div class="mt-5 pt-3 border-t border-gray-300/40 flex justify-center">
+            <!-- Botón de acción directa para confirmar y subir en la previsualización -->
+            <div class="mt-5 pt-4 border-t border-slate-200/70 flex justify-center">
                 <button id="btn-subir-inline" onclick="subirTodosLosArchivos()" type="button"
                     style="background-color: var(--neu-primary) !important; color: #ffffff !important;"
-                    class="w-full sm:w-auto neu-flat text-white px-5 sm:px-8 py-3 rounded-full font-black text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 border border-indigo-400 shadow-xl active:scale-95 transition-all whitespace-nowrap">
+                    class="w-full sm:w-auto neu-btn-primary px-6 sm:px-8 py-3.5 rounded-full font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-xl whitespace-nowrap">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                     </svg>
-                    <span>CONFIRMAR Y SUBIR (<span id="cant-archivos-inline">0</span>)</span>
+                    <span>Confirmar y subir (<span id="cant-archivos-inline">0</span>)</span>
                 </button>
             </div>
         </div>
@@ -104,7 +138,7 @@
                     class="btn-eliminar-preview neu-btn-close absolute -top-2 -right-2 z-30 w-7 h-7 rounded-full flex items-center justify-center text-red-500 font-bold text-xs bg-white shadow-md hover:scale-105 transition-all">
                     ✕
                 </button>
-                <div class="w-full aspect-square neu-pressed overflow-hidden rounded-xl relative bg-black flex items-center justify-center">
+                <div class="w-full aspect-square neu-pressed overflow-hidden rounded-xl relative bg-slate-900 flex items-center justify-center">
                     <img class="preview-media-img w-full h-full object-cover rounded-xl hidden" alt="Vista previa">
                     <video class="preview-media-video w-full h-full object-cover rounded-xl hidden" muted></video>
                 </div>
@@ -118,26 +152,29 @@
         <!-- Sección: Fotos Destacadas -->
         {% if fotos_destacadas %}
         <section class="mb-10 w-full">
-            <div class="flex items-center gap-2 mb-4 px-1">
-                <h2 class="font-display text-lg text-[color:var(--neu-text)] font-bold">Fotos destacadas:</h2>
+            <div class="flex items-center justify-between gap-2 mb-4 px-1">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-100 text-amber-600 text-xs font-bold">★</span>
+                    <h2 class="font-display text-xl text-[color:var(--neu-text)] font-semibold">Fotos destacadas</h2>
+                </div>
+                <span class="text-xs font-medium" style="color: var(--neu-muted);">Las más votadas</span>
             </div>
 
             <div class="grid grid-cols-3 gap-3 sm:gap-4">
                 {% for archivo in fotos_destacadas %}
                 <div class="neu-flat p-2 sm:p-3 rounded-2xl relative group flex flex-col justify-between">
                     <!-- Insignia de Posición -->
-                    <span class="absolute top-3 left-3 z-20 w-6 h-6 neu-pressed rounded-full flex items-center justify-center text-[10px] font-black text-amber-500 shadow-sm">
+                    <span class="absolute top-3 left-3 z-20 px-2 py-0.5 bg-white/95 backdrop-blur-sm border border-amber-200 rounded-full flex items-center justify-center text-[10px] font-extrabold text-amber-600 shadow-sm">
                         #{{ forloop.counter }}
                     </span>
 
                     <!-- Contenedor Multimedia CUADRADO -->
-                    <div class="aspect-square neu-pressed overflow-hidden rounded-xl relative bg-black flex items-center justify-center">
-                        
+                    <div class="aspect-square neu-pressed overflow-hidden rounded-xl relative bg-slate-900 flex items-center justify-center">
                         {% if archivo.es_video %}
                             {% if archivo.estado_procesamiento == 'PROCESANDO' %}
-                                <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20 text-center p-2">
+                                <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 z-20 text-center p-2">
                                     <div class="w-6 h-6 border-2 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-1"></div>
-                                    <span class="text-[9px] font-bold text-gray-500">Procesando...</span>
+                                    <span class="text-[9px] font-bold text-slate-500">Procesando...</span>
                                 </div>
                             {% elif archivo.thumb_archivo %}
                                 <img src="{{ archivo.thumb_archivo.url }}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
@@ -147,7 +184,6 @@
                                 </video>
                             {% endif %}
                         {% else %}
-                            <!-- Etiqueta IMAGEN -->
                             <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% else %}{{ archivo.preview_archivo.url }}{% endif %}" class="w-full h-full object-cover rounded-xl" alt="Media destacada">
                         {% endif %}
 
@@ -158,9 +194,9 @@
                     </div>
 
                     <!-- Indicador Simplificado de Likes -->
-                    <div class="mt-2 flex items-center justify-between px-1">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-gray-400">Popular</span>
-                        <div class="flex items-center gap-1 text-red-500 text-xs font-bold">
+                    <div class="mt-2.5 flex items-center justify-between px-1">
+                        <span class="text-[10px] sm:text-[11px] font-semibold" style="color: var(--neu-muted);">Popular</span>
+                        <div class="flex items-center gap-1 text-rose-500 text-xs font-bold">
                             <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                             </svg>
@@ -174,15 +210,15 @@
         {% endif %}
 
         <!-- Separador de Fotos Subidas -->
-        <div class="flex items-center gap-3 my-6">
-            <div class="h-px bg-gray-300/60 flex-1 neu-pressed"></div>
+        <div class="flex items-center gap-4 my-6">
+            <div class="h-px flex-1" style="background: var(--neu-border);"></div>
             <div class="text-center px-2">
-                <h2 class="font-display text-sm text-gray-500">Fotos subidas</h2>
-                <p class="text-[11px] text-gray-400 font-medium">
+                <h2 class="font-display text-lg text-[color:var(--neu-text)]">Recuerdos del evento</h2>
+                <p class="text-xs font-medium mt-0.5" style="color: var(--neu-muted);">
                     Las fotos a continuación ya pueden ser vistas por {{ evento.nombre_cliente }}
                 </p>
             </div>
-            <div class="h-px bg-gray-300/60 flex-1 neu-pressed"></div>
+            <div class="h-px flex-1" style="background: var(--neu-border);"></div>
         </div>
 
         <!-- Malla de Fotos Públicas -->
@@ -190,7 +226,7 @@
 
             {% for archivo in archivos %}
             <div id="card-foto-{{ archivo.id }}"
-                class="photo-card neu-flat p-3 pt-4 relative group flex flex-col justify-between h-full">
+                class="photo-card neu-flat p-2.5 sm:p-3 relative group flex flex-col justify-between h-full">
 
                 {% if archivo.id in mis_fotos_ids %}
                 <button onclick="abrirModalEliminar({{ archivo.id }})" aria-label="Eliminar recuerdo"
@@ -200,13 +236,13 @@
                 {% endif %}
 
                 {% if archivo.destacada %}
-                <div class="absolute -top-2 -right-2 z-20 neu-chip bg-amber-100 text-amber-700 border border-amber-300 shadow-sm">
-                    ⭐ Destacada
+                <div class="absolute top-4 left-4 z-20 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow-md">
+                    ★ Destacada
                 </div>
                 {% endif %}
 
                 <!-- Contenedor Foto / Video -->
-                <div class="media-item relative overflow-hidden rounded-xl bg-gray-200 aspect-square mb-2 cursor-pointer w-full shrink-0"
+                <div class="media-item relative overflow-hidden rounded-xl bg-slate-100 aspect-square mb-2.5 cursor-pointer w-full shrink-0"
                     data-url="{% if archivo.preview_archivo %}{{ archivo.preview_archivo.url }}{% elif archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% endif %}"
                     data-es-video="{% if archivo.es_video %}true{% else %}false{% endif %}"
                     data-id="{{ archivo.id }}"
@@ -217,9 +253,9 @@
 
                     {% if archivo.es_video %}
                         {% if archivo.estado_procesamiento == 'PROCESANDO' %}
-                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-20 text-center p-2">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-100 z-20 text-center p-2">
                             <div class="w-6 h-6 border-2 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin mb-1"></div>
-                            <span class="text-[9px] font-bold text-gray-500">Procesando...</span>
+                            <span class="text-[9px] font-bold text-slate-500">Procesando...</span>
                         </div>
                         {% elif archivo.thumb_archivo %}
                         <img src="{{ archivo.thumb_archivo.url }}" alt="Vista previa video" class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">
@@ -230,7 +266,7 @@
                         {% endif %}
                     {% else %}
                         <img src="{% if archivo.thumb_archivo %}{{ archivo.thumb_archivo.url }}{% else %}{{ archivo.preview_archivo.url }}{% endif %}" alt="Foto de evento"
-                            class="absolute inset-0 block w-full h-full object-cover z-0" loading="lazy">
+                            class="absolute inset-0 block w-full h-full object-cover z-0 transition-transform duration-300 group-hover:scale-[1.03]" loading="lazy">
                     {% endif %}
 
                     {% if url_marco and not archivo.es_video %}
@@ -239,7 +275,7 @@
                     {% endif %}
 
                     {% if archivo.es_video %}
-                    <span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none backdrop-blur-sm">
+                    <span class="absolute bottom-2 left-2 z-20 flex items-center gap-1 bg-slate-900/70 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full pointer-events-none backdrop-blur-sm">
                         <svg class="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                         Video
                     </span>
@@ -247,19 +283,19 @@
                 </div>
 
                 <!-- Zona Inferior: Comentario opcional + Botón Like -->
-                <div class="flex flex-col justify-end flex-grow pt-1">
+                <div class="flex flex-col justify-end flex-grow">
                     {% if evento.permite_interaccion %}
                         {% if archivo.mensaje %}
-                        <p class="text-xs text-gray-600 italic px-1 mb-2 line-clamp-2 leading-tight">
+                        <p class="text-xs italic px-1 mb-2 line-clamp-2 leading-snug" style="color: var(--neu-muted);">
                             "{{ archivo.mensaje }}"
                         </p>
                         {% endif %}
 
                         <!-- Interacciones: Likes -->
-                        <div class="flex items-center justify-between px-1 pt-2 border-t border-gray-200/50 text-xs text-gray-600 mt-auto">
+                        <div class="flex items-center justify-between px-1 pt-2 border-t text-xs mt-auto" style="border-color: var(--neu-border);">
                             <button id="btn-like-{{ archivo.id }}" 
                                 onclick="darLike({{ archivo.id }})"
-                                class="flex items-center gap-1.5 transition-colors {% if archivo.id in likes_sesion %}text-red-500{% else %}text-gray-400 hover:text-red-500{% endif %}">
+                                class="flex items-center gap-1.5 transition-colors {% if archivo.id in likes_sesion %}text-rose-500{% else %}text-slate-400 hover:text-rose-500{% endif %}">
                             
                                 <svg id="icon-like-{{ archivo.id }}" 
                                     class="w-4 h-4" 
@@ -282,12 +318,20 @@
             {% empty %}
                 <!-- Estado Vacío -->
                 <div id="sin-fotos"
-                    class="col-span-full neu-pressed p-10 rounded-3xl text-center my-6 flex flex-col items-center justify-center min-h-[220px]">
-                    <p class="font-display text-xl text-gray-500 mb-1">Aún no hay recuerdos.</p>
-                    <p class="text-gray-400 text-sm mb-6">¡Sé el primero en compartir tus fotos o videos!</p>
+                    class="col-span-full neu-flat p-10 sm:p-12 rounded-3xl text-center my-4 flex flex-col items-center justify-center min-h-[240px]">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background: var(--neu-primary-soft); color: var(--neu-primary);">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <p class="font-display text-2xl text-[color:var(--neu-text)] mb-1">Aún no hay recuerdos</p>
+                    <p class="text-sm mb-6 max-w-xs" style="color: var(--neu-muted);">¡Sé el primero en compartir tus fotos o videos del evento!</p>
                     <button onclick="document.getElementById('input-fotos').click()" type="button"
-                        class="neu-flat px-6 py-3 rounded-2xl text-[color:var(--neu-primary)] font-bold text-sm flex items-center gap-2">
-                        SELECCIONAR FOTOS/VIDEOS
+                        class="neu-btn-primary px-6 py-3.5 rounded-full font-bold text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span>Seleccionar fotos o videos</span>
                     </button>
                 </div>
             {% endfor %}
@@ -297,11 +341,11 @@
 
     <!-- MODAL LIGHTBOX / CARRUSEL DESLIZANTE -->
     <div id="lightbox-modal"
-        class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center p-2 bg-black/90 backdrop-blur-md transition-opacity duration-300">
+        class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center p-2 bg-slate-950/92 backdrop-blur-md transition-opacity duration-300">
 
         <!-- Botón Cerrar -->
         <button onclick="cerrarCarrusel()"
-            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-[color:var(--neu-text)] font-bold shadow-lg">
+            class="absolute top-4 right-4 z-20 w-10 h-10 neu-btn-close rounded-full flex items-center justify-center text-slate-800 font-bold shadow-lg">
             ✕
         </button>
 
@@ -321,15 +365,15 @@
         </div>
 
         <!-- Barra inferior: contador + botón like -->
-        <div class="mt-3 flex items-center gap-4">
-            <div id="carrusel-contador" class="px-4 py-1.5 neu-pressed rounded-full text-xs font-bold text-gray-400">
+        <div class="mt-3 flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-full border border-white/15 backdrop-blur-sm">
+            <div id="carrusel-contador" class="text-xs font-bold text-slate-200">
                 1 / 1
             </div>
 
             {% if evento.permite_interaccion %}
             <button id="carrusel-btn-like"
                 onclick="darLikeCarrusel()"
-                class="flex items-center gap-1.5 px-4 py-1.5 neu-pressed rounded-full text-xs font-bold transition-colors text-gray-400 hover:text-red-500">
+                class="flex items-center gap-1.5 pl-3 border-l border-white/15 text-xs font-bold transition-colors text-slate-300 hover:text-rose-400">
                 <svg id="carrusel-icon-like" class="w-4 h-4" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -344,53 +388,50 @@
     <!-- Contenedor Flotante Inferior Sticky -->
     <div id="contenedor-botones-flotantes"
         class="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 transition-all duration-300 ease-out {% if evento.permite_portada_hero %}opacity-0 pointer-events-none translate-y-8{% endif %}"
-        style="bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));">
+        style="bottom: max(1.25rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));">
         <button id="btn-seleccionar-flotante" onclick="document.getElementById('input-fotos').click()" type="button"
-            class="{% if not archivos %}hidden{% endif %} neu-flat px-8 py-4 rounded-full text-[color:var(--neu-primary)] font-black text-sm tracking-wider flex items-center gap-3 border border-white/40 shadow-lg active:scale-95 transition-all">
+            class="{% if not archivos %}hidden{% endif %} neu-btn-primary px-7 py-3.5 rounded-full font-bold text-sm tracking-wide flex items-center gap-2.5 shadow-xl">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
             </svg>
-            SELECCIONAR FOTOS/VIDEOS
+            <span>Subir fotos / videos</span>
         </button>
 
         <button id="btn-subir-flotante" onclick="subirTodosLosArchivos()" type="button"
             style="background-color: var(--neu-primary) !important; color: #ffffff !important;"
-            class="hidden neu-flat text-white px-5 sm:px-8 py-3 rounded-full font-black text-xs sm:text-sm tracking-wider flex items-center gap-2 border border-indigo-400 shadow-xl active:scale-95 transition-all whitespace-nowrap">
+            class="hidden neu-btn-primary px-6 sm:px-8 py-3.5 rounded-full font-bold text-xs sm:text-sm tracking-wide flex items-center gap-2 shadow-xl whitespace-nowrap">
             <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
             </svg>
-            <span>CONFIRMAR Y SUBIR (<span id="cant-archivos-btn">0</span>)</span>
+            <span>Confirmar y subir (<span id="cant-archivos-btn">0</span>)</span>
         </button>
     </div>
 
     <!-- Modales de estado -->
     <div id="modal-progreso"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-        <div
-            class="neu-flat p-8 max-w-xs w-full text-center border border-white/60 shadow-2xl rounded-3xl transition-all">
-            <div class="w-20 h-20 neu-pressed rounded-full flex items-center justify-center mx-auto mb-5 relative">
-                <div class="w-12 h-12 border-4 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin"></div>
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div class="neu-flat p-8 max-w-xs w-full text-center shadow-2xl rounded-3xl transition-all">
+            <div class="w-16 h-16 neu-pressed rounded-full flex items-center justify-center mx-auto mb-5 relative">
+                <div class="w-10 h-10 border-4 border-indigo-200 border-t-[color:var(--neu-primary)] rounded-full animate-spin"></div>
             </div>
-            <h3 class="font-display text-lg text-[color:var(--neu-text)] mb-2">Subiendo recuerdos</h3>
+            <h3 class="font-display text-xl text-[color:var(--neu-text)] mb-2">Subiendo recuerdos</h3>
             <p id="progreso-texto" class="text-xs font-bold text-[color:var(--neu-primary)] mb-2">Iniciando subida...</p>
-            <p class="text-[11px] text-gray-400 font-medium leading-relaxed">
+            <p class="text-xs font-medium leading-relaxed" style="color: var(--neu-muted);">
                 Por favor, no cierres esta ventana mientras enviamos tus archivos.
             </p>
         </div>
     </div>
 
     <div id="modal-gracias"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-        <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
-            <div
-                class="w-12 h-12 neu-pressed rounded-full mb-4 text-emerald-500 flex items-center justify-center mx-auto">
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-sm">
+        <div class="neu-flat p-7 max-w-sm w-full text-center rounded-3xl shadow-2xl">
+            <div class="w-14 h-14 neu-pressed rounded-full mb-4 flex items-center justify-center mx-auto">
                 <img src="{% static 'img/ico_heart.png' %}" alt="thanks" class="w-8 h-8 object-contain">
             </div>
-            <h3 class="font-display text-xl text-[color:var(--neu-text)]">¡Muchas Gracias!</h3>
-            <p class="text-xs text-gray-500 mt-2 mb-6">Gracias por colaborar compartiendo tus recuerdos para este
-                evento.</p>
-            <button onclick="cerrarModalGracias()" class="w-full neu-btn-success py-2.5 rounded-xl font-bold text-sm">
+            <h3 class="font-display text-2xl text-[color:var(--neu-text)]">¡Muchas gracias!</h3>
+            <p class="text-sm mt-2 mb-6" style="color: var(--neu-muted);">Gracias por colaborar compartiendo tus recuerdos para este evento.</p>
+            <button onclick="cerrarModalGracias()" class="w-full neu-btn-success py-3 rounded-2xl font-bold text-sm">
                 Aceptar
             </button>
         </div>
@@ -398,9 +439,9 @@
 
     <!-- Modal Eliminar -->
     <div id="modal-eliminar"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-        <div class="neu-flat p-6 max-w-sm w-full text-center border border-white/50">
-            <div class="w-12 h-12 neu-pressed rounded-full mb-4 text-red-500 flex items-center justify-center mx-auto">
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-sm">
+        <div class="neu-flat p-7 max-w-sm w-full text-center rounded-3xl shadow-2xl">
+            <div class="w-14 h-14 bg-red-50 border border-red-100 rounded-full mb-4 text-red-500 flex items-center justify-center mx-auto">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -408,10 +449,10 @@
                 </svg>
             </div>
             <h3 class="font-display text-xl text-[color:var(--neu-text)]">¿Eliminar recuerdo?</h3>
-            <p class="text-xs text-gray-500 mt-1 mb-6">Esta acción no se puede deshacer.</p>
-            <div class="flex space-x-4">
+            <p class="text-xs mt-1.5 mb-6" style="color: var(--neu-muted);">Esta acción no se puede deshacer.</p>
+            <div class="flex gap-3">
                 <button onclick="cerrarModalEliminar()"
-                    class="w-1/2 neu-button py-2.5 rounded-xl font-bold text-gray-600 text-sm">
+                    class="w-1/2 neu-button py-2.5 rounded-xl font-bold text-sm">
                     Cancelar
                 </button>
                 <button onclick="confirmarEliminar()" class="w-1/2 neu-btn-danger py-2.5 rounded-xl font-bold text-sm">
@@ -420,6 +461,19 @@
             </div>
         </div>
     </div>
+
+    <!-- FOOTER DISCRETO -->
+    <footer class="photodom-footer w-full mt-10 pt-5 pb-28">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+            <a href="{% url 'home' %}" class="inline-flex items-center opacity-75 hover:opacity-100 transition-opacity" aria-label="Inicio">
+                <img src="{% static 'icon-512.png' %}" alt="Logo" class="w-5 h-5 rounded object-cover" width="20" height="20" />
+            </a>
+            <div class="flex flex-wrap justify-center gap-5 text-[11px] font-medium text-slate-400">
+                <a href="{% url 'terminos_condiciones' %}" class="hover:text-slate-600 transition-colors">Términos y Condiciones</a>
+                <a href="{% url 'aviso_privacidad' %}" class="hover:text-slate-600 transition-colors">Aviso de Privacidad</a>
+            </div>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script>
