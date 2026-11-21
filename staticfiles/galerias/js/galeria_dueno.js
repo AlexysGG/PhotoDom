@@ -485,4 +485,351 @@ function iniciarPollingVideosProcesando() {
 
 document.addEventListener('DOMContentLoaded', () => {
     iniciarPollingVideosProcesando();
+    inicializarTarjetaQR();
 });
+
+// ----------------------------------------------------
+// TARJETA DE INVITACIÓN QR VERTICAL (1080x1920 PX)
+// ----------------------------------------------------
+let presetQRActual = 'galeria';
+
+function obtenerEstilosPresetQR(preset) {
+    if (preset === 'claro') {
+        return {
+            bgTop: '#ffffff',
+            bgBottom: '#f1f5f9',
+            cardBg: '#ffffff',
+            cardBorder: 'rgba(148, 163, 184, 0.25)',
+            text: '#0f172a',
+            muted: '#64748b',
+            accent: '#4f46e5',
+            accentSoft: 'rgba(79, 70, 229, 0.1)',
+            qrBoxBg: '#ffffff',
+            qrBoxBorder: 'rgba(148, 163, 184, 0.28)'
+        };
+    }
+    if (preset === 'oscuro') {
+        return {
+            bgTop: '#0f172a',
+            bgBottom: '#1e293b',
+            cardBg: 'rgba(30, 41, 59, 0.72)',
+            cardBorder: 'rgba(255, 255, 255, 0.12)',
+            text: '#f8fafc',
+            muted: '#cbd5e1',
+            accent: '#fbbf24',
+            accentSoft: 'rgba(251, 191, 36, 0.16)',
+            qrBoxBg: '#ffffff',
+            qrBoxBorder: 'rgba(255, 255, 255, 0.2)'
+        };
+    }
+    if (preset === 'dorado') {
+        return {
+            bgTop: '#fcfbf7',
+            bgBottom: '#f5efe2',
+            cardBg: '#ffffff',
+            cardBorder: 'rgba(180, 83, 9, 0.18)',
+            text: '#292524',
+            muted: '#78716c',
+            accent: '#b45309',
+            accentSoft: 'rgba(180, 83, 9, 0.1)',
+            qrBoxBg: '#ffffff',
+            qrBoxBorder: 'rgba(180, 83, 9, 0.2)'
+        };
+    }
+
+    // Preset 'galeria': toma dinámicamente la paleta configurada del evento
+    const styles = getComputedStyle(document.body);
+    const bg = styles.getPropertyValue('--neu-bg').trim() || '#f8fafc';
+    const surface = styles.getPropertyValue('--neu-surface').trim() || '#ffffff';
+    const text = styles.getPropertyValue('--neu-text').trim() || '#0f172a';
+    const muted = styles.getPropertyValue('--neu-muted').trim() || '#64748b';
+    const accent = styles.getPropertyValue('--neu-primary').trim() || '#4f46e5';
+    const accentSoft = styles.getPropertyValue('--neu-primary-soft').trim() || 'rgba(79, 70, 229, 0.1)';
+    const border = styles.getPropertyValue('--neu-border').trim() || 'rgba(148, 163, 184, 0.24)';
+
+    return {
+        bgTop: bg,
+        bgBottom: bg,
+        cardBg: surface,
+        cardBorder: border,
+        text: text,
+        muted: muted,
+        accent: accent,
+        accentSoft: accentSoft,
+        qrBoxBg: '#ffffff',
+        qrBoxBorder: border
+    };
+}
+
+function dibujarRectanguloRedondeado(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function dibujarTextoMultilinea(ctx, texto, x, yInicial, maxAncho, altoLinea) {
+    const palabras = String(texto || '').split(/\s+/);
+    let linea = '';
+    const lineas = [];
+
+    for (let i = 0; i < palabras.length; i++) {
+        const prueba = linea ? `${linea} ${palabras[i]}` : palabras[i];
+        if (ctx.measureText(prueba).width > maxAncho && linea) {
+            lineas.push(linea);
+            linea = palabras[i];
+        } else {
+            linea = prueba;
+        }
+    }
+    if (linea) lineas.push(linea);
+
+    let y = yInicial;
+    for (const l of lineas) {
+        ctx.fillText(l, x, y);
+        y += altoLinea;
+    }
+    return y;
+}
+
+function renderizarTarjetaQR() {
+    const canvas = document.getElementById('qr-card-canvas');
+    const qrImg = document.getElementById('qr-source-img');
+    if (!canvas || !qrImg || !qrImg.complete || qrImg.naturalWidth === 0) return;
+
+    const ctx = canvas.getContext('2d');
+    const W = 1080;
+    const H = 1920;
+    const tema = obtenerEstilosPresetQR(presetQRActual);
+
+    // 1. Fondo vertical degradado
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, tema.bgTop);
+    grad.addColorStop(1, tema.bgBottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Detalles decorativos suaves en las esquinas
+    ctx.save();
+    ctx.fillStyle = tema.accentSoft;
+    ctx.beginPath();
+    ctx.arc(W * 0.9, H * 0.1, 260, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W * 0.12, H * 0.92, 220, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 2. Tarjeta central elegante
+    const cardX = 84;
+    const cardY = 140;
+    const cardW = W - 168;
+    const cardH = H - 280;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
+    ctx.shadowBlur = 48;
+    ctx.shadowOffsetY = 20;
+    dibujarRectanguloRedondeado(ctx, cardX, cardY, cardW, cardH, 56);
+    ctx.fillStyle = tema.cardBg;
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    dibujarRectanguloRedondeado(ctx, cardX, cardY, cardW, cardH, 56);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = tema.cardBorder;
+    ctx.stroke();
+    ctx.restore();
+
+    // 3. Insignia superior
+    const badgeW = 420;
+    const badgeH = 64;
+    const badgeX = (W - badgeW) / 2;
+    const badgeY = cardY + 90;
+    dibujarRectanguloRedondeado(ctx, badgeX, badgeY, badgeW, badgeH, 32);
+    ctx.fillStyle = tema.accentSoft;
+    ctx.fill();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = tema.accent;
+    ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillText('GALERÍA DE RECUERDOS', W / 2, badgeY + badgeH / 2 + 1);
+
+    // 4. Nombre del Evento
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = tema.text;
+    ctx.font = '700 74px "Fraunces", Georgia, serif';
+    const nombreEvento = window.EVENTO_NOMBRE || 'Nuestro Evento';
+    const yDespuesEvento = dibujarTextoMultilinea(ctx, nombreEvento, W / 2, badgeY + 120, cardW - 140, 90);
+
+    // 5. Nombre de los Clientes / Festejados y Fecha del Evento
+    const nombreCliente = window.EVENTO_CLIENTE || '';
+    let yDespuesCliente = yDespuesEvento + 18;
+    if (nombreCliente) {
+        ctx.fillStyle = tema.muted;
+        ctx.font = '600 36px "Plus Jakarta Sans", system-ui, sans-serif';
+        yDespuesCliente = dibujarTextoMultilinea(ctx, nombreCliente, W / 2, yDespuesEvento + 18, cardW - 160, 48);
+    }
+
+    const fechaEvento = window.EVENTO_FECHA || '';
+    if (fechaEvento) {
+        // Línea divisoria sutil
+        const divW = 120;
+        const divY = yDespuesCliente + 26;
+        ctx.save();
+        ctx.strokeStyle = tema.cardBorder;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo((W - divW) / 2, divY);
+        ctx.lineTo((W + divW) / 2, divY);
+        ctx.stroke();
+        ctx.restore();
+
+        // Fecha del evento en el espacio central
+        ctx.fillStyle = tema.accent;
+        ctx.font = '700 30px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillText(fechaEvento, W / 2, divY + 30);
+    }
+
+    // 6. Contenedor limpio con fondo claro y bordes redondeados para el QR
+    const qrBoxSize = 640;
+    const qrBoxX = (W - qrBoxSize) / 2;
+    const qrBoxY = 740;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.1)';
+    ctx.shadowBlur = 32;
+    ctx.shadowOffsetY = 12;
+    dibujarRectanguloRedondeado(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 44);
+    ctx.fillStyle = tema.qrBoxBg;
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    dibujarRectanguloRedondeado(ctx, qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 44);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = tema.qrBoxBorder;
+    ctx.stroke();
+    ctx.restore();
+
+    // Dibujar QR nítido centrado dentro del contenedor blanco
+    const qrPadding = 52;
+    const qrSize = qrBoxSize - qrPadding * 2;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(qrImg, qrBoxX + qrPadding, qrBoxY + qrPadding, qrSize, qrSize);
+    ctx.restore();
+
+    // 7. Llamado a la acción inferior
+    ctx.fillStyle = tema.accent;
+    ctx.font = '700 34px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillText('¡Comparte tus mejores momentos!', W / 2, qrBoxY + qrBoxSize + 85);
+
+    ctx.fillStyle = tema.muted;
+    ctx.font = '500 30px "Plus Jakarta Sans", system-ui, sans-serif';
+    dibujarTextoMultilinea(
+        ctx,
+        'Escanea el código para subir tus fotos y videos a nuestra galería',
+        W / 2,
+        qrBoxY + qrBoxSize + 148,
+        cardW - 180,
+        44
+    );
+}
+
+function seleccionarPresetQR(preset) {
+    presetQRActual = preset;
+
+    document.querySelectorAll('.qr-preset-btn').forEach(btn => {
+        if (btn.dataset.preset === preset) {
+            btn.classList.add('ring-2', 'ring-[color:var(--neu-primary)]');
+        } else {
+            btn.classList.remove('ring-2', 'ring-[color:var(--neu-primary)]');
+        }
+    });
+
+    renderizarTarjetaQR();
+}
+
+function inicializarTarjetaQR() {
+    const qrImg = document.getElementById('qr-source-img');
+    if (!qrImg) return;
+
+    const dibujarCuandoEsteListo = () => {
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(renderizarTarjetaQR);
+        } else {
+            renderizarTarjetaQR();
+        }
+    };
+
+    if (qrImg.complete && qrImg.naturalWidth > 0) {
+        dibujarCuandoEsteListo();
+    } else {
+        qrImg.addEventListener('load', dibujarCuandoEsteListo);
+    }
+}
+
+function obtenerNombreArchivoQR() {
+    const limpio = (window.EVENTO_NOMBRE || 'evento')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gi, '_')
+        .replace(/^_+|_+$/g, '');
+    return `invitacion_qr_${limpio || 'evento'}.png`;
+}
+
+function descargarTarjetaQR() {
+    const canvas = document.getElementById('qr-card-canvas');
+    if (!canvas) return;
+
+    const enlace = document.createElement('a');
+    enlace.download = obtenerNombreArchivoQR();
+    enlace.href = canvas.toDataURL('image/png');
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+}
+
+async function compartirTarjetaQR() {
+    const canvas = document.getElementById('qr-card-canvas');
+    if (!canvas) return;
+
+    renderizarTarjetaQR();
+
+    const btn = document.getElementById('btn-compartir-qr');
+    if (btn) btn.disabled = true;
+
+    try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) {
+            descargarTarjetaQR();
+            return;
+        }
+
+        const nombreArchivo = obtenerNombreArchivoQR();
+        const archivo = new File([blob], nombreArchivo, { type: 'image/png' });
+        const datosCompartir = {
+            files: [archivo],
+            title: window.EVENTO_NOMBRE || 'Invitación a la galería',
+            text: `Escanea este código QR para subir tus fotos a ${window.EVENTO_NOMBRE || 'nuestra galería'}.`
+        };
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [archivo] })) {
+            await navigator.share(datosCompartir);
+        } else {
+            descargarTarjetaQR();
+        }
+    } catch (error) {
+        if (error && error.name === 'AbortError') {
+            return;
+        }
+        descargarTarjetaQR();
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}

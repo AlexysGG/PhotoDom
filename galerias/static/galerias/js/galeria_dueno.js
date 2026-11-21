@@ -667,12 +667,33 @@ function renderizarTarjetaQR() {
     const nombreEvento = window.EVENTO_NOMBRE || 'Nuestro Evento';
     const yDespuesEvento = dibujarTextoMultilinea(ctx, nombreEvento, W / 2, badgeY + 120, cardW - 140, 90);
 
-    // 5. Nombre de los Clientes / Festejados
+    // 5. Nombre de los Clientes / Festejados y Fecha del Evento
     const nombreCliente = window.EVENTO_CLIENTE || '';
+    let yDespuesCliente = yDespuesEvento + 18;
     if (nombreCliente) {
         ctx.fillStyle = tema.muted;
         ctx.font = '600 36px "Plus Jakarta Sans", system-ui, sans-serif';
-        dibujarTextoMultilinea(ctx, nombreCliente, W / 2, yDespuesEvento + 18, cardW - 160, 48);
+        yDespuesCliente = dibujarTextoMultilinea(ctx, nombreCliente, W / 2, yDespuesEvento + 18, cardW - 160, 48);
+    }
+
+    const fechaEvento = window.EVENTO_FECHA || '';
+    if (fechaEvento) {
+        // Línea divisoria sutil
+        const divW = 120;
+        const divY = yDespuesCliente + 26;
+        ctx.save();
+        ctx.strokeStyle = tema.cardBorder;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo((W - divW) / 2, divY);
+        ctx.lineTo((W + divW) / 2, divY);
+        ctx.stroke();
+        ctx.restore();
+
+        // Fecha del evento en el espacio central
+        ctx.fillStyle = tema.accent;
+        ctx.font = '700 30px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillText(fechaEvento, W / 2, divY + 30);
     }
 
     // 6. Contenedor limpio con fondo claro y bordes redondeados para el QR

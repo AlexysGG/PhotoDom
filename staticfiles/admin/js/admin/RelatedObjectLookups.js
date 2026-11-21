@@ -263,8 +263,7 @@
     setPopupIndex();
     $("a[data-popup-opener]").on("click", function (event) {
       event.preventDefault();
-      // !CHANGED not needed when displayed in a popup
-      // opener.dismissRelatedLookupPopup(window, $(this).data("popup-opener"));
+      opener.dismissRelatedLookupPopup(window, $(this).data("popup-opener"));
     });
     $("body").on(
       "click",
