@@ -344,24 +344,73 @@
             {% endfor %}
         </div>
 
-        <!-- SECCIÓN DE CÓDIGO QR -->
-        <section class="neu-flat p-7 rounded-3xl text-center max-w-sm mx-auto mt-10 mb-4">
-            <h3 class="font-display text-xl text-[color:var(--neu-text)] mb-1">Código QR de Invitados</h3>
-            <p class="text-xs font-medium mb-5" style="color: var(--neu-muted);">Descarga y comparte este código QR para que tus invitados suban sus fotos.</p>
-
-            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl inline-block mb-5 shadow-sm">
-                {% if qr_base64 %}
-                <img src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR del Evento" class="w-48 h-48 mx-auto">
-                {% else %}
-                <p class="text-xs text-red-500 font-bold p-4">No se pudo generar el QR</p>
-                {% endif %}
-            </div>
+        <!-- SECCIÓN DE CÓDIGO QR / TARJETA DE INVITACIÓN 9:16 -->
+        <section class="neu-flat p-6 sm:p-8 rounded-3xl text-center max-w-md mx-auto mt-10 mb-4">
+            <span class="neu-chip mb-2.5">Invitación lista para compartir</span>
+            <h3 class="font-display text-2xl text-[color:var(--neu-text)] mb-1">Código QR de Invitados</h3>
+            <p class="text-xs font-medium mb-5" style="color: var(--neu-muted);">
+                Elige un estilo y comparte tu tarjeta vertical (1080×1920 px) en historias, estados o WhatsApp.
+            </p>
 
             {% if qr_base64 %}
-            <a href="data:image/png;base64,{{ qr_base64 }}" download="QR_{{ evento.nombre_evento }}.png"
-                class="neu-btn-primary block w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-center">
-                Descargar QR
-            </a>
+            <!-- Selector visual de Presets -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5" id="qr-presets-selector" role="radiogroup" aria-label="Estilo de tarjeta QR">
+                <button type="button" data-preset="galeria" onclick="seleccionarPresetQR('galeria')"
+                    class="qr-preset-btn neu-button px-2.5 py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1.5 transition-all ring-2 ring-[color:var(--neu-primary)]">
+                    <span class="w-5 h-5 rounded-full border border-slate-300 shadow-inner"
+                        style="background: linear-gradient(135deg, var(--neu-bg) 50%, var(--neu-primary) 50%);"></span>
+                    <span class="leading-tight">Tu Galería</span>
+                </button>
+                <button type="button" data-preset="claro" onclick="seleccionarPresetQR('claro')"
+                    class="qr-preset-btn neu-button px-2.5 py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1.5 transition-all">
+                    <span class="w-5 h-5 rounded-full border border-slate-300 shadow-inner"
+                        style="background: linear-gradient(135deg, #ffffff 55%, #4f46e5 55%);"></span>
+                    <span class="leading-tight">Minimal Claro</span>
+                </button>
+                <button type="button" data-preset="oscuro" onclick="seleccionarPresetQR('oscuro')"
+                    class="qr-preset-btn neu-button px-2.5 py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1.5 transition-all">
+                    <span class="w-5 h-5 rounded-full border border-slate-600 shadow-inner"
+                        style="background: linear-gradient(135deg, #0f172a 55%, #fbbf24 55%);"></span>
+                    <span class="leading-tight">Elegante Oscuro</span>
+                </button>
+                <button type="button" data-preset="dorado" onclick="seleccionarPresetQR('dorado')"
+                    class="qr-preset-btn neu-button px-2.5 py-2 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1.5 transition-all">
+                    <span class="w-5 h-5 rounded-full border border-amber-300 shadow-inner"
+                        style="background: linear-gradient(135deg, #fcfbf7 55%, #b45309 55%);"></span>
+                    <span class="leading-tight">Marfil Dorado</span>
+                </button>
+            </div>
+
+            <!-- Vista previa en tiempo real (9:16) -->
+            <div class="mx-auto mb-6 w-full max-w-[250px] aspect-[9/16] rounded-2xl overflow-hidden shadow-xl border" style="border-color: var(--neu-border);">
+                <canvas id="qr-card-canvas" width="1080" height="1920" class="w-full h-full block"></canvas>
+            </div>
+
+            <!-- Fuente oculta del QR en Base64 para evitar CORS / Tainted Canvas -->
+            <img id="qr-source-img" src="data:image/png;base64,{{ qr_base64 }}" alt="Código QR del Evento" class="hidden" />
+
+            <!-- Botón Principal: Compartir Nativo (Web Share API + Fallback) -->
+            <button type="button" id="btn-compartir-qr" onclick="compartirTarjetaQR()"
+                class="neu-btn-primary w-full py-3.5 px-5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
+                </svg>
+                <span>Compartir Invitación QR</span>
+            </button>
+
+            <!-- Botón Secundario Discreto: Solo Descargar -->
+            <button type="button" onclick="descargarTarjetaQR()"
+                class="mt-2.5 w-full py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:underline"
+                style="color: var(--neu-muted);">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span>Descargar imagen (1080×1920 px)</span>
+            </button>
+            {% else %}
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                <p class="text-xs text-red-500 font-bold">No se pudo generar el QR</p>
+            </div>
             {% endif %}
         </section>
     </main>
@@ -445,6 +494,8 @@
     <script>
         window.PIN_CORRECTO = "{{ evento.pin_dueno }}";
         window.EVENTO_ID = "{{ evento.id }}";
+        window.EVENTO_NOMBRE = "{{ evento.nombre_evento|escapejs }}";
+        window.EVENTO_CLIENTE = "{{ evento.nombre_cliente|escapejs }}";
         window.DESCARGAS_RESTANTES = {{ evento.descargas_zip_restantes }};
         window.TOTAL_ARCHIVOS = {{ total_archivos }};
 
